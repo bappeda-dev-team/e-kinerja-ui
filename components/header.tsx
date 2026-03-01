@@ -32,7 +32,7 @@ const roleConfig: Record<
 > = {
   super_admin: {
     label: "Super Admin",
-    className: "bg-red-600 text-white",
+    className: "bg-purple-600 text-white",
   },
   admin: {
     label: "Admin",

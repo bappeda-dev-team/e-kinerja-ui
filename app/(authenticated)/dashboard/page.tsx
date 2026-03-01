@@ -77,7 +77,7 @@ export default function DashboardPage() {
         <CardContent>
           <div className="overflow-x-auto">
             <table className="w-full text-sm">
-              <thead>
+              <thead className="bg-muted">
                 <tr className="text-left text-muted-foreground border-b">
                   <th className="py-2">Pemda</th>
                   <th>Aplikasi</th>

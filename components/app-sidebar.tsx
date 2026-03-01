@@ -20,6 +20,7 @@ import {
   Building2,
   AppWindow,
   FileText,
+  FileCheck,
   Send,
   ClipboardCheck,
   ChevronLeft,
@@ -196,6 +197,21 @@ export function AppSidebar() {
             </SidebarMenuButton>
           </SidebarMenuItem>
 
+        {/* 6️⃣ Verifikasi Laporan */}
+          <SidebarMenuItem>
+            <SidebarMenuButton
+              asChild
+              isActive={isActive("/verifikasi-laporan")}
+            >
+              <Link
+                href="/verifikasi-laporan"
+                className="flex items-center gap-2"
+              >
+                <FileCheck className="h-5 w-5" />
+                {!collapsed && "Verifikasi Laporan"}
+              </Link>
+            </SidebarMenuButton>
+          </SidebarMenuItem>
         </SidebarMenu>
       </SidebarContent>
 

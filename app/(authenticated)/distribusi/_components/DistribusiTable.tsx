@@ -1,10 +1,11 @@
-'use client'
+"use client"
 
 import * as React from "react"
 import {
   ColumnDef,
   flexRender,
   getCoreRowModel,
+  getPaginationRowModel,
   useReactTable,
 } from "@tanstack/react-table"
 
@@ -29,38 +30,54 @@ import {
 } from "@/components/ui/alert-dialog"
 
 import { Button } from "@/components/ui/button"
-import type { MasterAplikasiItem } from "./MasterAplikasiClient"
+import { Badge } from "@/components/ui/badge"
+import type { DistribusiItem } from "./DistribusiClient"
 
 interface Props {
-  data: MasterAplikasiItem[]
-  onEdit: (id: string) => void
+  data: DistribusiItem[]
   onDelete: (id: string) => void
+  onEdit: (item: DistribusiItem) => void
 }
 
-export default function MasterAplikasiTable({
+export default function DistribusiTable({
   data,
-  onEdit,
   onDelete,
+  onEdit,
 }: Props) {
 
-  const [deleteId, setDeleteId] = React.useState<string | null>(null)
+  const [deleteId, setDeleteId] =
+    React.useState<string | null>(null)
 
-  const columns: ColumnDef<MasterAplikasiItem>[] = [
+  const [pagination, setPagination] = React.useState({
+    pageIndex: 0,
+    pageSize: 10,
+  })
+
+  const columns: ColumnDef<DistribusiItem>[] = [
     {
       header: "No",
-      cell: ({ row }) => row.index + 1,
+      cell: ({ row, table }) => {
+        const { pageIndex, pageSize } =
+          table.getState().pagination
+        return pageIndex * pageSize + row.index + 1
+      },
     },
+    { accessorKey: "pemda", header: "Pemda" },
+    { accessorKey: "menu", header: "Menu" },
     {
-      accessorKey: "nama_aplikasi",
-      header: "Nama Aplikasi",
+      header: "Pelaksana",
+      cell: ({ row }) =>
+        row.original.pelaksana.join(", "),
     },
+    { accessorKey: "komentar_admin", header: "Komentar Admin" },
+    { accessorKey: "deadline", header: "Deadline" },
     {
-      accessorKey: "versi",
-      header: "Versi",
-    },
-    {
-      accessorKey: "deskripsi",
-      header: "Deskripsi",
+      header: "Status",
+      cell: ({ row }) => (
+        <Badge variant="secondary">
+          {row.original.status}
+        </Badge>
+      ),
     },
     {
       header: "Aksi",
@@ -69,15 +86,16 @@ export default function MasterAplikasiTable({
           <Button
             size="sm"
             variant="outline"
-            onClick={() => onEdit(row.original.id)}
+            onClick={() => onEdit(row.original)}
           >
             Edit
           </Button>
-
           <Button
             size="sm"
             variant="destructive"
-            onClick={() => setDeleteId(row.original.id)}
+            onClick={() =>
+              setDeleteId(row.original.id)
+            }
           >
             Hapus
           </Button>
@@ -89,14 +107,22 @@ export default function MasterAplikasiTable({
   const table = useReactTable({
     data,
     columns,
+    state: { pagination },
+    onPaginationChange: setPagination,
     getCoreRowModel: getCoreRowModel(),
+    getPaginationRowModel: getPaginationRowModel(),
   })
 
   return (
-    <>
+    <div className="space-y-4">
+
+      <h3 className="text-lg font-medium">
+        Sudah Didistribusikan
+      </h3>
+
       <div className="rounded-md border">
         <Table>
-          <TableHeader className= "bg-muted">
+          <TableHeader className="bg-muted">
             {table.getHeaderGroups().map(headerGroup => (
               <TableRow key={headerGroup.id}>
                 {headerGroup.headers.map(header => (
@@ -128,7 +154,31 @@ export default function MasterAplikasiTable({
         </Table>
       </div>
 
-      {/* 🚨 ALERT DELETE */}
+      <div className="flex justify-between text-sm">
+        <div>
+          Page {pagination.pageIndex + 1} of {table.getPageCount()}
+        </div>
+        <div className="space-x-2">
+          <Button
+            size="sm"
+            variant="outline"
+            onClick={() => table.previousPage()}
+            disabled={!table.getCanPreviousPage()}
+          >
+            Previous
+          </Button>
+          <Button
+            size="sm"
+            variant="outline"
+            onClick={() => table.nextPage()}
+            disabled={!table.getCanNextPage()}
+          >
+            Next
+          </Button>
+        </div>
+      </div>
+
+      {/* ALERT DELETE */}
       <AlertDialog
         open={!!deleteId}
         onOpenChange={(open) => {
@@ -138,10 +188,10 @@ export default function MasterAplikasiTable({
         <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle>
-              Yakin ingin menghapus aplikasi ini?
+              Yakin ingin menghapus?
             </AlertDialogTitle>
             <AlertDialogDescription>
-              Data yang sudah dihapus tidak dapat dikembalikan.
+              Data distribusi akan dihapus permanen.
             </AlertDialogDescription>
           </AlertDialogHeader>
 
@@ -149,7 +199,6 @@ export default function MasterAplikasiTable({
             <AlertDialogCancel>
               Batal
             </AlertDialogCancel>
-
             <AlertDialogAction
               onClick={() => {
                 if (deleteId) {
@@ -157,13 +206,14 @@ export default function MasterAplikasiTable({
                   setDeleteId(null)
                 }
               }}
-              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+              className="bg-destructive text-destructive-foreground"
             >
               Hapus
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
-    </>
+
+    </div>
   )
 }
