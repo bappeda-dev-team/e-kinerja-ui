@@ -1,13 +1,17 @@
-'use client'
+"use client"
 
 import * as React from "react"
-
 import {
   ColumnDef,
   flexRender,
   getCoreRowModel,
   getPaginationRowModel,
+  getSortedRowModel,
+  getFilteredRowModel,
   useReactTable,
+  SortingState,
+  ColumnFiltersState,
+  VisibilityState,
 } from "@tanstack/react-table"
 
 import {
@@ -33,21 +37,31 @@ import {
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 
-import type { MasterPemdaItem } from "./MasterPemdaClient"
+import {
+  ArrowUp,
+  ArrowDown,
+} from "lucide-react"
+
+import type { MasterUserItem } from "./MasterUserClient"
 
 interface Props {
-  data: MasterPemdaItem[]
+  data: MasterUserItem[]
   onEdit: (id: string) => void
   onDelete: (id: string) => void
 }
 
-export default function MasterPemdaTable({
+export default function MasterUserTable({
   data,
   onEdit,
   onDelete,
 }: Props) {
 
-  const [filter, setFilter] = React.useState("")
+  const [sorting, setSorting] = React.useState<SortingState>([])
+  const [columnFilters, setColumnFilters] =
+    React.useState<ColumnFiltersState>([])
+  const [columnVisibility, setColumnVisibility] =
+    React.useState<VisibilityState>({})
+  const [globalFilter, setGlobalFilter] = React.useState("")
   const [deleteId, setDeleteId] = React.useState<string | null>(null)
 
   const [pagination, setPagination] = React.useState({
@@ -55,30 +69,43 @@ export default function MasterPemdaTable({
     pageSize: 10,
   })
 
-  const filteredData = React.useMemo(() => {
-
-    return data.filter(item =>
-      item.nama_pemda
-        .toLowerCase()
-        .includes(filter.toLowerCase())
-    )
-
-  }, [data, filter])
-
-  const columns: ColumnDef<MasterPemdaItem>[] = [
+  const columns: ColumnDef<MasterUserItem>[] = [
 
     {
+      id: "no",
       header: "No",
-      cell: ({ row, table }) =>
-        table.getState().pagination.pageIndex *
-        table.getState().pagination.pageSize +
-        row.index +
-        1,
+      cell: ({ row, table }) => {
+        const { pageIndex, pageSize } = table.getState().pagination
+        return pageIndex * pageSize + row.index + 1
+      },
     },
 
     {
-      accessorKey: "nama_pemda",
-      header: "Nama Pemda",
+      accessorKey: "username",
+      header: ({ column }) => (
+        <HeaderSort column={column} title="Username" />
+      ),
+    },
+
+    {
+      accessorKey: "full_name",
+      header: ({ column }) => (
+        <HeaderSort column={column} title="Full Name" />
+      ),
+    },
+
+    {
+      accessorKey: "role",
+      header: ({ column }) => (
+        <HeaderSort column={column} title="Role" />
+      ),
+    },
+
+    {
+      accessorKey: "active",
+      header: "Active",
+      cell: ({ row }) =>
+        row.original.active ? "Yes" : "No",
     },
 
     {
@@ -92,6 +119,7 @@ export default function MasterPemdaTable({
     },
 
     {
+      id: "aksi",
       header: "Aksi",
       cell: ({ row }) => (
 
@@ -121,23 +149,39 @@ export default function MasterPemdaTable({
   ]
 
   const table = useReactTable({
-    data: filteredData,
+    data,
     columns,
-    state: { pagination },
+    state: {
+      sorting,
+      columnFilters,
+      columnVisibility,
+      globalFilter,
+      pagination,
+    },
+    onSortingChange: setSorting,
+    onColumnFiltersChange: setColumnFilters,
+    onColumnVisibilityChange: setColumnVisibility,
+    onGlobalFilterChange: setGlobalFilter,
     onPaginationChange: setPagination,
     getCoreRowModel: getCoreRowModel(),
     getPaginationRowModel: getPaginationRowModel(),
+    getSortedRowModel: getSortedRowModel(),
+    getFilteredRowModel: getFilteredRowModel(),
   })
 
   return (
 
     <div className="space-y-4">
 
+      {/* SEARCH */}
+
       <Input
-        placeholder="Cari nama pemda..."
-        value={filter}
-        onChange={(e) => setFilter(e.target.value)}
+        placeholder="Cari username / nama / role..."
+        value={globalFilter ?? ""}
+        onChange={(e) => setGlobalFilter(e.target.value)}
       />
+
+      {/* TABLE */}
 
       <div className="rounded-md border">
 
@@ -197,7 +241,9 @@ export default function MasterPemdaTable({
 
       </div>
 
-      <div className="flex items-center justify-between text-sm text-muted-foreground">
+      {/* PAGINATION */}
+
+      <div className="flex items-center justify-between text-sm">
 
         <div>
           Page {pagination.pageIndex + 1} of {table.getPageCount()}
@@ -206,8 +252,8 @@ export default function MasterPemdaTable({
         <div className="space-x-2">
 
           <Button
-            variant="outline"
             size="sm"
+            variant="outline"
             onClick={() => table.previousPage()}
             disabled={!table.getCanPreviousPage()}
           >
@@ -215,8 +261,8 @@ export default function MasterPemdaTable({
           </Button>
 
           <Button
-            variant="outline"
             size="sm"
+            variant="outline"
             onClick={() => table.nextPage()}
             disabled={!table.getCanNextPage()}
           >
@@ -227,11 +273,11 @@ export default function MasterPemdaTable({
 
       </div>
 
+      {/* DELETE CONFIRM */}
+
       <AlertDialog
         open={!!deleteId}
-        onOpenChange={(open) => {
-          if (!open) setDeleteId(null)
-        }}
+        onOpenChange={() => setDeleteId(null)}
       >
 
         <AlertDialogContent>
@@ -239,31 +285,26 @@ export default function MasterPemdaTable({
           <AlertDialogHeader>
 
             <AlertDialogTitle>
-              Yakin ingin menghapus data ini?
+              Hapus user ini?
             </AlertDialogTitle>
 
             <AlertDialogDescription>
-              Data yang sudah dihapus tidak dapat dikembalikan.
+              Data tidak bisa dikembalikan.
             </AlertDialogDescription>
 
           </AlertDialogHeader>
 
           <AlertDialogFooter>
 
-            <AlertDialogCancel>
-              Batal
-            </AlertDialogCancel>
+            <AlertDialogCancel>Batal</AlertDialogCancel>
 
             <AlertDialogAction
               onClick={() => {
-
                 if (deleteId) {
                   onDelete(deleteId)
                   setDeleteId(null)
                 }
-
               }}
-              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
             >
               Hapus
             </AlertDialogAction>
@@ -275,5 +316,35 @@ export default function MasterPemdaTable({
       </AlertDialog>
 
     </div>
+
+  )
+}
+
+
+/* SORT HEADER */
+
+function HeaderSort({ column, title }: any) {
+
+  return (
+
+    <div
+      onClick={() =>
+        column.toggleSorting(column.getIsSorted() === "asc")
+      }
+      className="flex items-center gap-1 cursor-pointer"
+    >
+
+      {title}
+
+      {column.getIsSorted() === "asc" && (
+        <ArrowUp className="h-4 w-4" />
+      )}
+
+      {column.getIsSorted() === "desc" && (
+        <ArrowDown className="h-4 w-4" />
+      )}
+
+    </div>
+
   )
 }

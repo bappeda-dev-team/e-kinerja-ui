@@ -15,66 +15,91 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 
-import type { MasterAplikasiItem } from "../MasterAplikasiClient"
+import type { MasterRolesItem } from "../MasterRolesClient"
 
 interface Props {
-  data: MasterAplikasiItem
+  data: MasterRolesItem
   onClose: () => void
-  onSave: (data: MasterAplikasiItem) => void
+  onSave: (data: MasterRolesItem) => void
 }
 
-export default function EditMasterAplikasi({
+export default function EditMasterRoles({
   data,
   onClose,
   onSave,
 }: Props) {
 
-  const [nama, setNama] = useState(data.nama_aplikasi)
+  const [name, setName] = useState(data.name)
+  const [description, setDescription] = useState(data.description)
 
   const handleSubmit = () => {
 
-    if (!nama.trim()) {
-      toast.error("Nama aplikasi wajib diisi!")
+    if (!name.trim() || !description.trim()) {
+      toast.error("Semua field wajib diisi!")
       return
     }
 
     onSave({
       id: data.id,
-      nama_aplikasi: nama,
+      name,
+      description,
       created_at: data.created_at,
       updated_at: new Date().toISOString(),
     })
 
-    
+    toast.success("Role berhasil diperbarui")
 
     onClose()
   }
 
   return (
+
     <Dialog open onOpenChange={onClose}>
+
       <DialogContent>
 
         <DialogHeader>
-          <DialogTitle>Edit Aplikasi</DialogTitle>
+          <DialogTitle>Edit Role</DialogTitle>
         </DialogHeader>
 
         <div className="space-y-6">
 
+          {/* NAMA ROLE */}
           <div>
 
             <Label className="uppercase text-xs font-semibold">
-              Nama Aplikasi :
+              Nama Role :
             </Label>
 
             <div className="mt-2">
               <Input
-                value={nama}
-                onChange={(e) => setNama(e.target.value)}
+                value={name}
+                onChange={(e) => setName(e.target.value)}
               />
             </div>
 
             <p className="text-xs text-muted-foreground mt-1">
-              *Nama aplikasi harus terisi
+              *Nama role harus terisi
+            </p>
+
+          </div>
+
+          {/* DESKRIPSI */}
+          <div>
+
+            <Label className="uppercase text-xs font-semibold">
+              Deskripsi :
+            </Label>
+
+            <div className="mt-2">
+              <Input
+                value={description}
+                onChange={(e) => setDescription(e.target.value)}
+              />
+            </div>
+
+            <p className="text-xs text-muted-foreground mt-1">
+              *Deskripsi role harus terisi
             </p>
 
           </div>
@@ -83,7 +108,10 @@ export default function EditMasterAplikasi({
 
         <DialogFooter>
 
-          <Button variant="outline" onClick={onClose}>
+          <Button
+            variant="outline"
+            onClick={onClose}
+          >
             Batal
           </Button>
 
@@ -94,6 +122,7 @@ export default function EditMasterAplikasi({
         </DialogFooter>
 
       </DialogContent>
+
     </Dialog>
   )
 }

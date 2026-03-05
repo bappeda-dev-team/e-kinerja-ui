@@ -7,6 +7,8 @@ import { SidebarProvider, SidebarInset } from "@/components/ui/sidebar"
 import { AppSidebar } from "@/components/app-sidebar"
 import { Header } from "@/components/header"
 
+import { Toaster } from "sonner" // ✅ tambahin ini
+
 /* =========================
    Fonts
 ========================= */
@@ -75,6 +77,15 @@ export default function RootLayout({
 
           </div>
         </SidebarProvider>
+
+        {/* ✅ SONNER TOASTER (WAJIB ADA) */}
+        <Toaster
+          position="top-center"
+          richColors
+          closeButton
+          expand={true}
+        />
+
       </body>
     </html>
   )
