@@ -1,6 +1,6 @@
 "use client"
 
-import type { LaporanKinerjaItem } from "../LaporanKinerjaClient"
+import type { LaporanKinerjaItem } from "../../data"
 import AddLaporanKinerja from "./AddLaporanKinerja"
 
 interface Props {

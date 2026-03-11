@@ -1,6 +1,5 @@
 "use client"
 
-import { Badge } from "@/components/ui/badge"
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -15,7 +14,7 @@ import {
   AvatarImage,
 } from "@/components/ui/avatar"
 
-import { Settings, LogOut, User } from "lucide-react"
+import { Settings, LogOut, User, Bell, ChevronDown } from "lucide-react"
 
 type UserRole = "super_admin" | "admin" | "level1" | "level2"
 
@@ -73,19 +72,30 @@ export function Header({
       {/* RIGHT */}
       <div className="flex items-center gap-4">
 
-        <Badge className={roleData.className}>
-          {roleData.label}
-        </Badge>
+        {/* Notification Bell */}
+        <button className="relative rounded-full p-1 hover:bg-muted focus:outline-none focus:ring-2 focus:ring-primary">
+          <Bell className="h-5 w-5 text-muted-foreground" />
+          <span className="absolute -top-1 -right-1 flex h-4 w-4 items-center justify-center rounded-full bg-red-500 text-[10px] font-bold text-white">
+            6
+          </span>
+        </button>
 
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
-            <button className="rounded-full focus:outline-none focus:ring-2 focus:ring-primary">
+            <button className="flex items-center gap-2 rounded-full focus:outline-none focus:ring-2 focus:ring-primary">
               <Avatar className="h-9 w-9 cursor-pointer">
                 <AvatarImage src={avatarUrl} />
                 <AvatarFallback>
                   {initials}
                 </AvatarFallback>
               </Avatar>
+              <div className="flex flex-col items-start leading-tight">
+                <span className="text-sm font-medium">{userName}</span>
+                <span className={`inline-flex items-center rounded px-1.5 py-0 text-[11px] font-semibold ${roleData.className}`}>
+                  {roleData.label}
+                </span>
+              </div>
+              <ChevronDown className="h-4 w-4 text-muted-foreground" />
             </button>
           </DropdownMenuTrigger>
 

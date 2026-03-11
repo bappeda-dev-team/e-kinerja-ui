@@ -27,7 +27,7 @@ import { X } from "lucide-react"
 
 import { toast } from "sonner"
 
-import type { LaporanKinerjaItem } from "../LaporanKinerjaClient"
+import type { LaporanKinerjaItem } from "../../data"
 
 interface Props {
   open: boolean
