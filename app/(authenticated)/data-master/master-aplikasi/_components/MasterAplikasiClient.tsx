@@ -20,11 +20,30 @@ export default function MasterAplikasiClient() {
   const today = new Date().toISOString().slice(0,10)
 
   const [data, setData] = useState<MasterAplikasiItem[]>([
-    { id:"1", nama_aplikasi:"E-Kinerja", created_at:today, updated_at:today },
-    { id:"2", nama_aplikasi:"E-Planning", created_at:today, updated_at:today },
-    { id:"3", nama_aplikasi:"E-Budgeting", created_at:today, updated_at:today },
-    { id:"4", nama_aplikasi:"E-Absensi", created_at:today, updated_at:today },
-    { id:"5", nama_aplikasi:"E-Office", created_at:today, updated_at:today },
+    { id: "1",  nama_aplikasi: "E-Kinerja",          created_at: today, updated_at: today },
+    { id: "2",  nama_aplikasi: "E-Budgeting",         created_at: today, updated_at: today },
+    { id: "3",  nama_aplikasi: "Kertas Kerja v1",     created_at: today, updated_at: today },
+    { id: "4",  nama_aplikasi: "Kertas Kerja Revamp", created_at: today, updated_at: today },
+    { id: "5",  nama_aplikasi: "E-Planning",          created_at: today, updated_at: today },
+    { id: "6",  nama_aplikasi: "E-Absensi",           created_at: today, updated_at: today },
+    { id: "7",  nama_aplikasi: "E-Office",            created_at: today, updated_at: today },
+    { id: "8",  nama_aplikasi: "Data Kinerja",        created_at: today, updated_at: today },
+    { id: "9",  nama_aplikasi: "Pohon Kinerja",       created_at: today, updated_at: today },
+    { id: "10", nama_aplikasi: "Pengajuan KTA",       created_at: today, updated_at: today },
+    { id: "11", nama_aplikasi: "E-KAK",               created_at: today, updated_at: today },
+    { id: "12", nama_aplikasi: "Tower Data",          created_at: today, updated_at: today },
+    { id: "13", nama_aplikasi: "E-Monev",             created_at: today, updated_at: today },
+    { id: "14", nama_aplikasi: "E-Sakip",             created_at: today, updated_at: today },
+    { id: "15", nama_aplikasi: "E-Audit",             created_at: today, updated_at: today },
+    { id: "16", nama_aplikasi: "E-Procurement",       created_at: today, updated_at: today },
+    { id: "17", nama_aplikasi: "E-Perizinan",         created_at: today, updated_at: today },
+    { id: "18", nama_aplikasi: "E-Retribusi",         created_at: today, updated_at: today },
+    { id: "19", nama_aplikasi: "E-PAD",               created_at: today, updated_at: today },
+    { id: "20", nama_aplikasi: "Sistem Informasi ASN",created_at: today, updated_at: today },
+    { id: "21", nama_aplikasi: "E-Diklat",            created_at: today, updated_at: today },
+    { id: "22", nama_aplikasi: "E-Mutasi",            created_at: today, updated_at: today },
+    { id: "23", nama_aplikasi: "E-Disiplin",          created_at: today, updated_at: today },
+    { id: "24", nama_aplikasi: "Portal Layanan",      created_at: today, updated_at: today },
   ])
 
   const [showAdd, setShowAdd] = useState(false)

@@ -1,27 +1,22 @@
 "use client"
 
 import * as React from "react"
-import {
-  ColumnDef,
-  flexRender,
-  getCoreRowModel,
-  getPaginationRowModel,
-  getSortedRowModel,
-  getFilteredRowModel,
-  useReactTable,
-  SortingState,
-  ColumnFiltersState,
-  VisibilityState,
-} from "@tanstack/react-table"
+import { MoreHorizontal, Pencil, Trash2, User } from "lucide-react"
 
 import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table"
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu"
+
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select"
 
 import {
   AlertDialog,
@@ -35,12 +30,6 @@ import {
 } from "@/components/ui/alert-dialog"
 
 import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-
-import {
-  ArrowUp,
-  ArrowDown,
-} from "lucide-react"
 
 import type { MasterUserItem } from "./MasterUserClient"
 
@@ -50,301 +39,148 @@ interface Props {
   onDelete: (id: string) => void
 }
 
-export default function MasterUserTable({
-  data,
-  onEdit,
-  onDelete,
-}: Props) {
+const PAGE_SIZE_OPTIONS = [12, 24, 48]
 
-  const [sorting, setSorting] = React.useState<SortingState>([])
-  const [columnFilters, setColumnFilters] =
-    React.useState<ColumnFiltersState>([])
-  const [columnVisibility, setColumnVisibility] =
-    React.useState<VisibilityState>({})
-  const [globalFilter, setGlobalFilter] = React.useState("")
+export default function MasterUserTable({ data, onEdit, onDelete }: Props) {
+
+  const [pageSize, setPageSize] = React.useState(12)
+  const [pageIndex, setPageIndex] = React.useState(0)
   const [deleteId, setDeleteId] = React.useState<string | null>(null)
 
-  const [pagination, setPagination] = React.useState({
-    pageIndex: 0,
-    pageSize: 10,
-  })
+  const totalPages = Math.max(1, Math.ceil(data.length / pageSize))
 
-  const columns: ColumnDef<MasterUserItem>[] = [
+  const paginatedData = React.useMemo(() => {
+    const start = pageIndex * pageSize
+    return data.slice(start, start + pageSize)
+  }, [data, pageIndex, pageSize])
 
-    {
-      id: "no",
-      header: "No",
-      cell: ({ row, table }) => {
-        const { pageIndex, pageSize } = table.getState().pagination
-        return pageIndex * pageSize + row.index + 1
-      },
-    },
-
-    {
-      accessorKey: "username",
-      header: ({ column }) => (
-        <HeaderSort column={column} title="Username" />
-      ),
-    },
-
-    {
-      accessorKey: "full_name",
-      header: ({ column }) => (
-        <HeaderSort column={column} title="Full Name" />
-      ),
-    },
-
-    {
-      accessorKey: "role",
-      header: ({ column }) => (
-        <HeaderSort column={column} title="Role" />
-      ),
-    },
-
-    {
-      accessorKey: "active",
-      header: "Active",
-      cell: ({ row }) =>
-        row.original.active ? "Yes" : "No",
-    },
-
-    {
-      accessorKey: "created_at",
-      header: "Created At",
-    },
-
-    {
-      accessorKey: "updated_at",
-      header: "Updated At",
-    },
-
-    {
-      id: "aksi",
-      header: "Aksi",
-      cell: ({ row }) => (
-
-        <div className="flex gap-2">
-
-          <Button
-            size="sm"
-            variant="outline"
-            onClick={() => onEdit(row.original.id)}
-          >
-            Edit
-          </Button>
-
-          <Button
-            size="sm"
-            variant="destructive"
-            onClick={() => setDeleteId(row.original.id)}
-          >
-            Hapus
-          </Button>
-
-        </div>
-
-      ),
-    },
-
-  ]
-
-  const table = useReactTable({
-    data,
-    columns,
-    state: {
-      sorting,
-      columnFilters,
-      columnVisibility,
-      globalFilter,
-      pagination,
-    },
-    onSortingChange: setSorting,
-    onColumnFiltersChange: setColumnFilters,
-    onColumnVisibilityChange: setColumnVisibility,
-    onGlobalFilterChange: setGlobalFilter,
-    onPaginationChange: setPagination,
-    getCoreRowModel: getCoreRowModel(),
-    getPaginationRowModel: getPaginationRowModel(),
-    getSortedRowModel: getSortedRowModel(),
-    getFilteredRowModel: getFilteredRowModel(),
-  })
+  const start = pageIndex * pageSize + 1
+  const end = Math.min((pageIndex + 1) * pageSize, data.length)
 
   return (
+    <div className="space-y-6">
 
-    <div className="space-y-4">
+      {/* Card Grid */}
+      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
 
-      {/* SEARCH */}
+        {paginatedData.map((item) => (
 
-      <Input
-        placeholder="Cari username / nama / role..."
-        value={globalFilter ?? ""}
-        onChange={(e) => setGlobalFilter(e.target.value)}
-      />
+          <div
+            key={item.id}
+            className="bg-white rounded-xl border border-gray-100 shadow-sm p-5 flex flex-col items-center text-center relative"
+          >
 
-      {/* TABLE */}
+            {/* 3-dot menu */}
+            <div className="absolute top-3 right-3">
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <button className="p-1 rounded hover:bg-gray-100 transition">
+                    <MoreHorizontal className="size-4 text-gray-400" />
+                  </button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end" className="w-32">
+                  <DropdownMenuItem onClick={() => onEdit(item.id)}>
+                    <Pencil className="size-3.5 mr-2 text-gray-500" />
+                    Edit
+                  </DropdownMenuItem>
+                  <DropdownMenuItem
+                    onClick={() => setDeleteId(item.id)}
+                    className="text-red-500 focus:text-red-500"
+                  >
+                    <Trash2 className="size-3.5 mr-2" />
+                    Hapus
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            </div>
 
-      <div className="rounded-md border">
+            {/* Avatar */}
+            <div className="w-20 h-20 rounded-full overflow-hidden bg-gray-100 flex items-center justify-center mb-3 shrink-0">
+              {item.avatar_url ? (
+                <img
+                  src={item.avatar_url}
+                  alt={item.full_name}
+                  className="w-full h-full object-cover"
+                />
+              ) : (
+                <User className="size-9 text-gray-400" />
+              )}
+            </div>
 
-        <Table>
+            {/* Name */}
+            <p className="font-bold text-sm text-[#202224] leading-snug">
+              {item.full_name}
+            </p>
 
-          <TableHeader className="bg-muted">
+            {/* Role */}
+            <p className="text-xs text-[#202224]/60 mt-0.5">
+              {item.role}
+            </p>
 
-            {table.getHeaderGroups().map(headerGroup => (
+            {/* Email */}
+            <p className="text-xs text-[#202224]/60 mt-0.5 break-all">
+              {item.username}
+            </p>
 
-              <TableRow key={headerGroup.id}>
+          </div>
 
-                {headerGroup.headers.map(header => (
-
-                  <TableHead key={header.id}>
-
-                    {flexRender(
-                      header.column.columnDef.header,
-                      header.getContext()
-                    )}
-
-                  </TableHead>
-
-                ))}
-
-              </TableRow>
-
-            ))}
-
-          </TableHeader>
-
-          <TableBody>
-
-            {table.getRowModel().rows.map(row => (
-
-              <TableRow key={row.id}>
-
-                {row.getVisibleCells().map(cell => (
-
-                  <TableCell key={cell.id}>
-
-                    {flexRender(
-                      cell.column.columnDef.cell,
-                      cell.getContext()
-                    )}
-
-                  </TableCell>
-
-                ))}
-
-              </TableRow>
-
-            ))}
-
-          </TableBody>
-
-        </Table>
+        ))}
 
       </div>
 
-      {/* PAGINATION */}
+      {/* Pagination Footer */}
+      <div className="flex items-center justify-between text-sm text-[#313131]">
 
-      <div className="flex items-center justify-between text-sm">
-
-        <div>
-          Page {pagination.pageIndex + 1} of {table.getPageCount()}
+        <div className="flex items-center gap-2">
+          <span>Jumlah per halaman</span>
+          <Select
+            value={String(pageSize)}
+            onValueChange={(val) => {
+              setPageSize(Number(val))
+              setPageIndex(0)
+            }}
+          >
+            <SelectTrigger className="h-8 w-16">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              {PAGE_SIZE_OPTIONS.map((n) => (
+                <SelectItem key={n} value={String(n)}>{n}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
         </div>
 
-        <div className="space-x-2">
+        <span>{start}-{end} dari {data.length}</span>
 
-          <Button
-            size="sm"
-            variant="outline"
-            onClick={() => table.previousPage()}
-            disabled={!table.getCanPreviousPage()}
-          >
-            Previous
-          </Button>
-
-          <Button
-            size="sm"
-            variant="outline"
-            onClick={() => table.nextPage()}
-            disabled={!table.getCanNextPage()}
-          >
-            Next
-          </Button>
-
+        <div className="flex items-center gap-1">
+          <Button variant="outline" size="icon" className="h-8 w-8" onClick={() => setPageIndex(0)} disabled={pageIndex === 0}>«</Button>
+          <Button variant="outline" size="icon" className="h-8 w-8" onClick={() => setPageIndex(p => Math.max(0, p - 1))} disabled={pageIndex === 0}>‹</Button>
+          <Button variant="outline" size="icon" className="h-8 w-8" onClick={() => setPageIndex(p => Math.min(totalPages - 1, p + 1))} disabled={pageIndex >= totalPages - 1}>›</Button>
+          <Button variant="outline" size="icon" className="h-8 w-8" onClick={() => setPageIndex(totalPages - 1)} disabled={pageIndex >= totalPages - 1}>»</Button>
         </div>
 
       </div>
 
-      {/* DELETE CONFIRM */}
-
-      <AlertDialog
-        open={!!deleteId}
-        onOpenChange={() => setDeleteId(null)}
-      >
-
+      {/* Konfirmasi Hapus */}
+      <AlertDialog open={!!deleteId} onOpenChange={(open) => { if (!open) setDeleteId(null) }}>
         <AlertDialogContent>
-
           <AlertDialogHeader>
-
-            <AlertDialogTitle>
-              Hapus user ini?
-            </AlertDialogTitle>
-
-            <AlertDialogDescription>
-              Data tidak bisa dikembalikan.
-            </AlertDialogDescription>
-
+            <AlertDialogTitle>Hapus user ini?</AlertDialogTitle>
+            <AlertDialogDescription>Data tidak bisa dikembalikan.</AlertDialogDescription>
           </AlertDialogHeader>
-
           <AlertDialogFooter>
-
             <AlertDialogCancel>Batal</AlertDialogCancel>
-
             <AlertDialogAction
-              onClick={() => {
-                if (deleteId) {
-                  onDelete(deleteId)
-                  setDeleteId(null)
-                }
-              }}
+              onClick={() => { if (deleteId) { onDelete(deleteId); setDeleteId(null) } }}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
             >
               Hapus
             </AlertDialogAction>
-
           </AlertDialogFooter>
-
         </AlertDialogContent>
-
       </AlertDialog>
 
     </div>
-
-  )
-}
-
-
-/* SORT HEADER */
-
-function HeaderSort({ column, title }: any) {
-
-  return (
-
-    <div
-      onClick={() =>
-        column.toggleSorting(column.getIsSorted() === "asc")
-      }
-      className="flex items-center gap-1 cursor-pointer"
-    >
-
-      {title}
-
-      {column.getIsSorted() === "asc" && (
-        <ArrowUp className="h-4 w-4" />
-      )}
-
-      {column.getIsSorted() === "desc" && (
-        <ArrowDown className="h-4 w-4" />
-      )}
-
-    </div>
-
   )
 }

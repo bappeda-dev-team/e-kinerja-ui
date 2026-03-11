@@ -46,7 +46,7 @@ export default function MasterRolesClient() {
   const paginated = data.slice((page - 1) * pageSize, page * pageSize)
 
   return (
-    <div className="flex flex-1 flex-col gap-6 p-6 bg-[#F5F6FA] min-h-screen">
+    <div className="flex flex-1 flex-col gap-6 p min-h-screen">
 
       {/* HEADER */}
       <div className="flex items-center justify-between">

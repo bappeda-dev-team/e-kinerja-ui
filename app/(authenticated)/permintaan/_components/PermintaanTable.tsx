@@ -1,49 +1,35 @@
 "use client"
 
 import * as React from "react"
-
-import {
-  ColumnDef,
-  flexRender,
-  getCoreRowModel,
-  getPaginationRowModel,
-  getSortedRowModel,
-  getFilteredRowModel,
-  useReactTable,
-  SortingState,
-  ColumnFiltersState,
-  VisibilityState,
-} from "@tanstack/react-table"
-
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table"
+import { MoreVertical, Pencil, Trash2, Building2 } from "lucide-react"
 
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
-  DropdownMenuCheckboxItem,
-  DropdownMenuSeparator,
 } from "@/components/ui/dropdown-menu"
 
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select"
 
 import {
-  ArrowUp,
-  ArrowDown,
-  Filter,
-  EyeOff,
-  Settings2,
-  MoreVertical,
-} from "lucide-react"
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogDescription,
+} from "@/components/ui/alert-dialog"
+
+import { Button } from "@/components/ui/button"
 
 import type { PermintaanItem } from "./PermintaanClient"
 
@@ -53,195 +39,205 @@ interface Props {
   onDelete: (id: string) => void
 }
 
-export default function PermintaanTable({
-  data,
-  onEdit,
-  onDelete,
-}: Props) {
-
-  const [sorting, setSorting] = React.useState<SortingState>([])
-  const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>([])
-  const [columnVisibility, setColumnVisibility] = React.useState<VisibilityState>({})
-
-  const columns: ColumnDef<PermintaanItem>[] = [
-
-    {
-      id: "no",
-      header: "No",
-      cell: ({ row }) => row.index + 1,
-      enableSorting: false,
-    },
-
-    { accessorKey: "pemda", header: "Pemda" },
-
-    { accessorKey: "nama_aplikasi", header: "Aplikasi" },
-
-    { accessorKey: "menu", header: "Menu" },
-
-    { accessorKey: "kondisi_awal", header: "Kondisi Awal" },
-
-    { accessorKey: "kondisi_diharapkan", header: "Kondisi Diharapkan" },
-
-    { accessorKey: "tanggal_pesanan", header: "Tanggal Pesanan" },
-
-    { accessorKey: "tanggal_deadline", header: "Deadline" },
-
-    { accessorKey: "dibuat_oleh", header: "Dibuat Oleh" },
-
-    { accessorKey: "created_at", header: "Created At" },
-
-    {
-      id: "aksi",
-      header: "Aksi",
-      cell: ({ row }) => (
-
-        <div className="flex gap-2 justify-center">
-
-          <Button
-            size="sm"
-            variant="outline"
-            onClick={() => onEdit(row.original)}
-          >
-            Edit
-          </Button>
-
-          <Button
-            size="sm"
-            variant="destructive"
-            onClick={() => onDelete(row.original.id)}
-          >
-            Hapus
-          </Button>
-
-        </div>
-
-      ),
-      enableSorting: false,
-    },
-
-  ]
-
-  const table = useReactTable({
-
-    data,
-    columns,
-
-    state: {
-      sorting,
-      columnFilters,
-      columnVisibility,
-    },
-
-    onSortingChange: setSorting,
-    onColumnFiltersChange: setColumnFilters,
-    onColumnVisibilityChange: setColumnVisibility,
-
-    getCoreRowModel: getCoreRowModel(),
-    getPaginationRowModel: getPaginationRowModel(),
-    getSortedRowModel: getSortedRowModel(),
-    getFilteredRowModel: getFilteredRowModel(),
-
+function formatTgl(dateStr: string) {
+  return new Date(dateStr).toLocaleDateString("id-ID", {
+    day: "numeric",
+    month: "short",
+    year: "numeric",
   })
+}
+
+const PAGE_SIZE_OPTIONS = [12, 24, 48]
+
+export default function PermintaanTable({ data, onEdit, onDelete }: Props) {
+
+  const [pageSize, setPageSize] = React.useState(12)
+  const [pageIndex, setPageIndex] = React.useState(0)
+  const [deleteId, setDeleteId] = React.useState<string | null>(null)
+
+  const totalPages = Math.max(1, Math.ceil(data.length / pageSize))
+
+  const paginatedData = React.useMemo(() => {
+    const start = pageIndex * pageSize
+    return data.slice(start, start + pageSize)
+  }, [data, pageIndex, pageSize])
+
+  const start = pageIndex * pageSize + 1
+  const end = Math.min((pageIndex + 1) * pageSize, data.length)
 
   return (
+    <div className="space-y-6">
 
-    <div className="w-full min-w-0 space-y-4">
+      {/* Card Grid — 3 columns */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
 
-      <div className="rounded-md border bg-background w-full overflow-hidden flex flex-col">
+        {paginatedData.map((item) => (
 
-        <div className="w-full overflow-auto max-h-[60vh]">
+          <div
+            key={item.id}
+            className="bg-white rounded-xl border border-gray-100 shadow-sm p-4 space-y-3"
+          >
 
-          <Table>
+            {/* Header */}
+            <div className="flex items-start gap-3">
 
-            <TableHeader className="bg-muted">
+              <div className="w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center shrink-0">
+                <Building2 className="size-5 text-gray-400" />
+              </div>
 
-              {table.getHeaderGroups().map(headerGroup => (
+              <div className="flex-1 min-w-0">
+                <p className="font-bold text-sm text-[#202224] leading-snug">
+                  {item.pemda}
+                </p>
+                <p className="text-xs text-[#797A7C] mt-0.5">
+                  {item.nama_aplikasi}
+                  <span className="mx-1">·</span>
+                  {item.menu}
+                </p>
+              </div>
 
-                <TableRow key={headerGroup.id}>
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <button className="p-1 rounded hover:bg-gray-100 transition shrink-0">
+                    <MoreVertical className="size-4 text-gray-400" />
+                  </button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end" className="w-32">
+                  <DropdownMenuItem onClick={() => onEdit(item)}>
+                    <Pencil className="size-3.5 mr-2 text-gray-500" />
+                    Edit
+                  </DropdownMenuItem>
+                  <DropdownMenuItem
+                    onClick={() => setDeleteId(item.id)}
+                    className="text-red-500 focus:text-red-500"
+                  >
+                    <Trash2 className="size-3.5 mr-2" />
+                    Hapus
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
 
-                  {headerGroup.headers.map(header => (
+            </div>
 
-                    <TableHead key={header.id} className="whitespace-nowrap">
+            <div className="border-t border-black/10" />
 
-                      {flexRender(
-                        header.column.columnDef.header,
-                        header.getContext()
-                      )}
+            {/* Kondisi Awal & Target */}
+            <div className="space-y-1.5">
 
-                    </TableHead>
+              <div className="flex items-start gap-2">
+                <span className="inline-flex items-center px-2 py-0.5 rounded-md bg-purple-100 text-purple-600 text-xs font-semibold shrink-0 mt-0.5">
+                  Awal
+                </span>
+                <p className="text-xs text-[#797A7C] leading-relaxed">
+                  {item.kondisi_awal}
+                </p>
+              </div>
 
-                  ))}
+              <div className="flex items-start gap-2">
+                <span className="inline-flex items-center px-2 py-0.5 rounded-md bg-teal-100 text-teal-600 text-xs font-semibold shrink-0 mt-0.5">
+                  Target
+                </span>
+                <p className="text-xs text-[#797A7C] leading-relaxed">
+                  {item.kondisi_diharapkan}
+                </p>
+              </div>
 
-                </TableRow>
+            </div>
 
+            <div className="border-t border-black/10" />
+
+            {/* Deadline */}
+            <p className="text-xs font-semibold text-red-500">
+              Deadline: {formatTgl(item.tanggal_deadline)}
+            </p>
+
+          </div>
+
+        ))}
+
+      </div>
+
+      {/* Pagination Footer */}
+      <div className="flex items-center justify-between text-sm text-[#313131]">
+
+        <div className="flex items-center gap-2">
+          <span>Jumlah per halaman</span>
+          <Select
+            value={String(pageSize)}
+            onValueChange={(val) => {
+              setPageSize(Number(val))
+              setPageIndex(0)
+            }}
+          >
+            <SelectTrigger className="h-8 w-16">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              {PAGE_SIZE_OPTIONS.map((n) => (
+                <SelectItem key={n} value={String(n)}>{n}</SelectItem>
               ))}
+            </SelectContent>
+          </Select>
+        </div>
 
-            </TableHeader>
+        <span>{start}-{end} dari {data.length}</span>
 
-            <TableBody>
+        <div className="flex items-center gap-1">
 
-              {table.getRowModel().rows.map(row => (
+          <Button
+            variant="outline" size="icon" className="h-8 w-8"
+            onClick={() => setPageIndex(0)}
+            disabled={pageIndex === 0}
+          >«</Button>
 
-                <TableRow key={row.id}>
+          <Button
+            variant="outline" size="icon" className="h-8 w-8"
+            onClick={() => setPageIndex(p => Math.max(0, p - 1))}
+            disabled={pageIndex === 0}
+          >‹</Button>
 
-                  {row.getVisibleCells().map(cell => (
+          <Button
+            variant="outline" size="icon" className="h-8 w-8"
+            onClick={() => setPageIndex(p => Math.min(totalPages - 1, p + 1))}
+            disabled={pageIndex >= totalPages - 1}
+          >›</Button>
 
-                    <TableCell key={cell.id} className="whitespace-nowrap">
-
-                      {flexRender(
-                        cell.column.columnDef.cell,
-                        cell.getContext()
-                      )}
-
-                    </TableCell>
-
-                  ))}
-
-                </TableRow>
-
-              ))}
-
-            </TableBody>
-
-          </Table>
+          <Button
+            variant="outline" size="icon" className="h-8 w-8"
+            onClick={() => setPageIndex(totalPages - 1)}
+            disabled={pageIndex >= totalPages - 1}
+          >»</Button>
 
         </div>
 
       </div>
 
-      <div className="flex items-center justify-between text-sm text-muted-foreground">
-
-        <div>
-          Halaman {table.getState().pagination.pageIndex + 1} dari{" "}
-          {table.getPageCount() || 1}
-        </div>
-
-        <div className="flex space-x-2">
-
-          <Button
-            size="sm"
-            variant="outline"
-            onClick={() => table.previousPage()}
-            disabled={!table.getCanPreviousPage()}
-          >
-            Sebelumnya
-          </Button>
-
-          <Button
-            size="sm"
-            variant="outline"
-            onClick={() => table.nextPage()}
-            disabled={!table.getCanNextPage()}
-          >
-            Selanjutnya
-          </Button>
-
-        </div>
-
-      </div>
+      {/* Konfirmasi Hapus */}
+      <AlertDialog
+        open={!!deleteId}
+        onOpenChange={(open) => { if (!open) setDeleteId(null) }}
+      >
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Yakin ingin menghapus permintaan ini?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Data yang sudah dihapus tidak dapat dikembalikan.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Batal</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={() => {
+                if (deleteId) { onDelete(deleteId); setDeleteId(null) }
+              }}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              Hapus
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
 
     </div>
-
   )
-
 }

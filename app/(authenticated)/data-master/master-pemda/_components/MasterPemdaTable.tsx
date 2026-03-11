@@ -1,23 +1,22 @@
 'use client'
 
 import * as React from "react"
+import { MoreHorizontal, Pencil, Trash2, Building2 } from "lucide-react"
 
 import {
-  ColumnDef,
-  flexRender,
-  getCoreRowModel,
-  getPaginationRowModel,
-  useReactTable,
-} from "@tanstack/react-table"
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu"
 
 import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table"
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select"
 
 import {
   AlertDialog,
@@ -31,7 +30,6 @@ import {
 } from "@/components/ui/alert-dialog"
 
 import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
 
 import type { MasterPemdaItem } from "./MasterPemdaClient"
 
@@ -41,237 +39,204 @@ interface Props {
   onDelete: (id: string) => void
 }
 
+function formatTanggal(dateStr: string) {
+  const date = new Date(dateStr)
+  return date.toLocaleDateString("id-ID", {
+    day: "numeric",
+    month: "short",
+    year: "numeric",
+  })
+}
+
+const PAGE_SIZE_OPTIONS = [12, 24, 48]
+
 export default function MasterPemdaTable({
   data,
   onEdit,
   onDelete,
 }: Props) {
 
-  const [filter, setFilter] = React.useState("")
+  const [pageSize, setPageSize] = React.useState(12)
+  const [pageIndex, setPageIndex] = React.useState(0)
   const [deleteId, setDeleteId] = React.useState<string | null>(null)
 
-  const [pagination, setPagination] = React.useState({
-    pageIndex: 0,
-    pageSize: 10,
-  })
+  const totalPages = Math.max(1, Math.ceil(data.length / pageSize))
 
-  const filteredData = React.useMemo(() => {
+  const paginatedData = React.useMemo(() => {
+    const start = pageIndex * pageSize
+    return data.slice(start, start + pageSize)
+  }, [data, pageIndex, pageSize])
 
-    return data.filter(item =>
-      item.nama_pemda
-        .toLowerCase()
-        .includes(filter.toLowerCase())
-    )
-
-  }, [data, filter])
-
-  const columns: ColumnDef<MasterPemdaItem>[] = [
-
-    {
-      header: "No",
-      cell: ({ row, table }) =>
-        table.getState().pagination.pageIndex *
-        table.getState().pagination.pageSize +
-        row.index +
-        1,
-    },
-
-    {
-      accessorKey: "nama_pemda",
-      header: "Nama Pemda",
-    },
-
-    {
-      accessorKey: "created_at",
-      header: "Created At",
-    },
-
-    {
-      accessorKey: "updated_at",
-      header: "Updated At",
-    },
-
-    {
-      header: "Aksi",
-      cell: ({ row }) => (
-
-        <div className="flex gap-2">
-
-          <Button
-            size="sm"
-            variant="outline"
-            onClick={() => onEdit(row.original.id)}
-          >
-            Edit
-          </Button>
-
-          <Button
-            size="sm"
-            variant="destructive"
-            onClick={() => setDeleteId(row.original.id)}
-          >
-            Hapus
-          </Button>
-
-        </div>
-
-      ),
-    },
-
-  ]
-
-  const table = useReactTable({
-    data: filteredData,
-    columns,
-    state: { pagination },
-    onPaginationChange: setPagination,
-    getCoreRowModel: getCoreRowModel(),
-    getPaginationRowModel: getPaginationRowModel(),
-  })
+  const start = pageIndex * pageSize + 1
+  const end = Math.min((pageIndex + 1) * pageSize, data.length)
 
   return (
+    <div className="space-y-6">
 
-    <div className="space-y-4">
+      {/* Card Grid */}
+      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
 
-      <Input
-        placeholder="Cari nama pemda..."
-        value={filter}
-        onChange={(e) => setFilter(e.target.value)}
-      />
+        {paginatedData.map((item) => (
 
-      <div className="rounded-md border">
+          <div
+            key={item.id}
+            className="bg-white rounded-xl border border-gray-100 shadow-sm p-5 flex flex-col items-center text-center relative"
+          >
 
-        <Table>
+            {/* 3-dot menu */}
+            <div className="absolute top-3 right-3">
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <button className="p-1 rounded hover:bg-gray-100 transition">
+                    <MoreHorizontal className="size-4 text-gray-400" />
+                  </button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end" className="w-32">
+                  <DropdownMenuItem onClick={() => onEdit(item.id)}>
+                    <Pencil className="size-3.5 mr-2 text-gray-500" />
+                    Edit
+                  </DropdownMenuItem>
+                  <DropdownMenuItem
+                    onClick={() => setDeleteId(item.id)}
+                    className="text-red-500 focus:text-red-500"
+                  >
+                    <Trash2 className="size-3.5 mr-2" />
+                    Hapus
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            </div>
 
-          <TableHeader className="bg-muted">
+            {/* Avatar / Logo */}
+            <div className="w-20 h-20 rounded-full bg-gray-100 flex items-center justify-center mb-3">
+              <Building2 className="size-9 text-gray-400" />
+            </div>
 
-            {table.getHeaderGroups().map(headerGroup => (
+            {/* Nama Pemda */}
+            <p className="font-bold text-sm text-[#202224] leading-snug">
+              {item.nama_pemda}
+            </p>
 
-              <TableRow key={headerGroup.id}>
+            {/* Tanggal */}
+            <p className="text-xs text-[#202224]/60 mt-1">
+              Dibuat {formatTanggal(item.created_at)}
+            </p>
 
-                {headerGroup.headers.map(header => (
+          </div>
 
-                  <TableHead key={header.id}>
-
-                    {flexRender(
-                      header.column.columnDef.header,
-                      header.getContext()
-                    )}
-
-                  </TableHead>
-
-                ))}
-
-              </TableRow>
-
-            ))}
-
-          </TableHeader>
-
-          <TableBody>
-
-            {table.getRowModel().rows.map(row => (
-
-              <TableRow key={row.id}>
-
-                {row.getVisibleCells().map(cell => (
-
-                  <TableCell key={cell.id}>
-
-                    {flexRender(
-                      cell.column.columnDef.cell,
-                      cell.getContext()
-                    )}
-
-                  </TableCell>
-
-                ))}
-
-              </TableRow>
-
-            ))}
-
-          </TableBody>
-
-        </Table>
+        ))}
 
       </div>
 
-      <div className="flex items-center justify-between text-sm text-muted-foreground">
+      {/* Pagination Footer */}
+      <div className="flex items-center justify-between text-sm text-[#313131]">
 
-        <div>
-          Page {pagination.pageIndex + 1} of {table.getPageCount()}
+        {/* Jumlah per halaman */}
+        <div className="flex items-center gap-2">
+          <span>Jumlah per halaman</span>
+          <Select
+            value={String(pageSize)}
+            onValueChange={(val) => {
+              setPageSize(Number(val))
+              setPageIndex(0)
+            }}
+          >
+            <SelectTrigger className="h-8 w-16">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              {PAGE_SIZE_OPTIONS.map((n) => (
+                <SelectItem key={n} value={String(n)}>
+                  {n}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
         </div>
 
-        <div className="space-x-2">
+        {/* Info halaman */}
+        <span className="text-right">
+          {start}-{end} dari {data.length}
+        </span>
+
+        {/* Navigasi */}
+        <div className="flex items-center gap-1">
 
           <Button
             variant="outline"
-            size="sm"
-            onClick={() => table.previousPage()}
-            disabled={!table.getCanPreviousPage()}
+            size="icon"
+            className="h-8 w-8"
+            onClick={() => setPageIndex(0)}
+            disabled={pageIndex === 0}
           >
-            Previous
+            «
           </Button>
 
           <Button
             variant="outline"
-            size="sm"
-            onClick={() => table.nextPage()}
-            disabled={!table.getCanNextPage()}
+            size="icon"
+            className="h-8 w-8"
+            onClick={() => setPageIndex((p) => Math.max(0, p - 1))}
+            disabled={pageIndex === 0}
           >
-            Next
+            ‹
+          </Button>
+
+          <Button
+            variant="outline"
+            size="icon"
+            className="h-8 w-8"
+            onClick={() => setPageIndex((p) => Math.min(totalPages - 1, p + 1))}
+            disabled={pageIndex >= totalPages - 1}
+          >
+            ›
+          </Button>
+
+          <Button
+            variant="outline"
+            size="icon"
+            className="h-8 w-8"
+            onClick={() => setPageIndex(totalPages - 1)}
+            disabled={pageIndex >= totalPages - 1}
+          >
+            »
           </Button>
 
         </div>
 
       </div>
 
+      {/* Konfirmasi Hapus */}
       <AlertDialog
         open={!!deleteId}
         onOpenChange={(open) => {
           if (!open) setDeleteId(null)
         }}
       >
-
         <AlertDialogContent>
-
           <AlertDialogHeader>
-
             <AlertDialogTitle>
               Yakin ingin menghapus data ini?
             </AlertDialogTitle>
-
             <AlertDialogDescription>
               Data yang sudah dihapus tidak dapat dikembalikan.
             </AlertDialogDescription>
-
           </AlertDialogHeader>
-
           <AlertDialogFooter>
-
-            <AlertDialogCancel>
-              Batal
-            </AlertDialogCancel>
-
+            <AlertDialogCancel>Batal</AlertDialogCancel>
             <AlertDialogAction
               onClick={() => {
-
                 if (deleteId) {
                   onDelete(deleteId)
                   setDeleteId(null)
                 }
-
               }}
               className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
             >
               Hapus
             </AlertDialogAction>
-
           </AlertDialogFooter>
-
         </AlertDialogContent>
-
       </AlertDialog>
 
     </div>

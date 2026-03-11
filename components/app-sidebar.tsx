@@ -3,15 +3,22 @@
 import Link from "next/link"
 import { usePathname } from "next/navigation"
 import { useState, useEffect } from "react"
+import { Collapsible } from "radix-ui"
 
 import {
   Sidebar,
   SidebarContent,
   SidebarFooter,
+  SidebarGroup,
+  SidebarGroupContent,
   SidebarHeader,
   SidebarMenu,
   SidebarMenuItem,
   SidebarMenuButton,
+  SidebarMenuSub,
+  SidebarMenuSubItem,
+  SidebarMenuSubButton,
+  SidebarRail,
 } from "@/components/ui/sidebar"
 
 import {
@@ -25,14 +32,11 @@ import {
   BadgeCheck,
   Send,
   ClipboardCheck,
-  ChevronLeft,
-  ChevronRight,
   ChevronDown,
 } from "lucide-react"
 
 export function AppSidebar() {
   const pathname = usePathname()
-  const [collapsed, setCollapsed] = useState(false)
   const [openDataMaster, setOpenDataMaster] = useState(false)
 
   const isActive = (path: string) => pathname === path
@@ -45,176 +49,148 @@ export function AppSidebar() {
   }, [pathname])
 
   return (
-    <Sidebar
-      className={`transition-all duration-300 ${
-        collapsed ? "w-20" : "w-60"
-      }`}
-    >
+    <Sidebar collapsible="icon">
+
       {/* HEADER */}
-      <SidebarHeader className="relative flex flex-col items-center px-4 py-6">
-        {!collapsed && (
-          <>
-            <h2 className="text-lg font-bold text-center">
-              E-Kinerja
-            </h2>
-
-            <img
-              src="/logo-e-kinerja.png"
-              alt="E-Kinerja Logo"
-              className="mt-3 w-16 h-16 object-contain"
-            />
-          </>
-        )}
-
-        <button
-          onClick={() => setCollapsed(!collapsed)}
-          className="absolute top-4 right-4 p-1 rounded hover:bg-muted"
-        >
-          {collapsed ? (
-            <ChevronRight className="h-4 w-4" />
-          ) : (
-            <ChevronLeft className="h-4 w-4" />
-          )}
-        </button>
+      <SidebarHeader className="flex flex-col items-center justify-center py-6 px-0">
+        <img
+          src="/logo-e-kinerja.png"
+          alt="E-Kinerja Logo"
+          className="w-8 h-8 object-contain group-data-[state=expanded]:w-16 group-data-[state=expanded]:h-16 transition-all duration-200"
+        />
+        <span className="mt-2 text-lg font-bold text-center hidden group-data-[state=expanded]:block">
+          E-Kinerja
+        </span>
       </SidebarHeader>
 
       <SidebarContent>
+        <SidebarGroup>
+        <SidebarGroupContent>
         <SidebarMenu>
 
           {/* Dashboard */}
           <SidebarMenuItem>
-            <SidebarMenuButton asChild isActive={isActive("/dashboard")}>
+            <SidebarMenuButton asChild isActive={isActive("/dashboard")} tooltip="Dashboard">
               <Link href="/dashboard" className="flex items-center gap-2">
                 <LayoutDashboard className="h-5 w-5" />
-                {!collapsed && "Dashboard"}
+                <span>Dashboard</span>
               </Link>
             </SidebarMenuButton>
           </SidebarMenuItem>
 
-{/* DATA MASTER */}
-<SidebarMenuItem>
-  <SidebarMenuButton
-    onClick={() => setOpenDataMaster(!openDataMaster)}
-    isActive={pathname.startsWith("/data-master")}
-    className="flex items-center gap-2"
-  >
-    <Database className="h-5 w-5" />
-    {!collapsed && (
-      <>
-        <span className="flex-1 text-left">
-          Data Master
-        </span>
-        <ChevronDown
-          className={`h-4 w-4 transition-transform ${
-            openDataMaster ? "rotate-180" : ""
-          }`}
-        />
-      </>
-    )}
-  </SidebarMenuButton>
-</SidebarMenuItem>
+          {/* DATA MASTER */}
+          <Collapsible.Root
+            open={openDataMaster}
+            onOpenChange={setOpenDataMaster}
+            className="group/collapsible"
+            asChild
+          >
+            <SidebarMenuItem>
+              <Collapsible.Trigger asChild>
+                <SidebarMenuButton
+                  isActive={pathname.startsWith("/data-master")}
+                  tooltip="Data Master"
+                >
+                  <Database className="h-5 w-5" />
+                  <span>Data Master</span>
+                  <ChevronDown className="ml-auto h-4 w-4 transition-transform group-data-[state=open]/collapsible:rotate-180" />
+                </SidebarMenuButton>
+              </Collapsible.Trigger>
 
-{/* SUB MENU */}
-{!collapsed && openDataMaster && (
-  <div className="ml-6 space-y-1">
+              <Collapsible.Content>
+                <SidebarMenuSub>
 
-    <SidebarMenuItem>
-      <SidebarMenuButton
-        asChild
-        isActive={isActive("/data-master/master-user")}
-      >
-        <Link href="/data-master/master-user">
-          <User className="mr-2 h-4 w-4" />
-          Master User
-        </Link>
-      </SidebarMenuButton>
-    </SidebarMenuItem>
+                  <SidebarMenuSubItem>
+                    <SidebarMenuSubButton asChild isActive={isActive("/data-master/master-user")}>
+                      <Link href="/data-master/master-user">
+                        <User className="mr-2 h-4 w-4" />
+                        Master User
+                      </Link>
+                    </SidebarMenuSubButton>
+                  </SidebarMenuSubItem>
 
-    <SidebarMenuItem>
-      <SidebarMenuButton
-        asChild
-        isActive={isActive("/data-master/master-roles")}
-      >
-        <Link href="/data-master/master-roles">
-          <Shield className="mr-2 h-4 w-4" />
-          Master Roles
-        </Link>
-      </SidebarMenuButton>
-    </SidebarMenuItem>
+                  <SidebarMenuSubItem>
+                    <SidebarMenuSubButton asChild isActive={isActive("/data-master/master-roles")}>
+                      <Link href="/data-master/master-roles">
+                        <Shield className="mr-2 h-4 w-4" />
+                        Master Roles
+                      </Link>
+                    </SidebarMenuSubButton>
+                  </SidebarMenuSubItem>
 
-    <SidebarMenuItem>
-      <SidebarMenuButton
-        asChild
-        isActive={isActive("/data-master/master-pemda")}
-      >
-        <Link href="/data-master/master-pemda">
-          <Building2 className="mr-2 h-4 w-4" />
-          Master Pemda
-        </Link>
-      </SidebarMenuButton>
-    </SidebarMenuItem>
+                  <SidebarMenuSubItem>
+                    <SidebarMenuSubButton asChild isActive={isActive("/data-master/master-pemda")}>
+                      <Link href="/data-master/master-pemda">
+                        <Building2 className="mr-2 h-4 w-4" />
+                        Master Pemda
+                      </Link>
+                    </SidebarMenuSubButton>
+                  </SidebarMenuSubItem>
 
-    <SidebarMenuItem>
-      <SidebarMenuButton
-        asChild
-        isActive={isActive("/data-master/master-aplikasi")}
-      >
-        <Link href="/data-master/master-aplikasi">
-          <AppWindow className="mr-2 h-4 w-4" />
-          Master Aplikasi
-        </Link>
-      </SidebarMenuButton>
-    </SidebarMenuItem>
+                  <SidebarMenuSubItem>
+                    <SidebarMenuSubButton asChild isActive={isActive("/data-master/master-aplikasi")}>
+                      <Link href="/data-master/master-aplikasi">
+                        <AppWindow className="mr-2 h-4 w-4" />
+                        Master Aplikasi
+                      </Link>
+                    </SidebarMenuSubButton>
+                  </SidebarMenuSubItem>
 
-  </div>
-)}
+                </SidebarMenuSub>
+              </Collapsible.Content>
+            </SidebarMenuItem>
+          </Collapsible.Root>
 
           {/* Permintaan */}
           <SidebarMenuItem>
-            <SidebarMenuButton asChild isActive={isActive("/permintaan")}>
+            <SidebarMenuButton asChild isActive={isActive("/permintaan")} tooltip="Permintaan Klien">
               <Link href="/permintaan" className="flex items-center gap-2">
                 <FileText className="h-5 w-5" />
-                {!collapsed && "Permintaan Klien"}
+                <span>Permintaan Klien</span>
               </Link>
             </SidebarMenuButton>
           </SidebarMenuItem>
 
           {/* Distribusi */}
           <SidebarMenuItem>
-            <SidebarMenuButton asChild isActive={isActive("/distribusi")}>
-              <Link href="/distribusi" className="flex items-center gap-2">
+            <SidebarMenuButton asChild isActive={isActive("/distribusi-pekerjaan")} tooltip="Distribusi Pekerjaan">
+              <Link href="/distribusi-pekerjaan" className="flex items-center gap-2">
                 <Send className="h-5 w-5" />
-                {!collapsed && "Distribusi Pekerjaan"}
+                <span>Distribusi Pekerjaan</span>
               </Link>
             </SidebarMenuButton>
           </SidebarMenuItem>
 
           {/* Laporan */}
           <SidebarMenuItem>
-            <SidebarMenuButton asChild isActive={isActive("/laporan-kinerja")}>
+            <SidebarMenuButton asChild isActive={isActive("/laporan-kinerja")} tooltip="Laporan Kinerja">
               <Link href="/laporan-kinerja" className="flex items-center gap-2">
                 <ClipboardCheck className="h-5 w-5" />
-                {!collapsed && "Laporan Kinerja"}
+                <span>Laporan Kinerja</span>
               </Link>
             </SidebarMenuButton>
           </SidebarMenuItem>
 
           {/* Verifikasi */}
           <SidebarMenuItem>
-            <SidebarMenuButton asChild isActive={isActive("/verifikasi-laporan")}>
+            <SidebarMenuButton asChild isActive={isActive("/verifikasi-laporan")} tooltip="Verifikasi Laporan">
               <Link href="/verifikasi-laporan" className="flex items-center gap-2">
                 <BadgeCheck className="h-5 w-5" />
-                {!collapsed && "Verifikasi Laporan"}
+                <span>Verifikasi Laporan</span>
               </Link>
             </SidebarMenuButton>
           </SidebarMenuItem>
 
         </SidebarMenu>
+        </SidebarGroupContent>
+        </SidebarGroup>
       </SidebarContent>
 
       <SidebarFooter className="px-4 py-2 text-xs text-muted-foreground">
-        {!collapsed && "© 2026 E-Kinerja"}
+        <span className="hidden group-data-[state=expanded]:block">© 2026 E-Kinerja</span>
       </SidebarFooter>
+
+      <SidebarRail />
     </Sidebar>
   )
 }
