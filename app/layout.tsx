@@ -1,13 +1,16 @@
-// app/layout.tsx
+'use client'
+
 import type { Metadata } from "next"
 import { Inter, JetBrains_Mono } from "next/font/google"
+import { usePathname } from "next/navigation"
+
 import "./globals.css"
 
 import { SidebarProvider, SidebarInset } from "@/components/ui/sidebar"
 import { AppSidebar } from "@/components/app-sidebar"
 import { Header } from "@/components/header"
 
-import { Toaster } from "sonner" // ✅ tambahin ini
+import { Toaster } from "sonner"
 
 /* =========================
    Fonts
@@ -24,15 +27,6 @@ const fontMono = JetBrains_Mono({
 })
 
 /* =========================
-   Metadata
-========================= */
-
-export const metadata: Metadata = {
-  title: "E-Kinerja",
-  description: "Sistem Laporan Kinerja",
-}
-
-/* =========================
    Layout
 ========================= */
 
@@ -41,25 +35,68 @@ export default function RootLayout({
 }: {
   children: React.ReactNode
 }) {
+
+  const pathname = usePathname()
+
+  /* route tanpa sidebar & header */
+  const noLayoutRoutes = ["/login"]
+
+  const showLayout = !noLayoutRoutes.includes(pathname)
+
+  /* =========================
+     LOGIN PAGE (tanpa layout)
+  ========================= */
+
+  if (!showLayout) {
+    return (
+      <html lang="en">
+        <body
+          className={`
+            ${fontSans.variable}
+            ${fontMono.variable}
+            min-h-screen
+            bg-background
+            font-sans
+            antialiased
+          `}
+        >
+          {children}
+
+          <Toaster
+            position="top-center"
+            richColors
+            closeButton
+            expand
+          />
+        </body>
+      </html>
+    )
+  }
+
+  /* =========================
+     HALAMAN DENGAN LAYOUT
+  ========================= */
+
   return (
-    <html lang="en" suppressHydrationWarning>
+    <html lang="en">
       <body
         className={`
-          ${fontSans.variable} 
-          ${fontMono.variable} 
-          min-h-screen 
-          bg-background 
-          font-sans 
+          ${fontSans.variable}
+          ${fontMono.variable}
+          min-h-screen
+          bg-background
+          font-sans
           antialiased
         `}
       >
         <SidebarProvider>
+
           <div className="flex min-h-screen w-full">
 
             {/* Sidebar */}
             <AppSidebar />
 
-            {/* Main Area */}
+            {/* Main */}
             <SidebarInset className="flex flex-1 flex-col">
 
               <Header
@@ -76,14 +113,14 @@ export default function RootLayout({
             </SidebarInset>
 
           </div>
+
         </SidebarProvider>
 
-        {/* ✅ SONNER TOASTER (WAJIB ADA) */}
         <Toaster
           position="top-center"
           richColors
           closeButton
-          expand={true}
+          expand
         />
 
       </body>
