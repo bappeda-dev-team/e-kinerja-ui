@@ -23,7 +23,7 @@ export const authOptions: NextAuthOptions = {
 
         try {
           const apiUrl = process.env.NEXT_PUBLIC_API_URL || process.env.SITE_URL;
-          const response = await fetch(`${apiUrl}/user/login`, {
+          const response = await fetch(`${apiUrl}/auth/login`, {
             method: "POST",
             headers: {
               "Content-Type": "application/json"

@@ -3,6 +3,8 @@
 import { useState } from "react"
 import { useForm } from "react-hook-form"
 import { TbEye, TbEyeClosed } from "react-icons/tb"
+import { signIn } from "next-auth/react"
+import { useRouter } from "next/navigation"
 
 interface FormValues {
   username: string
@@ -11,6 +13,7 @@ interface FormValues {
 
 const LoginPage = () => {
   const { handleSubmit } = useForm<FormValues>()
+  const router = useRouter()
 
   const [username, setUsername] = useState("")
   const [password, setPassword] = useState("")
@@ -20,10 +23,20 @@ const LoginPage = () => {
   const onSubmit = async () => {
     setLoading(true)
 
-    setTimeout(() => {
-      alert(`Login: ${username}`)
+    const res = await signIn("credentials", {
+      username,
+      password,
+      redirect: false,
+    })
+
+    if (res?.error) {
+      alert(res.error)
       setLoading(false)
-    }, 1000)
+    } else if (res?.ok) {
+      router.push("/dashboard")
+    } else {
+      setLoading(false)
+    }
   }
 
   return (

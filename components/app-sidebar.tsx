@@ -65,124 +65,124 @@ export function AppSidebar() {
 
       <SidebarContent>
         <SidebarGroup>
-        <SidebarGroupContent>
-        <SidebarMenu>
+          <SidebarGroupContent>
+            <SidebarMenu>
 
-          {/* Dashboard */}
-          <SidebarMenuItem>
-            <SidebarMenuButton asChild isActive={isActive("/dashboard")} tooltip="Dashboard">
-              <Link href="/dashboard" className="flex items-center gap-2">
-                <LayoutDashboard className="h-5 w-5" />
-                <span>Dashboard</span>
-              </Link>
-            </SidebarMenuButton>
-          </SidebarMenuItem>
-
-          {/* DATA MASTER */}
-          <Collapsible.Root
-            open={openDataMaster}
-            onOpenChange={setOpenDataMaster}
-            className="group/collapsible"
-            asChild
-          >
-            <SidebarMenuItem>
-              <Collapsible.Trigger asChild>
-                <SidebarMenuButton
-                  isActive={pathname.startsWith("/data-master")}
-                  tooltip="Data Master"
-                >
-                  <Database className="h-5 w-5" />
-                  <span>Data Master</span>
-                  <ChevronDown className="ml-auto h-4 w-4 transition-transform group-data-[state=open]/collapsible:rotate-180" />
+              {/* Dashboard */}
+              <SidebarMenuItem>
+                <SidebarMenuButton asChild isActive={isActive("/dashboard")} tooltip="Dashboard">
+                  <Link href="/dashboard" className="flex items-center gap-2">
+                    <LayoutDashboard className="h-5 w-5" />
+                    <span>Dashboard</span>
+                  </Link>
                 </SidebarMenuButton>
-              </Collapsible.Trigger>
+              </SidebarMenuItem>
 
-              <Collapsible.Content>
-                <SidebarMenuSub>
+              {/* DATA MASTER */}
+              <Collapsible.Root
+                open={openDataMaster}
+                onOpenChange={setOpenDataMaster}
+                className="group/collapsible"
+                asChild
+              >
+                <SidebarMenuItem>
+                  <Collapsible.Trigger asChild>
+                    <SidebarMenuButton
+                      isActive={pathname.startsWith("/data-master")}
+                      tooltip="Data Master"
+                    >
+                      <Database className="h-5 w-5" />
+                      <span>Data Master</span>
+                      <ChevronDown className="ml-auto h-4 w-4 transition-transform group-data-[state=open]/collapsible:rotate-180" />
+                    </SidebarMenuButton>
+                  </Collapsible.Trigger>
 
-                  <SidebarMenuSubItem>
-                    <SidebarMenuSubButton asChild isActive={isActive("/data-master/master-user")}>
-                      <Link href="/data-master/master-user">
-                        <User className="mr-2 h-4 w-4" />
-                        Master User
-                      </Link>
-                    </SidebarMenuSubButton>
-                  </SidebarMenuSubItem>
+                  <Collapsible.Content>
+                    <SidebarMenuSub>
 
-                  <SidebarMenuSubItem>
-                    <SidebarMenuSubButton asChild isActive={isActive("/data-master/master-roles")}>
-                      <Link href="/data-master/master-roles">
-                        <Shield className="mr-2 h-4 w-4" />
-                        Master Roles
-                      </Link>
-                    </SidebarMenuSubButton>
-                  </SidebarMenuSubItem>
+                      <SidebarMenuSubItem>
+                        <SidebarMenuSubButton asChild isActive={isActive("/data-master/master-user")}>
+                          <Link href="/data-master/master-user">
+                            <User className="mr-2 h-4 w-4" />
+                            Master User
+                          </Link>
+                        </SidebarMenuSubButton>
+                      </SidebarMenuSubItem>
 
-                  <SidebarMenuSubItem>
-                    <SidebarMenuSubButton asChild isActive={isActive("/data-master/master-pemda")}>
-                      <Link href="/data-master/master-pemda">
-                        <Building2 className="mr-2 h-4 w-4" />
-                        Master Pemda
-                      </Link>
-                    </SidebarMenuSubButton>
-                  </SidebarMenuSubItem>
+                      <SidebarMenuSubItem>
+                        <SidebarMenuSubButton asChild isActive={isActive("/data-master/master-roles")}>
+                          <Link href="/data-master/master-roles">
+                            <Shield className="mr-2 h-4 w-4" />
+                            Master Roles
+                          </Link>
+                        </SidebarMenuSubButton>
+                      </SidebarMenuSubItem>
 
-                  <SidebarMenuSubItem>
-                    <SidebarMenuSubButton asChild isActive={isActive("/data-master/master-aplikasi")}>
-                      <Link href="/data-master/master-aplikasi">
-                        <AppWindow className="mr-2 h-4 w-4" />
-                        Master Aplikasi
-                      </Link>
-                    </SidebarMenuSubButton>
-                  </SidebarMenuSubItem>
+                      <SidebarMenuSubItem>
+                        <SidebarMenuSubButton asChild isActive={isActive("/data-master/master-pemda")}>
+                          <Link href="/data-master/master-pemda">
+                            <Building2 className="mr-2 h-4 w-4" />
+                            Master Pemda
+                          </Link>
+                        </SidebarMenuSubButton>
+                      </SidebarMenuSubItem>
 
-                </SidebarMenuSub>
-              </Collapsible.Content>
-            </SidebarMenuItem>
-          </Collapsible.Root>
+                      <SidebarMenuSubItem>
+                        <SidebarMenuSubButton asChild isActive={isActive("/data-master/master-aplikasi")}>
+                          <Link href="/data-master/master-aplikasi">
+                            <AppWindow className="mr-2 h-4 w-4" />
+                            Master Aplikasi
+                          </Link>
+                        </SidebarMenuSubButton>
+                      </SidebarMenuSubItem>
 
-          {/* Permintaan */}
-          <SidebarMenuItem>
-            <SidebarMenuButton asChild isActive={isActive("/permintaan")} tooltip="Permintaan Klien">
-              <Link href="/permintaan" className="flex items-center gap-2">
-                <FileText className="h-5 w-5" />
-                <span>Permintaan Klien</span>
-              </Link>
-            </SidebarMenuButton>
-          </SidebarMenuItem>
+                    </SidebarMenuSub>
+                  </Collapsible.Content>
+                </SidebarMenuItem>
+              </Collapsible.Root>
 
-          {/* Distribusi */}
-          <SidebarMenuItem>
-            <SidebarMenuButton asChild isActive={isActive("/distribusi-pekerjaan")} tooltip="Distribusi Pekerjaan">
-              <Link href="/distribusi-pekerjaan" className="flex items-center gap-2">
-                <Send className="h-5 w-5" />
-                <span>Distribusi Pekerjaan</span>
-              </Link>
-            </SidebarMenuButton>
-          </SidebarMenuItem>
+              {/* Permintaan */}
+              <SidebarMenuItem>
+                <SidebarMenuButton asChild isActive={isActive("/permintaan-client")} tooltip="Permintaan Klien">
+                  <Link href="/permintaan-client" className="flex items-center gap-2">
+                    <FileText className="h-5 w-5" />
+                    <span>Permintaan Klien</span>
+                  </Link>
+                </SidebarMenuButton>
+              </SidebarMenuItem>
 
-          {/* Laporan */}
-          <SidebarMenuItem>
-            <SidebarMenuButton asChild isActive={isActive("/laporan-kinerja")} tooltip="Laporan Kinerja">
-              <Link href="/laporan-kinerja" className="flex items-center gap-2">
-                <ClipboardCheck className="h-5 w-5" />
-                <span>Laporan Kinerja</span>
-              </Link>
-            </SidebarMenuButton>
-          </SidebarMenuItem>
+              {/* Distribusi */}
+              <SidebarMenuItem>
+                <SidebarMenuButton asChild isActive={isActive("/distribusi-pekerjaan")} tooltip="Distribusi Pekerjaan">
+                  <Link href="/distribusi-pekerjaan" className="flex items-center gap-2">
+                    <Send className="h-5 w-5" />
+                    <span>Distribusi Pekerjaan</span>
+                  </Link>
+                </SidebarMenuButton>
+              </SidebarMenuItem>
 
-          {/* Verifikasi */}
-          <SidebarMenuItem>
-            <SidebarMenuButton asChild isActive={isActive("/verifikasi-laporan")} tooltip="Verifikasi Laporan">
-              <Link href="/verifikasi-laporan" className="flex items-center gap-2">
-                <BadgeCheck className="h-5 w-5" />
-                <span>Verifikasi Laporan</span>
-              </Link>
-            </SidebarMenuButton>
-          </SidebarMenuItem>
+              {/* Laporan */}
+              <SidebarMenuItem>
+                <SidebarMenuButton asChild isActive={isActive("/laporan-kinerja")} tooltip="Laporan Kinerja">
+                  <Link href="/laporan-kinerja" className="flex items-center gap-2">
+                    <ClipboardCheck className="h-5 w-5" />
+                    <span>Laporan Kinerja</span>
+                  </Link>
+                </SidebarMenuButton>
+              </SidebarMenuItem>
 
-        </SidebarMenu>
-        </SidebarGroupContent>
+              {/* Verifikasi */}
+              <SidebarMenuItem>
+                <SidebarMenuButton asChild isActive={isActive("/verifikasi-laporan")} tooltip="Verifikasi Laporan">
+                  <Link href="/verifikasi-laporan" className="flex items-center gap-2">
+                    <BadgeCheck className="h-5 w-5" />
+                    <span>Verifikasi Laporan</span>
+                  </Link>
+                </SidebarMenuButton>
+              </SidebarMenuItem>
+
+            </SidebarMenu>
+          </SidebarGroupContent>
         </SidebarGroup>
       </SidebarContent>
 

@@ -1,12 +1,12 @@
 "use client"
 
 import AddPermintaan from "./AddPermintaan"
-import type { PermintaanItem } from "../PermintaanClient"
+import type { PermintaanResponse, PermintaanRequest } from "../../_types"
 
 interface Props {
-  data: PermintaanItem
+  data: PermintaanResponse
   onClose: () => void
-  onSave: (val: PermintaanItem) => void
+  onSave: (val: PermintaanRequest, id?: string) => void
 }
 
 export default function EditPermintaan({

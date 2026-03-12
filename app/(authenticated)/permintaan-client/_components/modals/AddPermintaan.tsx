@@ -1,12 +1,17 @@
 "use client"
 
-import { useState } from "react"
+import React, { useState, useEffect } from "react"
 import { format } from "date-fns"
 import { CalendarIcon } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { toast } from "sonner"
+import { getMasterPemda } from "../../../data-master/master-pemda/_services"
+import { getMasterAplikasi } from "../../../data-master/master-aplikasi/_services"
+import type { MasterPemda } from "../../../data-master/master-pemda/_types"
+import type { MasterAplikasi } from "../../../data-master/master-aplikasi/_types"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 
-import type { PermintaanItem } from "../PermintaanClient"
+import type { PermintaanResponse, PermintaanRequest } from "../../_types"
 
 import {
   Dialog,
@@ -30,9 +35,9 @@ import {
 import { Calendar } from "@/components/ui/calendar"
 
 interface Props {
-  initialData?: PermintaanItem
+  initialData?: PermintaanResponse
   onClose: () => void
-  onSave: (val: PermintaanItem) => void
+  onSave: (val: PermintaanRequest, id?: string) => void
 }
 
 export default function AddPermintaan({
@@ -42,13 +47,20 @@ export default function AddPermintaan({
 }: Props) {
 
   const [form, setForm] = useState({
-    pemda: initialData?.pemda || "",
-    nama_aplikasi: initialData?.nama_aplikasi || "",
+    pemda_id: initialData?.pemda?.id || "",
+    aplikasi_id: initialData?.aplikasi?.id || "",
     menu: initialData?.menu || "",
     kondisi_awal: initialData?.kondisi_awal || "",
     kondisi_diharapkan: initialData?.kondisi_diharapkan || "",
-    dibuat_oleh: initialData?.dibuat_oleh || "",
   })
+
+  const [pemdas, setPemdas] = useState<MasterPemda[]>([])
+  const [aplikasis, setAplikasis] = useState<MasterAplikasi[]>([])
+
+  useEffect(() => {
+    getMasterPemda().then((res: any) => setPemdas(res.data?.data || []))
+    getMasterAplikasi().then((res: any) => setAplikasis(res.data?.data || []))
+  }, [])
 
   const [tanggalPesanan, setTanggalPesanan] = useState<Date | undefined>(
     initialData?.tanggal_pesanan
@@ -70,22 +82,19 @@ export default function AddPermintaan({
 
   const handleSubmit = () => {
 
-    if (!form.pemda) return toast.error("Pemda harus diisi")
-    if (!form.nama_aplikasi) return toast.error("Aplikasi harus diisi")
+    if (!form.pemda_id) return toast.error("Pemda harus dipilih")
+    if (!form.aplikasi_id) return toast.error("Aplikasi harus dipilih")
     if (!form.menu) return toast.error("Menu harus diisi")
     if (!form.kondisi_awal) return toast.error("Kondisi awal harus diisi")
     if (!form.kondisi_diharapkan) return toast.error("Kondisi yang diharapkan harus diisi")
     if (!tanggalPesanan) return toast.error("Tanggal pesanan harus diisi")
     if (!tanggalDeadline) return toast.error("Deadline harus diisi")
-    if (!form.dibuat_oleh) return toast.error("Dibuat oleh harus diisi")
 
     onSave({
-      id: initialData?.id || crypto.randomUUID(),
       ...form,
       tanggal_pesanan: format(tanggalPesanan, "yyyy-MM-dd"),
       tanggal_deadline: format(tanggalDeadline, "yyyy-MM-dd"),
-      created_at: new Date().toISOString().slice(0,10),
-    })
+    }, initialData?.id)
 
   }
 
@@ -107,12 +116,16 @@ export default function AddPermintaan({
           <div>
             <Label className="uppercase text-xs font-semibold">Pemda :</Label>
             <div className="mt-2">
-              <Input
-                value={form.pemda}
-                onChange={e =>
-                  setForm({ ...form, pemda: e.target.value })
-                }
-              />
+              <Select value={form.pemda_id} onValueChange={(val) => setForm({ ...form, pemda_id: val })}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Pilih Pemda" />
+                </SelectTrigger>
+                <SelectContent>
+                  {pemdas.map(p => (
+                    <SelectItem key={p.id} value={p.id!}>{p.name}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
             <FieldNote label="Pemda" />
           </div>
@@ -121,15 +134,16 @@ export default function AddPermintaan({
           <div>
             <Label className="uppercase text-xs font-semibold">Aplikasi :</Label>
             <div className="mt-2">
-              <Input
-                value={form.nama_aplikasi}
-                onChange={e =>
-                  setForm({
-                    ...form,
-                    nama_aplikasi: e.target.value,
-                  })
-                }
-              />
+              <Select value={form.aplikasi_id} onValueChange={(val) => setForm({ ...form, aplikasi_id: val })}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Pilih Aplikasi" />
+                </SelectTrigger>
+                <SelectContent>
+                  {aplikasis.map(a => (
+                    <SelectItem key={a.id} value={a.id!}>{a.name}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
             <FieldNote label="Aplikasi" />
           </div>
@@ -264,25 +278,7 @@ export default function AddPermintaan({
 
             <FieldNote label="Deadline" />
 
-          </div>
 
-          {/* DIBUAT OLEH */}
-          <div>
-            <Label className="uppercase text-xs font-semibold">Dibuat Oleh :</Label>
-
-            <div className="mt-2">
-              <Input
-                value={form.dibuat_oleh}
-                onChange={e =>
-                  setForm({
-                    ...form,
-                    dibuat_oleh: e.target.value,
-                  })
-                }
-              />
-            </div>
-
-            <FieldNote label="Dibuat oleh" />
           </div>
 
         </div>

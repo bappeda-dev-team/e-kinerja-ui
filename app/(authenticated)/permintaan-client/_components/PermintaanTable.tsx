@@ -31,11 +31,11 @@ import {
 
 import { Button } from "@/components/ui/button"
 
-import type { PermintaanItem } from "./PermintaanClient"
+import type { PermintaanResponse } from "../_types"
 
 interface Props {
-  data: PermintaanItem[]
-  onEdit: (item: PermintaanItem) => void
+  data: PermintaanResponse[]
+  onEdit: (item: PermintaanResponse) => void
   onDelete: (id: string) => void
 }
 
@@ -87,10 +87,10 @@ export default function PermintaanTable({ data, onEdit, onDelete }: Props) {
 
               <div className="flex-1 min-w-0">
                 <p className="font-bold text-sm text-[#202224] leading-snug">
-                  {item.pemda}
+                  {item.pemda?.name || "Pemda (Tidak diketahui)"}
                 </p>
                 <p className="text-xs text-[#797A7C] mt-0.5">
-                  {item.nama_aplikasi}
+                  {item.aplikasi?.name || "Aplikasi (Tidak diketahui)"}
                   <span className="mx-1">·</span>
                   {item.menu}
                 </p>
@@ -108,7 +108,7 @@ export default function PermintaanTable({ data, onEdit, onDelete }: Props) {
                     Edit
                   </DropdownMenuItem>
                   <DropdownMenuItem
-                    onClick={() => setDeleteId(item.id)}
+                    onClick={() => setDeleteId(item.id!)}
                     className="text-red-500 focus:text-red-500"
                   >
                     <Trash2 className="size-3.5 mr-2" />
@@ -148,7 +148,7 @@ export default function PermintaanTable({ data, onEdit, onDelete }: Props) {
 
             {/* Deadline */}
             <p className="text-xs font-semibold text-red-500">
-              Deadline: {formatTgl(item.tanggal_deadline)}
+              Deadline: {item.tanggal_deadline ? formatTgl(item.tanggal_deadline) : "Belum ditentukan"}
             </p>
 
           </div>
