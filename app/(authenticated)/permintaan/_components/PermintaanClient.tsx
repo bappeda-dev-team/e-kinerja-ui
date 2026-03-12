@@ -1,79 +1,153 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { Button } from "@/components/ui/button"
 import { toast } from "sonner"
 
 import PermintaanTable from "./PermintaanTable"
 import AddPermintaan from "./modals/AddPermintaan"
 import EditPermintaan from "./modals/EditPermintaan"
+
 import type { PermintaanResponse, PermintaanRequest } from "../_types"
-import { getPermintaan, createPermintaan, updatePermintaan, deletePermintaan } from "../_services"
+
+import {
+  getPermintaan,
+  createPermintaan,
+  updatePermintaan,
+  deletePermintaan
+} from "../_services"
 
 export default function PermintaanClient() {
 
-  const [data, setData] = useState<PermintaanResponse[]>([])
+  const [data, setData] = useState<any[]>([])
   const [showAdd, setShowAdd] = useState(false)
-  const [editItem, setEditItem] = useState<PermintaanResponse | null>(null)
+  const [editItem, setEditItem] = useState<any | null>(null)
 
   const loadData = async () => {
+
     try {
+
       const res = await getPermintaan("names")
+
       if (res.status === 200) {
-        setData(res.data?.data || [])
+
+        const raw = res.data?.data || []
+
+const mapped = raw.map((item: any) => ({
+  id: item.id,
+  
+  // Gunakan nama key yang sama persis dengan tipe data di types.ts
+  pemda: item.pemda,
+  aplikasi: item.aplikasi,
+  menu: item.menu,
+  
+  kondisi_awal: item.kondisi_awal,
+  kondisi_diharapkan: item.kondisi_diharapkan,
+  
+  tanggal_deadline: item.tanggal_deadline,
+  
+  created_at: item.created_at
+}))
+
+setData(mapped)
+
       }
+
     } catch (err: any) {
+
       toast.error(err.message || "Gagal memuat data")
+
     }
+
   }
 
   useEffect(() => {
+
     loadData()
+
   }, [])
 
   const handleAdd = async (val: PermintaanRequest) => {
+
     try {
+
       const res = await createPermintaan(val)
+
       if (res.status === 200 || res.status === 201) {
+
         toast.success("Permintaan berhasil ditambahkan")
+
         setShowAdd(false)
+
         loadData()
+
       } else {
+
         toast.error(res.data?.message || res.message)
+
       }
+
     } catch (err: any) {
+
       toast.error(err.message || "Gagal menambah data")
+
     }
+
   }
 
   const handleEdit = async (val: PermintaanRequest, id?: string) => {
+
     if (!id) return
+
     try {
+
       const res = await updatePermintaan(id, val)
+
       if (res.status === 200) {
+
         toast.success("Permintaan berhasil diperbarui")
+
         setEditItem(null)
+
         loadData()
+
       } else {
+
         toast.error(res.data?.message || res.message)
+
       }
+
     } catch (err: any) {
+
       toast.error(err.message || "Gagal memperbarui data")
+
     }
+
   }
 
   const handleDelete = async (id: string) => {
+
     try {
+
       const res = await deletePermintaan(id)
+
       if (res.status === 200) {
+
         toast.success("Permintaan berhasil dihapus")
+
         loadData()
+
       } else {
+
         toast.error(res.data?.message || res.message)
+
       }
+
     } catch (err: any) {
+
       toast.error(err.message || "Gagal menghapus data")
+
     }
+
   }
 
   return (
@@ -88,7 +162,7 @@ export default function PermintaanClient() {
 
         <button
           onClick={() => setShowAdd(true)}
-          className="inline-flex items-center gap-2 bg-primary hover:bg-primary/90 text-primary-foreground px-4 py-2 rounded-md font-bold text-sm transition"
+          className="inline-flex items-center gap-2 bg-primary hover:bg-primary/90 text-white px-4 py-2 rounded-md font-bold text-sm transition"
         >
           + Tambah Permintaan
         </button>
@@ -102,18 +176,22 @@ export default function PermintaanClient() {
       />
 
       {showAdd && (
+
         <AddPermintaan
           onClose={() => setShowAdd(false)}
           onSave={(val) => handleAdd(val)}
         />
+
       )}
 
       {editItem && (
+
         <EditPermintaan
           data={editItem}
           onClose={() => setEditItem(null)}
           onSave={(val, id) => handleEdit(val, id)}
         />
+
       )}
 
     </div>

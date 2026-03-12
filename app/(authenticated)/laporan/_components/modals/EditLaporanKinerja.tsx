@@ -1,13 +1,13 @@
 "use client"
 
-import type { LaporanKinerjaItem } from "../../data"
+import type { LaporanKinerjaItem } from "../../_types"
 import AddLaporanKinerja from "./AddLaporanKinerja"
 
 interface Props {
   open: boolean
   data: LaporanKinerjaItem | null
   onClose: () => void
-  onSave: (item: LaporanKinerjaItem) => void
+  onSave: (item: LaporanKinerjaItem) => Promise<void>
 
   permintaanList: {
     id: string

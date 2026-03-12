@@ -42,7 +42,7 @@ export default function EditMasterPemda({
     const selected = data.find(item => item.id === idPemda)
 
     if (selected) {
-      setNama(selected.nama_pemda)
+      setNama(selected.name)
     }
 
   }, [idPemda, data])
@@ -56,7 +56,7 @@ export default function EditMasterPemda({
 
     onSubmit({
       id: idPemda!,
-      nama_pemda: nama,
+      name: nama,
       created_at: "",
       updated_at: "",
     })

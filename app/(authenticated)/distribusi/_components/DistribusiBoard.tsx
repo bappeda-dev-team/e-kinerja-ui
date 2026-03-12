@@ -17,6 +17,7 @@ interface Props {
   onAssign: (item: PermintaanItem) => void
   onSelesai: (id: string) => void
   onDelete: (id: string) => void
+  onShowKomentar: (text: string) => void
 }
 
 function formatTgl(dateStr: string) {

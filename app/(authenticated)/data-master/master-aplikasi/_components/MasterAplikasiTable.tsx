@@ -37,6 +37,7 @@ interface Props {
   data: MasterAplikasiItem[]
   onEdit: (id: string) => void
   onDelete: (id: string) => void
+  loading?: boolean
 }
 
 function formatTanggal(dateStr: string) {

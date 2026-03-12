@@ -1,5 +1,5 @@
 export interface CreateMasterAplikasiRequest {
-    name: string;
+    name: string
 }
 
 export interface MasterAplikasi {
@@ -7,4 +7,5 @@ export interface MasterAplikasi {
     name?: string;
     created_at?: string;
     updated_at?: string;
+    
 }

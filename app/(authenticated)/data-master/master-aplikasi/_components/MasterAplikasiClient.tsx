@@ -1,12 +1,19 @@
 'use client'
 
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import { Plus } from "lucide-react"
 import { toast } from "sonner"
 
 import MasterAplikasiTable from "./MasterAplikasiTable"
 import AddMasterAplikasi from "./modals/AddMasterAplikasi"
 import EditMasterAplikasi from "./modals/EditMasterAplikasi"
+
+import {
+  getMasterAplikasi,
+  createMasterAplikasi,
+  updateMasterAplikasi,
+  deleteMasterAplikasi,
+} from "../_services"
 
 export interface MasterAplikasiItem {
   id: string
@@ -17,74 +24,111 @@ export interface MasterAplikasiItem {
 
 export default function MasterAplikasiClient() {
 
-  const today = new Date().toISOString().slice(0,10)
-
-  const [data, setData] = useState<MasterAplikasiItem[]>([
-    { id: "1",  nama_aplikasi: "E-Kinerja",          created_at: today, updated_at: today },
-    { id: "2",  nama_aplikasi: "E-Budgeting",         created_at: today, updated_at: today },
-    { id: "3",  nama_aplikasi: "Kertas Kerja v1",     created_at: today, updated_at: today },
-    { id: "4",  nama_aplikasi: "Kertas Kerja Revamp", created_at: today, updated_at: today },
-    { id: "5",  nama_aplikasi: "E-Planning",          created_at: today, updated_at: today },
-    { id: "6",  nama_aplikasi: "E-Absensi",           created_at: today, updated_at: today },
-    { id: "7",  nama_aplikasi: "E-Office",            created_at: today, updated_at: today },
-    { id: "8",  nama_aplikasi: "Data Kinerja",        created_at: today, updated_at: today },
-    { id: "9",  nama_aplikasi: "Pohon Kinerja",       created_at: today, updated_at: today },
-    { id: "10", nama_aplikasi: "Pengajuan KTA",       created_at: today, updated_at: today },
-    { id: "11", nama_aplikasi: "E-KAK",               created_at: today, updated_at: today },
-    { id: "12", nama_aplikasi: "Tower Data",          created_at: today, updated_at: today },
-    { id: "13", nama_aplikasi: "E-Monev",             created_at: today, updated_at: today },
-    { id: "14", nama_aplikasi: "E-Sakip",             created_at: today, updated_at: today },
-    { id: "15", nama_aplikasi: "E-Audit",             created_at: today, updated_at: today },
-    { id: "16", nama_aplikasi: "E-Procurement",       created_at: today, updated_at: today },
-    { id: "17", nama_aplikasi: "E-Perizinan",         created_at: today, updated_at: today },
-    { id: "18", nama_aplikasi: "E-Retribusi",         created_at: today, updated_at: today },
-    { id: "19", nama_aplikasi: "E-PAD",               created_at: today, updated_at: today },
-    { id: "20", nama_aplikasi: "Sistem Informasi ASN",created_at: today, updated_at: today },
-    { id: "21", nama_aplikasi: "E-Diklat",            created_at: today, updated_at: today },
-    { id: "22", nama_aplikasi: "E-Mutasi",            created_at: today, updated_at: today },
-    { id: "23", nama_aplikasi: "E-Disiplin",          created_at: today, updated_at: today },
-    { id: "24", nama_aplikasi: "Portal Layanan",      created_at: today, updated_at: today },
-  ])
+  const [data, setData] = useState<MasterAplikasiItem[]>([])
+  const [loading, setLoading] = useState(true)
 
   const [showAdd, setShowAdd] = useState(false)
   const [editId, setEditId] = useState<string | null>(null)
 
-  const handleDelete = (id: string) => {
+  // =========================
+  // FETCH DATA
+  // =========================
+  const fetchData = async () => {
+    try {
 
-    setData(prev => prev.filter(item => item.id !== id))
+      setLoading(true)
 
-    toast.success("Aplikasi berhasil dihapus")
+      const res = await getMasterAplikasi()
+
+      const mapped = (res.data.data ?? []).map((item: any) => ({
+        id: item.id,
+        nama_aplikasi: item.name,
+        created_at: item.created_at,
+        updated_at: item.updated_at,
+      }))
+
+      setData(mapped)
+
+    } catch (error) {
+
+      toast.error("Gagal mengambil data aplikasi")
+
+    } finally {
+
+      setLoading(false)
+
+    }
   }
 
-  const handleAdd = (newItem: { nama_aplikasi: string }) => {
+  useEffect(() => {
+    fetchData()
+  }, [])
 
-    const now = new Date().toISOString().slice(0,10)
+  // =========================
+  // DELETE
+  // =========================
+  const handleDelete = async (id: string) => {
 
-    const newData: MasterAplikasiItem = {
-      id: Date.now().toString(),
-      ...newItem,
-      created_at: now,
-      updated_at: now,
+    try {
+
+      await deleteMasterAplikasi(id)
+
+      toast.success("Aplikasi berhasil dihapus")
+
+      fetchData()
+
+    } catch {
+
+      toast.error("Gagal menghapus aplikasi")
+
     }
 
-    setData(prev => [...prev, newData])
-
-    toast.success("Aplikasi berhasil ditambahkan")
   }
 
-  const handleEdit = (updated: MasterAplikasiItem) => {
+  // =========================
+  // ADD
+  // =========================
+  const handleAdd = async (newItem: { nama_aplikasi: string }) => {
 
-    const now = new Date().toISOString().slice(0,10)
+    try {
 
-    setData(prev =>
-      prev.map(item =>
-        item.id === updated.id
-          ? { ...updated, updated_at: now }
-          : item
-      )
-    )
+      await createMasterAplikasi({
+        name: newItem.nama_aplikasi,
+      })
 
-    toast.success("Aplikasi berhasil diperbarui")
+      toast.success("Aplikasi berhasil ditambahkan")
+
+      fetchData()
+
+    } catch {
+
+      toast.error("Gagal menambahkan aplikasi")
+
+    }
+
+  }
+
+  // =========================
+  // EDIT
+  // =========================
+  const handleEdit = async (updated: MasterAplikasiItem) => {
+
+    try {
+
+      await updateMasterAplikasi(updated.id, {
+        name: updated.nama_aplikasi,
+      })
+
+      toast.success("Aplikasi berhasil diperbarui")
+
+      fetchData()
+
+    } catch {
+
+      toast.error("Gagal memperbarui aplikasi")
+
+    }
+
   }
 
   const selectedData = data.find(item => item.id === editId)
@@ -113,6 +157,7 @@ export default function MasterAplikasiClient() {
         data={data}
         onEdit={setEditId}
         onDelete={handleDelete}
+        loading={loading}
       />
 
       {showAdd && (
@@ -120,8 +165,11 @@ export default function MasterAplikasiClient() {
         <AddMasterAplikasi
           onClose={() => setShowAdd(false)}
           onSave={(data) => {
+
             handleAdd(data)
+
             setShowAdd(false)
+
           }}
         />
 
@@ -133,8 +181,11 @@ export default function MasterAplikasiClient() {
           data={selectedData}
           onClose={() => setEditId(null)}
           onSave={(updated) => {
+
             handleEdit(updated)
+
             setEditId(null)
+
           }}
         />
 

@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { toast } from "sonner"
 
 import {
@@ -29,7 +29,17 @@ export default function EditMasterAplikasi({
   onSave,
 }: Props) {
 
-  const [nama, setNama] = useState(data.nama_aplikasi)
+  // selalu string (tidak pernah undefined)
+  const [nama, setNama] = useState<string>("")
+
+  // sync ketika data berubah / modal dibuka
+  useEffect(() => {
+    if (data?.nama_aplikasi) {
+      setNama(data.nama_aplikasi)
+    } else {
+      setNama("")
+    }
+  }, [data])
 
   const handleSubmit = () => {
 
@@ -44,8 +54,6 @@ export default function EditMasterAplikasi({
       created_at: data.created_at,
       updated_at: new Date().toISOString(),
     })
-
-    
 
     onClose()
   }
@@ -68,8 +76,9 @@ export default function EditMasterAplikasi({
 
             <div className="mt-2">
               <Input
-                value={nama}
+                value={nama ?? ""}
                 onChange={(e) => setNama(e.target.value)}
+                placeholder="Masukkan nama aplikasi"
               />
             </div>
 

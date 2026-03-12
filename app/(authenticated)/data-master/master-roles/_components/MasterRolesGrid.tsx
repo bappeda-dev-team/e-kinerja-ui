@@ -1,5 +1,5 @@
 import MasterRolesCard from "./MasterRolesCard"
-import type { MasterRolesItem } from "../data"
+import type { MasterRolesItem } from "./MasterRolesClient"
 
 interface Props {
   data: MasterRolesItem[]
@@ -8,6 +8,7 @@ interface Props {
 }
 
 export default function MasterRolesGrid({ data, onEdit, onDelete }: Props) {
+
   if (data.length === 0) {
     return (
       <div className="flex items-center justify-center rounded-2xl bg-white p-12 text-[#202224]/40 border border-[#B9B9B9]/50">

@@ -68,7 +68,7 @@ export default function PermintaanTable({ data, onEdit, onDelete }: Props) {
   return (
     <div className="space-y-6">
 
-      {/* Card Grid — 3 columns */}
+      {/* Card Grid */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
 
         {paginatedData.map((item) => (
@@ -86,27 +86,34 @@ export default function PermintaanTable({ data, onEdit, onDelete }: Props) {
               </div>
 
               <div className="flex-1 min-w-0">
+
                 <p className="font-bold text-sm text-[#202224] leading-snug">
-                  {item.pemda?.name || "Pemda (Tidak diketahui)"}
+                  {item.pemda || "Pemda (Tidak diketahui)"}
                 </p>
+
                 <p className="text-xs text-[#797A7C] mt-0.5">
-                  {item.aplikasi?.name || "Aplikasi (Tidak diketahui)"}
+                  {item.aplikasi || "Aplikasi (Tidak diketahui)"}
                   <span className="mx-1">·</span>
-                  {item.menu}
+                  {item.menu || "-"}
                 </p>
+
               </div>
 
               <DropdownMenu>
+
                 <DropdownMenuTrigger asChild>
                   <button className="p-1 rounded hover:bg-gray-100 transition shrink-0">
                     <MoreVertical className="size-4 text-gray-400" />
                   </button>
                 </DropdownMenuTrigger>
+
                 <DropdownMenuContent align="end" className="w-32">
+
                   <DropdownMenuItem onClick={() => onEdit(item)}>
                     <Pencil className="size-3.5 mr-2 text-gray-500" />
                     Edit
                   </DropdownMenuItem>
+
                   <DropdownMenuItem
                     onClick={() => setDeleteId(item.id!)}
                     className="text-red-500 focus:text-red-500"
@@ -114,32 +121,40 @@ export default function PermintaanTable({ data, onEdit, onDelete }: Props) {
                     <Trash2 className="size-3.5 mr-2" />
                     Hapus
                   </DropdownMenuItem>
+
                 </DropdownMenuContent>
+
               </DropdownMenu>
 
             </div>
 
             <div className="border-t border-black/10" />
 
-            {/* Kondisi Awal & Target */}
+            {/* Kondisi Awal */}
             <div className="space-y-1.5">
 
               <div className="flex items-start gap-2">
+
                 <span className="inline-flex items-center px-2 py-0.5 rounded-md bg-purple-100 text-purple-600 text-xs font-semibold shrink-0 mt-0.5">
                   Awal
                 </span>
+
                 <p className="text-xs text-[#797A7C] leading-relaxed">
-                  {item.kondisi_awal}
+                  {item.kondisi_awal || "-"}
                 </p>
+
               </div>
 
               <div className="flex items-start gap-2">
+
                 <span className="inline-flex items-center px-2 py-0.5 rounded-md bg-teal-100 text-teal-600 text-xs font-semibold shrink-0 mt-0.5">
                   Target
                 </span>
+
                 <p className="text-xs text-[#797A7C] leading-relaxed">
-                  {item.kondisi_diharapkan}
+                  {item.kondisi_diharapkan || "-"}
                 </p>
+
               </div>
 
             </div>
@@ -157,11 +172,13 @@ export default function PermintaanTable({ data, onEdit, onDelete }: Props) {
 
       </div>
 
-      {/* Pagination Footer */}
+      {/* Pagination */}
       <div className="flex items-center justify-between text-sm text-[#313131]">
 
         <div className="flex items-center gap-2">
+
           <span>Jumlah per halaman</span>
+
           <Select
             value={String(pageSize)}
             onValueChange={(val) => {
@@ -169,15 +186,21 @@ export default function PermintaanTable({ data, onEdit, onDelete }: Props) {
               setPageIndex(0)
             }}
           >
+
             <SelectTrigger className="h-8 w-16">
               <SelectValue />
             </SelectTrigger>
+
             <SelectContent>
               {PAGE_SIZE_OPTIONS.map((n) => (
-                <SelectItem key={n} value={String(n)}>{n}</SelectItem>
+                <SelectItem key={n} value={String(n)}>
+                  {n}
+                </SelectItem>
               ))}
             </SelectContent>
+
           </Select>
+
         </div>
 
         <span>{start}-{end} dari {data.length}</span>
@@ -185,57 +208,91 @@ export default function PermintaanTable({ data, onEdit, onDelete }: Props) {
         <div className="flex items-center gap-1">
 
           <Button
-            variant="outline" size="icon" className="h-8 w-8"
+            variant="outline"
+            size="icon"
+            className="h-8 w-8"
             onClick={() => setPageIndex(0)}
             disabled={pageIndex === 0}
-          >«</Button>
+          >
+            «
+          </Button>
 
           <Button
-            variant="outline" size="icon" className="h-8 w-8"
+            variant="outline"
+            size="icon"
+            className="h-8 w-8"
             onClick={() => setPageIndex(p => Math.max(0, p - 1))}
             disabled={pageIndex === 0}
-          >‹</Button>
+          >
+            ‹
+          </Button>
 
           <Button
-            variant="outline" size="icon" className="h-8 w-8"
+            variant="outline"
+            size="icon"
+            className="h-8 w-8"
             onClick={() => setPageIndex(p => Math.min(totalPages - 1, p + 1))}
             disabled={pageIndex >= totalPages - 1}
-          >›</Button>
+          >
+            ›
+          </Button>
 
           <Button
-            variant="outline" size="icon" className="h-8 w-8"
+            variant="outline"
+            size="icon"
+            className="h-8 w-8"
             onClick={() => setPageIndex(totalPages - 1)}
             disabled={pageIndex >= totalPages - 1}
-          >»</Button>
+          >
+            »
+          </Button>
 
         </div>
 
       </div>
 
-      {/* Konfirmasi Hapus */}
+      {/* Alert Hapus */}
       <AlertDialog
         open={!!deleteId}
         onOpenChange={(open) => { if (!open) setDeleteId(null) }}
       >
+
         <AlertDialogContent>
+
           <AlertDialogHeader>
-            <AlertDialogTitle>Yakin ingin menghapus permintaan ini?</AlertDialogTitle>
+
+            <AlertDialogTitle>
+              Yakin ingin menghapus permintaan ini?
+            </AlertDialogTitle>
+
             <AlertDialogDescription>
               Data yang sudah dihapus tidak dapat dikembalikan.
             </AlertDialogDescription>
+
           </AlertDialogHeader>
+
           <AlertDialogFooter>
-            <AlertDialogCancel>Batal</AlertDialogCancel>
+
+            <AlertDialogCancel>
+              Batal
+            </AlertDialogCancel>
+
             <AlertDialogAction
               onClick={() => {
-                if (deleteId) { onDelete(deleteId); setDeleteId(null) }
+                if (deleteId) {
+                  onDelete(deleteId)
+                  setDeleteId(null)
+                }
               }}
               className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
             >
               Hapus
             </AlertDialogAction>
+
           </AlertDialogFooter>
+
         </AlertDialogContent>
+
       </AlertDialog>
 
     </div>

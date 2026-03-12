@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import { Plus } from "lucide-react"
 import { toast } from "sonner"
 
@@ -8,84 +8,109 @@ import MasterPemdaTable from "./MasterPemdaTable"
 import AddMasterPemda from "./modals/AddMasterPemda"
 import EditMasterPemda from "./modals/EditMasterPemda"
 
+import {
+  getMasterPemda,
+  createMasterPemda,
+  updateMasterPemda,
+  deleteMasterPemda
+} from "../_services"
+
 export interface MasterPemdaItem {
   id: string
-  nama_pemda: string
+  name: string
   created_at: string
   updated_at: string
 }
 
 export default function MasterPemdaClient() {
 
-  const today = new Date().toISOString().slice(0,10)
-
-  const [data, setData] = useState<MasterPemdaItem[]>([
-    { id: "1",  nama_pemda: "Pemda Kota Bandung",          created_at: today, updated_at: today },
-    { id: "2",  nama_pemda: "Pemda Kabupaten Sragen",       created_at: today, updated_at: today },
-    { id: "3",  nama_pemda: "Pemda Kabupaten Mahakam Ulu",  created_at: today, updated_at: today },
-    { id: "4",  nama_pemda: "Pemda Kota Madiun",            created_at: today, updated_at: today },
-    { id: "5",  nama_pemda: "Pemda Kota Surakarta",         created_at: today, updated_at: today },
-    { id: "6",  nama_pemda: "Pemda Kabupaten Ngawi",        created_at: today, updated_at: today },
-    { id: "7",  nama_pemda: "Pemda Kabupaten Sukoharjo",    created_at: today, updated_at: today },
-    { id: "8",  nama_pemda: "Pemda Kota Semarang",          created_at: today, updated_at: today },
-    { id: "9",  nama_pemda: "Pemda Kabupaten Semarang",     created_at: today, updated_at: today },
-    { id: "10", nama_pemda: "Pemda Kota Blitar",            created_at: today, updated_at: today },
-    { id: "11", nama_pemda: "Pemda Kabupaten Madiun",       created_at: today, updated_at: today },
-    { id: "12", nama_pemda: "Pemda Kota Kediri",            created_at: today, updated_at: today },
-    { id: "13", nama_pemda: "Pemda Kota Malang",            created_at: today, updated_at: today },
-    { id: "14", nama_pemda: "Pemda Kabupaten Malang",       created_at: today, updated_at: today },
-    { id: "15", nama_pemda: "Pemda Kota Surabaya",          created_at: today, updated_at: today },
-    { id: "16", nama_pemda: "Pemda Kabupaten Sidoarjo",     created_at: today, updated_at: today },
-    { id: "17", nama_pemda: "Pemda Kota Mojokerto",         created_at: today, updated_at: today },
-    { id: "18", nama_pemda: "Pemda Kabupaten Mojokerto",    created_at: today, updated_at: today },
-    { id: "19", nama_pemda: "Pemda Kota Pasuruan",          created_at: today, updated_at: today },
-    { id: "20", nama_pemda: "Pemda Kabupaten Pasuruan",     created_at: today, updated_at: today },
-    { id: "21", nama_pemda: "Pemda Kota Probolinggo",       created_at: today, updated_at: today },
-    { id: "22", nama_pemda: "Pemda Kabupaten Probolinggo",  created_at: today, updated_at: today },
-    { id: "23", nama_pemda: "Pemda Kota Batu",              created_at: today, updated_at: today },
-    { id: "24", nama_pemda: "Pemda Kabupaten Jombang",      created_at: today, updated_at: today },
-  ])
+  const [data, setData] = useState<MasterPemdaItem[]>([])
+  const [loading, setLoading] = useState(true)
 
   const [showAdd, setShowAdd] = useState(false)
   const [editId, setEditId] = useState<string | null>(null)
 
-  const handleDelete = (id: string) => {
+  const fetchData = async () => {
+    try {
 
-    setData(prev => prev.filter(item => item.id !== id))
+      setLoading(true)
 
-    toast.success("Data berhasil dihapus")
+const res = await getMasterPemda()
+
+setData(
+  (res.data.data ?? []).map((item) => ({
+    id: item.id ?? "",
+    name: item.name ?? "",
+    created_at: item.created_at ?? "",
+    updated_at: item.updated_at ?? "",
+  }))
+)
+
+    } catch {
+      toast.error("Gagal mengambil data pemda")
+    } finally {
+      setLoading(false)
+    }
   }
 
-  const handleAdd = (item: { nama_pemda: string }) => {
+  useEffect(() => {
+    fetchData()
+  }, [])
 
-    const now = new Date().toISOString().slice(0,10)
+  const handleDelete = async (id: string) => {
 
-    setData(prev => [
-      ...prev,
-      {
-        id: Date.now().toString(),
-        ...item,
-        created_at: now,
-        updated_at: now,
-      }
-    ])
+    try {
 
-    toast.success("Pemda berhasil ditambahkan")
+      await deleteMasterPemda(id)
+
+      toast.success("Pemda berhasil dihapus")
+
+      fetchData()
+
+    } catch {
+
+      toast.error("Gagal menghapus pemda")
+
+    }
+
   }
 
-  const handleEdit = (updated: MasterPemdaItem) => {
+  const handleAdd = async (item: { name: string }) => {
 
-    const now = new Date().toISOString().slice(0,10)
+    try {
 
-    setData(prev =>
-      prev.map(item =>
-        item.id === updated.id
-          ? { ...updated, updated_at: now }
-          : item
-      )
-    )
+      await createMasterPemda(item)
 
-    toast.success("Data berhasil diperbarui")
+      toast.success("Pemda berhasil ditambahkan")
+
+      fetchData()
+
+    } catch {
+
+      toast.error("Gagal menambahkan pemda")
+
+    }
+
+  }
+
+  const handleEdit = async (updated: MasterPemdaItem) => {
+
+    try {
+
+      await updateMasterPemda(updated.id, {
+        name: updated.name
+      })
+
+      toast.success("Data berhasil diperbarui")
+
+      fetchData()
+
+    } catch {
+
+      toast.error("Gagal memperbarui data")
+
+    }
+
   }
 
   return (
@@ -117,7 +142,10 @@ export default function MasterPemdaClient() {
       <AddMasterPemda
         open={showAdd}
         onOpenChange={setShowAdd}
-        onSubmit={handleAdd}
+        onSubmit={(item) => {
+          handleAdd(item)
+          setShowAdd(false)
+        }}
       />
 
       <EditMasterPemda
@@ -127,10 +155,12 @@ export default function MasterPemdaClient() {
         onOpenChange={(open) => {
           if (!open) setEditId(null)
         }}
-        onSubmit={handleEdit}
+        onSubmit={(updated) => {
+          handleEdit(updated)
+          setEditId(null)
+        }}
       />
 
     </div>
-
   )
 }

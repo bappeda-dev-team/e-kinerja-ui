@@ -27,18 +27,20 @@ import { X } from "lucide-react"
 
 import { toast } from "sonner"
 
-import type { LaporanKinerjaItem } from "../../data"
+import type { LaporanKinerjaItem } from "../../_types"
 
 interface Props {
   open: boolean
   onClose: () => void
-  onSave: (item: LaporanKinerjaItem) => void
+  onSave: (item: LaporanKinerjaItem) => Promise<void>
   initialData?: LaporanKinerjaItem | null
+
   permintaanList: {
     id: string
     pemda: string
     menu: string
   }[]
+
   masterPegawai: {
     id: string
     nama_pegawai: string
@@ -55,58 +57,40 @@ export default function AddLaporanKinerja({
   masterPegawai,
 }: Props) {
 
-  const [permintaan, setPermintaan] = useState("")
-
-  const [selectedProgrammer, setSelectedProgrammer] =
-    useState<string[]>([])
-
+  const [permintaanId, setPermintaanId] = useState("")
+  const [selectedProgrammer, setSelectedProgrammer] = useState<string[]>([])
   const [progress, setProgress] = useState("")
 
-  const [status, setStatus] = useState(0)
-
   const programmerOptions = useMemo(() => {
-
     return masterPegawai.filter(
       (p) => p.jabatan === "Programmer - Level 1"
     )
-
   }, [masterPegawai])
 
   useEffect(() => {
 
     if (initialData) {
 
-      setPermintaan(initialData.permintaan)
-
-      setProgress(initialData.progress)
-
-      setStatus(initialData.status)
-
-      const ids = programmerOptions
-        .filter((p) =>
-          initialData.programmer?.includes(p.nama_pegawai)
-        )
-        .map((p) => p.id)
-
-      setSelectedProgrammer(ids)
+      setPermintaanId(initialData.permintaan_id)
+      setProgress(initialData.laporan_progress)
+      setSelectedProgrammer(
+        initialData.programmer_id ? [initialData.programmer_id] : []
+      )
 
     } else {
 
-      setPermintaan("")
+      setPermintaanId("")
       setProgress("")
-      setStatus(0)
       setSelectedProgrammer([])
 
     }
 
-  }, [initialData, open, programmerOptions])
+  }, [initialData, open])
 
   const handleAddProgrammer = (id: string) => {
 
     if (!selectedProgrammer.includes(id)) {
-
       setSelectedProgrammer((prev) => [...prev, id])
-
     }
 
   }
@@ -119,61 +103,40 @@ export default function AddLaporanKinerja({
 
   }
 
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
 
-    if (!permintaan) {
-
+    if (!permintaanId) {
       toast.error("Silakan pilih permintaan terlebih dahulu")
-
       return
     }
 
     if (selectedProgrammer.length === 0) {
-
       toast.error("Minimal pilih satu programmer")
-
       return
     }
 
     if (!progress) {
-
       toast.error("Progress pekerjaan belum diisi")
-
       return
     }
 
-    const programmerNames = selectedProgrammer.map((id) => {
-
-      const pegawai =
-        programmerOptions.find((p) => p.id === id)
-
-      return pegawai?.nama_pegawai || ""
-
-    })
-
-    const now = new Date()
-      .toISOString()
-      .slice(0, 19)
-      .replace("T", " ")
+    const now = new Date().toISOString()
 
     const newItem: LaporanKinerjaItem = {
 
       id: initialData?.id ?? crypto.randomUUID(),
 
-      permintaan,
+      permintaan_id: permintaanId,
 
-      programmer: programmerNames.join(", "),
+      programmer_id: selectedProgrammer[0],
 
-      progress,
-
-      status,
+      laporan_progress: progress,
 
       created_at: initialData?.created_at ?? now,
 
-      updated_at: now,
     }
 
-    onSave(newItem)
+    await onSave(newItem)
 
     toast.success(
       initialData
@@ -182,6 +145,7 @@ export default function AddLaporanKinerja({
     )
 
     onClose()
+
   }
 
   return (
@@ -193,11 +157,9 @@ export default function AddLaporanKinerja({
         <DialogHeader>
 
           <DialogTitle>
-
             {initialData
               ? "Edit Laporan Kinerja"
               : "Tambah Laporan Kinerja"}
-
           </DialogTitle>
 
         </DialogHeader>
@@ -211,8 +173,8 @@ export default function AddLaporanKinerja({
             <Label>Permintaan</Label>
 
             <Select
-              value={permintaan}
-              onValueChange={setPermintaan}
+              value={permintaanId}
+              onValueChange={setPermintaanId}
             >
 
               <SelectTrigger>
@@ -223,10 +185,7 @@ export default function AddLaporanKinerja({
 
                 {permintaanList.map((p) => (
 
-                  <SelectItem
-                    key={p.id}
-                    value={`${p.pemda} - ${p.menu}`}
-                  >
+                  <SelectItem key={p.id} value={p.id}>
                     {p.pemda} - {p.menu}
                   </SelectItem>
 
@@ -235,10 +194,6 @@ export default function AddLaporanKinerja({
               </SelectContent>
 
             </Select>
-
-            <p className="text-xs text-muted-foreground">
-              Pilih permintaan pekerjaan yang akan dilaporkan progresnya
-            </p>
 
           </div>
 
@@ -258,10 +213,7 @@ export default function AddLaporanKinerja({
 
                 {programmerOptions.map((p) => (
 
-                  <SelectItem
-                    key={p.id}
-                    value={p.id}
-                  >
+                  <SelectItem key={p.id} value={p.id}>
                     {p.nama_pegawai}
                   </SelectItem>
 
@@ -270,10 +222,6 @@ export default function AddLaporanKinerja({
               </SelectContent>
 
             </Select>
-
-            <p className="text-xs text-muted-foreground">
-              Pilih satu atau lebih programmer yang mengerjakan tugas ini
-            </p>
 
           </div>
 
@@ -284,9 +232,7 @@ export default function AddLaporanKinerja({
               {selectedProgrammer.map((id) => {
 
                 const programmer =
-                  programmerOptions.find(
-                    (p) => p.id === id
-                  )
+                  programmerOptions.find((p) => p.id === id)
 
                 if (!programmer) return null
 
@@ -300,11 +246,7 @@ export default function AddLaporanKinerja({
 
                     {programmer.nama_pegawai}
 
-                    <button
-                      onClick={() =>
-                        handleRemoveProgrammer(id)
-                      }
-                    >
+                    <button onClick={() => handleRemoveProgrammer(id)}>
                       <X size={14} />
                     </button>
 
@@ -325,66 +267,15 @@ export default function AddLaporanKinerja({
 
             <Textarea
               value={progress}
-              onChange={(e) =>
-                setProgress(e.target.value)
-              }
+              onChange={(e) => setProgress(e.target.value)}
               placeholder="Tuliskan perkembangan pekerjaan saat ini..."
             />
-
-            <p className="text-xs text-muted-foreground">
-              Jelaskan progres pekerjaan yang sudah dilakukan
-            </p>
-
-          </div>
-
-          {/* STATUS */}
-
-          <div className="space-y-1">
-
-            <Label>Status Progress</Label>
-
-            <div className="grid grid-cols-5 gap-2 mt-2">
-
-              {[0,25,50,75,100].map((value) => {
-
-                const colorMap: Record<number,string> = {
-                  0:"bg-gray-400",
-                  25:"bg-red-500",
-                  50:"bg-orange-500",
-                  75:"bg-yellow-400",
-                  100:"bg-green-500",
-                }
-
-                const active = status === value
-
-                return (
-
-                  <button
-                    key={value}
-                    type="button"
-                    onClick={() => setStatus(value)}
-                    className={`text-white text-sm rounded-md py-2 ${colorMap[value]} ${active ? "ring-2 ring-black" : ""}`}
-                  >
-                    {value}%
-                  </button>
-
-                )
-              })}
-
-            </div>
-
-            <p className="text-xs text-muted-foreground">
-              Pilih persentase progres penyelesaian pekerjaan
-            </p>
 
           </div>
 
           <div className="flex justify-end gap-2 pt-4">
 
-            <Button
-              variant="outline"
-              onClick={onClose}
-            >
+            <Button variant="outline" onClick={onClose}>
               Batal
             </Button>
 

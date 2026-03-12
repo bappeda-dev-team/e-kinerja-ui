@@ -143,8 +143,8 @@ export function AppSidebar() {
 
               {/* Permintaan */}
               <SidebarMenuItem>
-                <SidebarMenuButton asChild isActive={isActive("/permintaan-client")} tooltip="Permintaan Klien">
-                  <Link href="/permintaan-client" className="flex items-center gap-2">
+                <SidebarMenuButton asChild isActive={isActive("/permintaan")} tooltip="Permintaan Klien">
+                  <Link href="/permintaan" className="flex items-center gap-2">
                     <FileText className="h-5 w-5" />
                     <span>Permintaan Klien</span>
                   </Link>
@@ -153,8 +153,8 @@ export function AppSidebar() {
 
               {/* Distribusi */}
               <SidebarMenuItem>
-                <SidebarMenuButton asChild isActive={isActive("/distribusi-pekerjaan")} tooltip="Distribusi Pekerjaan">
-                  <Link href="/distribusi-pekerjaan" className="flex items-center gap-2">
+                <SidebarMenuButton asChild isActive={isActive("/distribusi")} tooltip="Distribusi Pekerjaan">
+                  <Link href="/distribusi" className="flex items-center gap-2">
                     <Send className="h-5 w-5" />
                     <span>Distribusi Pekerjaan</span>
                   </Link>
@@ -163,8 +163,8 @@ export function AppSidebar() {
 
               {/* Laporan */}
               <SidebarMenuItem>
-                <SidebarMenuButton asChild isActive={isActive("/laporan-kinerja")} tooltip="Laporan Kinerja">
-                  <Link href="/laporan-kinerja" className="flex items-center gap-2">
+                <SidebarMenuButton asChild isActive={isActive("/laporan")} tooltip="Laporan Kinerja">
+                  <Link href="/laporan" className="flex items-center gap-2">
                     <ClipboardCheck className="h-5 w-5" />
                     <span>Laporan Kinerja</span>
                   </Link>
@@ -173,8 +173,8 @@ export function AppSidebar() {
 
               {/* Verifikasi */}
               <SidebarMenuItem>
-                <SidebarMenuButton asChild isActive={isActive("/verifikasi-laporan")} tooltip="Verifikasi Laporan">
-                  <Link href="/verifikasi-laporan" className="flex items-center gap-2">
+                <SidebarMenuButton asChild isActive={isActive("/verifikasi")} tooltip="Verifikasi Laporan">
+                  <Link href="/verifikasi" className="flex items-center gap-2">
                     <BadgeCheck className="h-5 w-5" />
                     <span>Verifikasi Laporan</span>
                   </Link>

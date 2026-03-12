@@ -19,7 +19,7 @@ interface Props {
   open: boolean
   onOpenChange: (open: boolean) => void
   onSubmit: (data: {
-    nama_pemda: string
+    name: string
   }) => void
 }
 
@@ -39,7 +39,7 @@ export default function AddMasterPemda({
     }
 
     onSubmit({
-      nama_pemda: nama,
+      name: nama,
     })
 
   

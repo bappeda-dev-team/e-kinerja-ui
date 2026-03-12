@@ -73,7 +73,6 @@ export default function MasterPemdaTable({
   return (
     <div className="space-y-6">
 
-      {/* Card Grid */}
       <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
 
         {paginatedData.map((item) => (
@@ -83,7 +82,6 @@ export default function MasterPemdaTable({
             className="bg-white rounded-xl border border-gray-100 shadow-sm p-5 flex flex-col items-center text-center relative"
           >
 
-            {/* 3-dot menu */}
             <div className="absolute top-3 right-3">
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
@@ -91,11 +89,14 @@ export default function MasterPemdaTable({
                     <MoreHorizontal className="size-4 text-gray-400" />
                   </button>
                 </DropdownMenuTrigger>
+
                 <DropdownMenuContent align="end" className="w-32">
+
                   <DropdownMenuItem onClick={() => onEdit(item.id)}>
                     <Pencil className="size-3.5 mr-2 text-gray-500" />
                     Edit
                   </DropdownMenuItem>
+
                   <DropdownMenuItem
                     onClick={() => setDeleteId(item.id)}
                     className="text-red-500 focus:text-red-500"
@@ -103,21 +104,20 @@ export default function MasterPemdaTable({
                     <Trash2 className="size-3.5 mr-2" />
                     Hapus
                   </DropdownMenuItem>
+
                 </DropdownMenuContent>
+
               </DropdownMenu>
             </div>
 
-            {/* Avatar / Logo */}
             <div className="w-20 h-20 rounded-full bg-gray-100 flex items-center justify-center mb-3">
               <Building2 className="size-9 text-gray-400" />
             </div>
 
-            {/* Nama Pemda */}
             <p className="font-bold text-sm text-[#202224] leading-snug">
-              {item.nama_pemda}
+              {item.name}
             </p>
 
-            {/* Tanggal */}
             <p className="text-xs text-[#202224]/60 mt-1">
               Dibuat {formatTanggal(item.created_at)}
             </p>
@@ -128,12 +128,11 @@ export default function MasterPemdaTable({
 
       </div>
 
-      {/* Pagination Footer */}
       <div className="flex items-center justify-between text-sm text-[#313131]">
 
-        {/* Jumlah per halaman */}
         <div className="flex items-center gap-2">
           <span>Jumlah per halaman</span>
+
           <Select
             value={String(pageSize)}
             onValueChange={(val) => {
@@ -144,6 +143,7 @@ export default function MasterPemdaTable({
             <SelectTrigger className="h-8 w-16">
               <SelectValue />
             </SelectTrigger>
+
             <SelectContent>
               {PAGE_SIZE_OPTIONS.map((n) => (
                 <SelectItem key={n} value={String(n)}>
@@ -151,15 +151,15 @@ export default function MasterPemdaTable({
                 </SelectItem>
               ))}
             </SelectContent>
+
           </Select>
+
         </div>
 
-        {/* Info halaman */}
         <span className="text-right">
           {start}-{end} dari {data.length}
         </span>
 
-        {/* Navigasi */}
         <div className="flex items-center gap-1">
 
           <Button
@@ -206,24 +206,29 @@ export default function MasterPemdaTable({
 
       </div>
 
-      {/* Konfirmasi Hapus */}
       <AlertDialog
         open={!!deleteId}
         onOpenChange={(open) => {
           if (!open) setDeleteId(null)
         }}
       >
+
         <AlertDialogContent>
+
           <AlertDialogHeader>
             <AlertDialogTitle>
               Yakin ingin menghapus data ini?
             </AlertDialogTitle>
+
             <AlertDialogDescription>
               Data yang sudah dihapus tidak dapat dikembalikan.
             </AlertDialogDescription>
           </AlertDialogHeader>
+
           <AlertDialogFooter>
+
             <AlertDialogCancel>Batal</AlertDialogCancel>
+
             <AlertDialogAction
               onClick={() => {
                 if (deleteId) {
@@ -235,8 +240,11 @@ export default function MasterPemdaTable({
             >
               Hapus
             </AlertDialogAction>
+
           </AlertDialogFooter>
+
         </AlertDialogContent>
+
       </AlertDialog>
 
     </div>
