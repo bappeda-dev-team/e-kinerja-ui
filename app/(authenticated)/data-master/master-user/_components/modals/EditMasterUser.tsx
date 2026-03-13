@@ -23,14 +23,14 @@ import {
   SelectValue,
 } from "@/components/ui/select"
 
-import type { MasterUserItem } from "../MasterUserClient"
+import type { UserResponse, UserRequest } from "../../_types"
 
 interface Props {
   open: boolean
   idUser: string | null
-  data: MasterUserItem[]
+  data: UserResponse[]
   onOpenChange: (open: boolean) => void
-  onSubmit: (data: MasterUserItem) => void
+  onSubmit: (data: UserRequest, id?: string) => void
 }
 
 const roles = [
@@ -61,7 +61,7 @@ export default function EditMasterUser({
     if (selected) {
       setUsername(selected.username)
       setFullName(selected.full_name)
-      setRole(selected.role)
+      setRole(selected.role_id)
     }
 
   }, [idUser, data])
@@ -74,14 +74,10 @@ export default function EditMasterUser({
     }
 
     onSubmit({
-      id: idUser!,
       username,
       full_name: fullName,
-      role,
-      active: true,
-      created_at: "",
-      updated_at: "",
-    })
+      role_id: role,
+    }, idUser!)
 
  
 

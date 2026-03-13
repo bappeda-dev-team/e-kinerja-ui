@@ -31,17 +31,18 @@ import {
 
 import { Button } from "@/components/ui/button"
 
-import type { MasterUserItem } from "./MasterUserClient"
+import type { UserResponse } from "../_types"
 
 interface Props {
-  data: MasterUserItem[]
+  data: UserResponse[]
+  loading?: boolean
   onEdit: (id: string) => void
   onDelete: (id: string) => void
 }
 
 const PAGE_SIZE_OPTIONS = [12, 24, 48]
 
-export default function MasterUserTable({ data, onEdit, onDelete }: Props) {
+export default function MasterUserTable({ data, loading, onEdit, onDelete }: Props) {
 
   const [pageSize, setPageSize] = React.useState(12)
   const [pageIndex, setPageIndex] = React.useState(0)
@@ -56,6 +57,10 @@ export default function MasterUserTable({ data, onEdit, onDelete }: Props) {
 
   const start = pageIndex * pageSize + 1
   const end = Math.min((pageIndex + 1) * pageSize, data.length)
+
+  if (loading) {
+    return <p className="text-sm text-[#202224]/40 py-8 text-center">Memuat data...</p>
+  }
 
   return (
     <div className="space-y-6">
@@ -96,9 +101,9 @@ export default function MasterUserTable({ data, onEdit, onDelete }: Props) {
 
             {/* Avatar */}
             <div className="w-20 h-20 rounded-full overflow-hidden bg-gray-100 flex items-center justify-center mb-3 shrink-0">
-              {item.avatar_url ? (
+              {item.profile_picture ? (
                 <img
-                  src={item.avatar_url}
+                  src={item.profile_picture}
                   alt={item.full_name}
                   className="w-full h-full object-cover"
                 />
@@ -114,7 +119,7 @@ export default function MasterUserTable({ data, onEdit, onDelete }: Props) {
 
             {/* Role */}
             <p className="text-xs text-[#202224]/60 mt-0.5">
-              {item.role}
+              {item.role_id}
             </p>
 
             {/* Email */}

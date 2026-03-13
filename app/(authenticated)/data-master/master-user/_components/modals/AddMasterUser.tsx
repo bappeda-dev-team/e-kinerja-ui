@@ -23,14 +23,12 @@ import {
   SelectValue,
 } from "@/components/ui/select"
 
+import type { UserRequest } from "../../_types"
+
 interface Props {
   open: boolean
   onOpenChange: (open: boolean) => void
-  onSubmit: (data: {
-    username: string
-    full_name: string
-    role: string
-  }) => void
+  onSubmit: (data: UserRequest) => void
 }
 
 const roles = [
@@ -48,11 +46,12 @@ export default function AddMasterUser({
 
   const [username, setUsername] = useState("")
   const [fullName, setFullName] = useState("")
-  const [role, setRole] = useState("")
+  const [password, setPassword] = useState("")
+  const [roleId, setRoleId] = useState("")
 
   const handleSubmit = () => {
 
-    if (!username || !fullName || !role) {
+    if (!username || !fullName || !password || !roleId) {
       toast.error("Semua field wajib diisi!")
       return
     }
@@ -60,14 +59,14 @@ export default function AddMasterUser({
     onSubmit({
       username,
       full_name: fullName,
-      role,
+      password,
+      role_id: roleId,
     })
-
-  
 
     setUsername("")
     setFullName("")
-    setRole("")
+    setPassword("")
+    setRoleId("")
 
     onOpenChange(false)
   }
@@ -126,6 +125,28 @@ export default function AddMasterUser({
 
           </div>
 
+          {/* PASSWORD */}
+          <div>
+
+            <Label className="uppercase text-xs font-semibold">
+              Password :
+            </Label>
+
+            <div className="mt-2">
+              <Input
+                type="password"
+                placeholder="masukkan password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+              />
+            </div>
+
+            <p className="text-xs text-muted-foreground mt-1">
+              *Password harus terisi
+            </p>
+
+          </div>
+
           {/* ROLE */}
           <div>
 
@@ -136,8 +157,8 @@ export default function AddMasterUser({
             <div className="mt-2">
 
               <Select
-                value={role}
-                onValueChange={(value) => setRole(value)}
+                value={roleId}
+                onValueChange={(value) => setRoleId(value)}
               >
 
                 <SelectTrigger>

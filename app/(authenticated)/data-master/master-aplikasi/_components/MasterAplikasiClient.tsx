@@ -18,6 +18,7 @@ import {
 export interface MasterAplikasiItem {
   id: string
   nama_aplikasi: string
+  logo: string
   created_at: string
   updated_at: string
 }
@@ -43,6 +44,7 @@ export default function MasterAplikasiClient() {
       const mapped = (res.data.data ?? []).map((item: any) => ({
         id: item.id,
         nama_aplikasi: item.name,
+        logo: item.logo ?? "",
         created_at: item.created_at,
         updated_at: item.updated_at,
       }))

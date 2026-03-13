@@ -17,8 +17,8 @@ interface Props {
 
 export default function LaporanKinerjaCard({ item, onEdit, onDelete }: Props) {
 
-  const initials =
-    item.programmer_id?.slice(0, 2).toUpperCase() ?? "PR"
+  const programmerName = item.programmer?.full_name ?? "Programmer"
+  const initials = programmerName.slice(0, 2).toUpperCase()
 
   return (
     <div className="rounded-2xl bg-white p-5 shadow-[6px_6px_54px_rgba(0,0,0,0.05)] flex flex-col gap-3">
@@ -34,11 +34,11 @@ export default function LaporanKinerjaCard({ item, onEdit, onDelete }: Props) {
 
           <div>
             <p className="text-sm font-bold text-[#202224] leading-tight">
-              Permintaan #{item.permintaan_id}
+              {item.permintaan?.pemda ?? "-"}
             </p>
 
             <p className="text-xs text-blue-500 font-semibold">
-              E-Kinerja
+              {item.permintaan?.aplikasi ?? "E-Kinerja"}
             </p>
           </div>
 
@@ -107,7 +107,7 @@ export default function LaporanKinerjaCard({ item, onEdit, onDelete }: Props) {
           </Avatar>
 
           <span className="text-xs font-semibold text-[#202224]/70">
-            {item.programmer_id ?? "Programmer"}
+            {programmerName}
           </span>
 
         </div>

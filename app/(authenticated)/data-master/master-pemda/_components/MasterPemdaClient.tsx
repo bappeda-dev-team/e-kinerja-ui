@@ -18,6 +18,7 @@ import {
 export interface MasterPemdaItem {
   id: string
   name: string
+  logo: string
   created_at: string
   updated_at: string
 }
@@ -41,6 +42,7 @@ setData(
   (res.data.data ?? []).map((item) => ({
     id: item.id ?? "",
     name: item.name ?? "",
+    logo: item.logo ?? "",
     created_at: item.created_at ?? "",
     updated_at: item.updated_at ?? "",
   }))

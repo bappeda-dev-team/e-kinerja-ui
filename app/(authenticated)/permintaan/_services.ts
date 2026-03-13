@@ -2,14 +2,12 @@ import { fetchApi } from "@/lib/fetcher";
 import { APIResponse } from "@/types/api";
 import { PermintaanRequest, PermintaanResponse } from "./_types";
 
-export const getPermintaan = async (expand?: string) => {
-  const url = expand ? `/permintaan?expand=${expand}` : "/permintaan";
-  return fetchApi<APIResponse<PermintaanResponse[]>>(url, { method: "GET" });
+export const getPermintaan = async () => {
+  return fetchApi<APIResponse<PermintaanResponse[]>>("/permintaan", { method: "GET" });
 };
 
-export const getPermintaanById = async (id: string, expand?: string) => {
-  const url = expand ? `/permintaan/${id}?expand=${expand}` : `/permintaan/${id}`;
-  return fetchApi<APIResponse<PermintaanResponse>>(url, { method: "GET" });
+export const getPermintaanById = async (id: string) => {
+  return fetchApi<APIResponse<PermintaanResponse>>(`/permintaan/${id}`, { method: "GET" });
 };
 
 export const createPermintaan = async (data: PermintaanRequest) => {

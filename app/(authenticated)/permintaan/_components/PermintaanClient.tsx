@@ -26,29 +26,25 @@ export default function PermintaanClient() {
 
     try {
 
-      const res = await getPermintaan("names")
+      const res = await getPermintaan()
 
       if (res.status === 200) {
 
         const raw = res.data?.data || []
 
-const mapped = raw.map((item: any) => ({
-  id: item.id,
-  
-  // Gunakan nama key yang sama persis dengan tipe data di types.ts
-  pemda: item.pemda,
-  aplikasi: item.aplikasi,
-  menu: item.menu,
-  
-  kondisi_awal: item.kondisi_awal,
-  kondisi_diharapkan: item.kondisi_diharapkan,
-  
-  tanggal_deadline: item.tanggal_deadline,
-  
-  created_at: item.created_at
-}))
+        const mapped = raw.map((item: any) => ({
+          id: item.id,
+          pemda: item.pemda,
+          aplikasi: item.aplikasi,
+          menu: item.menu,
+          kondisi_awal: item.kondisi_awal,
+          kondisi_diharapkan: item.kondisi_diharapkan,
+          tanggal_deadline: item.tanggal_deadline,
+          pembuat: item.pembuat,
+          created_at: item.created_at,
+        }))
 
-setData(mapped)
+        setData(mapped)
 
       }
 

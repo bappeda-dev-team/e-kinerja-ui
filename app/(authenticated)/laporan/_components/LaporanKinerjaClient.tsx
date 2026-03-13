@@ -8,7 +8,6 @@ import LaporanKinerjaGrid from "./LaporanKinerjaGrid"
 import AddLaporanKinerja from "./modals/AddLaporanKinerja"
 import EditLaporanKinerja from "./modals/EditLaporanKinerja"
 
-import { masterPegawai, permintaanList } from "../data"
 import { getLaporan, createLaporan, updateLaporan, deleteLaporan } from "../_services"
 import { LaporanKinerjaItem, LaporanResponse } from "../_types"
 
@@ -26,20 +25,18 @@ const fetchData = async () => {
 
     const res = await getLaporan()
 
-    // 1. Cek dari HTTP status-nya
     if (res.status !== 200) {
       throw new Error(res.data?.message || "Gagal memuat data")
     }
 
-    // 2. Ambil array aslinya (perhatikan ada dua .data)
     const rawData = res.data?.data || []
 
-    // 3. Baru deh aman buat di-map!
-    const mapped: LaporanKinerjaItem[] = rawData.map((item: any) => ({
+    const mapped: LaporanKinerjaItem[] = rawData.map((item: LaporanResponse) => ({
       id: item.id,
       laporan_progress: item.laporan_progress,
-      permintaan_id: item.permintaan_id,
-      programmer_id: item.programmer_id,
+      permintaan: item.permintaan,
+      programmer: item.programmer,
+      status: item.status,
       created_at: item.created_at,
     }))
 
@@ -62,7 +59,7 @@ const fetchData = async () => {
 
       const res = await createLaporan({
         laporan_progress: item.laporan_progress,
-        permintaan_id: item.permintaan_id,
+        permintaan_id: item.permintaan.id,
       })
 
       if (!res.success) throw new Error(res.message)
@@ -87,7 +84,7 @@ const fetchData = async () => {
 
       const res = await updateLaporan(item.id, {
         laporan_progress: item.laporan_progress,
-        permintaan_id: item.permintaan_id,
+        permintaan_id: item.permintaan.id,
       })
 
       if (!res.success) throw new Error(res.message)
@@ -152,8 +149,8 @@ const fetchData = async () => {
         open={showAdd}
         onClose={() => setShowAdd(false)}
         onSave={handleAdd}
-        permintaanList={permintaanList}
-        masterPegawai={masterPegawai}
+        permintaanList={[]}
+        masterPegawai={[]}
       />
 
       <EditLaporanKinerja
@@ -161,8 +158,8 @@ const fetchData = async () => {
         data={editItem}
         onClose={() => setEditItem(null)}
         onSave={handleEdit}
-        permintaanList={permintaanList}
-        masterPegawai={masterPegawai}
+        permintaanList={[]}
+        masterPegawai={[]}
       />
 
     </div>

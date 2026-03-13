@@ -110,8 +110,16 @@ export default function MasterPemdaTable({
               </DropdownMenu>
             </div>
 
-            <div className="w-20 h-20 rounded-full bg-gray-100 flex items-center justify-center mb-3">
-              <Building2 className="size-9 text-gray-400" />
+            <div className="w-20 h-20 rounded-full overflow-hidden bg-gray-100 flex items-center justify-center mb-3 shrink-0">
+              {item.logo ? (
+                <img
+                  src={item.logo}
+                  alt={item.name}
+                  className="w-full h-full object-cover"
+                />
+              ) : (
+                <Building2 className="size-9 text-gray-400" />
+              )}
             </div>
 
             <p className="font-bold text-sm text-[#202224] leading-snug">

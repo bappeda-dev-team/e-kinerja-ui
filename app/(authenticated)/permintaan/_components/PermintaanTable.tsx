@@ -88,11 +88,11 @@ export default function PermintaanTable({ data, onEdit, onDelete }: Props) {
               <div className="flex-1 min-w-0">
 
                 <p className="font-bold text-sm text-[#202224] leading-snug">
-                  {item.pemda || "Pemda (Tidak diketahui)"}
+                  {item.pemda?.name || "Pemda (Tidak diketahui)"}
                 </p>
 
                 <p className="text-xs text-[#797A7C] mt-0.5">
-                  {item.aplikasi || "Aplikasi (Tidak diketahui)"}
+                  {item.aplikasi?.name || "Aplikasi (Tidak diketahui)"}
                   <span className="mx-1">·</span>
                   {item.menu || "-"}
                 </p>

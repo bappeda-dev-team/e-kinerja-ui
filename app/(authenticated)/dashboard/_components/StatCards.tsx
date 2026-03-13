@@ -1,11 +1,48 @@
-import { TrendingUp, TrendingDown } from "lucide-react"
-import { statCards } from "../data"
+import { ClipboardList, Share2, FileText, TrendingUp } from "lucide-react"
 
+interface Props {
+  totalPermintaan: number
+  totalDistribusi: number
+  totalLaporan: number
+  loading?: boolean
+}
 
-export default function StatCards() {
+export default function StatCards({ totalPermintaan, totalDistribusi, totalLaporan, loading }: Props) {
+
+  const cards = [
+    {
+      label: "Total Permintaan",
+      value: totalPermintaan,
+      icon: ClipboardList,
+      iconBg: "bg-blue-50",
+      iconColor: "text-blue-500",
+    },
+    {
+      label: "Total Distribusi",
+      value: totalDistribusi,
+      icon: Share2,
+      iconBg: "bg-orange-50",
+      iconColor: "text-orange-500",
+    },
+    {
+      label: "Total Laporan",
+      value: totalLaporan,
+      icon: FileText,
+      iconBg: "bg-green-50",
+      iconColor: "text-green-500",
+    },
+    {
+      label: "Selesai",
+      value: totalLaporan,
+      icon: TrendingUp,
+      iconBg: "bg-purple-50",
+      iconColor: "text-purple-500",
+    },
+  ]
+
   return (
     <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
-      {statCards.map((card) => {
+      {cards.map((card) => {
         const Icon = card.icon
         return (
           <div
@@ -17,33 +54,10 @@ export default function StatCards() {
                 {card.label}
               </span>
               <span className="text-3xl font-bold text-[#202224] leading-tight">
-                {card.value}
+                {loading ? "..." : card.value}
               </span>
-              {card.subUp === true && (
-                <span className="flex items-center gap-1 text-xs text-green-500 font-semibold">
-                  <TrendingUp className="h-3 w-3" />
-                  {card.sub}
-                </span>
-              )}
-              {card.subUp === false && (
-                <span className="flex items-center gap-1 text-xs text-red-500 font-semibold">
-                  <TrendingDown className="h-3 w-3" />
-                  {card.sub}
-                </span>
-              )}
-              {card.subUp === null && (
-                <span
-                  className={`text-xs font-semibold ${
-                    card.subDanger ? "text-red-500" : "text-[#202224]/60"
-                  }`}
-                >
-                  {card.sub}
-                </span>
-              )}
             </div>
-            <div
-              className={`flex h-14 w-14 items-center justify-center rounded-full ${card.iconBg}`}
-            >
+            <div className={`flex h-14 w-14 items-center justify-center rounded-full ${card.iconBg}`}>
               <Icon className={`h-6 w-6 ${card.iconColor}`} />
             </div>
           </div>

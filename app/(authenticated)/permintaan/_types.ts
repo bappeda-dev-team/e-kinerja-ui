@@ -1,9 +1,25 @@
+export interface PermintaanPemda {
+  id: string
+  name: string
+}
+
+export interface PermintaanAplikasi {
+  id: string
+  name: string
+}
+
+export interface PermintaanPembuat {
+  id: string
+  username: string
+  full_name: string
+}
+
 export interface PermintaanResponse {
 
   id: string
 
-  pemda: string
-  aplikasi: string
+  pemda: PermintaanPemda
+  aplikasi: PermintaanAplikasi
   menu: string
 
   kondisi_awal: string
@@ -12,9 +28,9 @@ export interface PermintaanResponse {
   tanggal_pesanan?: string
   tanggal_deadline?: string
 
-  lampiran?: any[]
+  lampiran?: string[]
 
-  pembuat?: string
+  pembuat?: PermintaanPembuat
 
   created_at?: string
   updated_at?: string

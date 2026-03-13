@@ -109,8 +109,16 @@ export default function MasterAplikasiTable({
             </div>
 
             {/* Avatar / Icon */}
-            <div className="w-20 h-20 rounded-full bg-gray-100 flex items-center justify-center mb-3">
-              <AppWindow className="size-9 text-gray-400" />
+            <div className="w-20 h-20 rounded-full overflow-hidden bg-gray-100 flex items-center justify-center mb-3 shrink-0">
+              {item.logo ? (
+                <img
+                  src={item.logo}
+                  alt={item.nama_aplikasi}
+                  className="w-full h-full object-cover"
+                />
+              ) : (
+                <AppWindow className="size-9 text-gray-400" />
+              )}
             </div>
 
             {/* Nama Aplikasi */}

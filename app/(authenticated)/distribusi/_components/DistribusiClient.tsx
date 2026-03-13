@@ -54,15 +54,14 @@ export default function DistribusiClient() {
       const mapped: DistribusiItem[] =
         (res.data.data ?? []).map((item: DistribusiResponse) => ({
 
-          id: item.id ?? "",
+          id: item.id,
 
-          // backend belum kirim data ini
-          nama_pemda: "Pemda (Tidak diketahui)",
-          aplikasi: "Aplikasi (Tidak diketahui)",
-          menu: "-",
-          deadline: "",
+          nama_pemda: item.permintaan?.pemda ?? "-",
+          aplikasi: item.permintaan?.aplikasi ?? "-",
+          menu: item.permintaan?.menu ?? "-",
+          deadline: item.permintaan?.tanggal_deadline ?? "",
 
-          admin: item.admin_id ?? "Admin",
+          admin: item.admin?.full_name ?? "-",
 
           programmer: [],
 
