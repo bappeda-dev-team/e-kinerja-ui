@@ -23,6 +23,8 @@ export interface MasterRolesItem {
 export default function MasterRolesClient() {
 
   const [data, setData] = useState<MasterRolesItem[]>([])
+  const [loading, setLoading] = useState(true)
+
   const [showAdd, setShowAdd] = useState(false)
   const [editId, setEditId] = useState<string | null>(null)
 
@@ -32,6 +34,8 @@ export default function MasterRolesClient() {
   const fetchData = async () => {
 
     try {
+
+      setLoading(true)
 
       const res = await getRoles()
 
@@ -43,11 +47,18 @@ export default function MasterRolesClient() {
         updated_at: item.updated_at ?? "",
       }))
 
+      // optional delay supaya loader tidak kedip
+      await new Promise(r => setTimeout(r, 600))
+
       setData(mapped)
 
     } catch {
 
       toast.error("Gagal mengambil data roles")
+
+    } finally {
+
+      setLoading(false)
 
     }
 
@@ -129,6 +140,7 @@ export default function MasterRolesClient() {
 
       <MasterRolesGrid
         data={paginated}
+        loading={loading}
         onEdit={setEditId}
         onDelete={handleDelete}
       />

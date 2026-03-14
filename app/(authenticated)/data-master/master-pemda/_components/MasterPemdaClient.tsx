@@ -139,6 +139,7 @@ setData(
         data={data}
         onEdit={setEditId}
         onDelete={handleDelete}
+        loading={loading}
       />
 
       <AddMasterPemda

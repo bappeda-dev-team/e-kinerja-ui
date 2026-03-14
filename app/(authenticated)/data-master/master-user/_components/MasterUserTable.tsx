@@ -42,6 +42,69 @@ interface Props {
 
 const PAGE_SIZE_OPTIONS = [12, 24, 48]
 
+/* ---------------- Hybrid Loader ---------------- */
+
+const HybridLoader = () => {
+  const [progress, setProgress] = React.useState(0)
+
+  React.useEffect(() => {
+    const interval = setInterval(() => {
+      setProgress(prev =>
+        prev >= 90 ? prev : prev + Math.floor(Math.random() * 10)
+      )
+    }, 200)
+
+    return () => clearInterval(interval)
+  }, [])
+
+  return (
+    <div className="flex flex-col items-center justify-center py-16 space-y-4">
+
+      <div className="relative flex items-center justify-center">
+
+        <svg className="w-24 h-24 transform -rotate-90">
+          <circle
+            cx="48"
+            cy="48"
+            r="40"
+            stroke="currentColor"
+            strokeWidth="6"
+            fill="transparent"
+            className="text-blue-100"
+          />
+
+          <circle
+            cx="48"
+            cy="48"
+            r="40"
+            stroke="currentColor"
+            strokeWidth="6"
+            fill="transparent"
+            strokeDasharray={251.2}
+            strokeDashoffset={251.2 - (251.2 * progress) / 100}
+            className="text-blue-600 transition-all duration-300 ease-out"
+            strokeLinecap="round"
+          />
+        </svg>
+
+        <div className="absolute flex flex-col items-center">
+          <span className="text-blue-600 animate-bounce">⏳</span>
+          <span className="text-[10px] font-bold text-blue-600">{progress}%</span>
+        </div>
+
+      </div>
+
+      <div className="text-center">
+        <p className="text-sm font-medium text-[#202224]">Sedang memuat data user...</p>
+        <p className="text-[11px] text-[#202224]/50">Mohon tunggu sebentar</p>
+      </div>
+
+    </div>
+  )
+}
+
+/* ---------------- Table Component ---------------- */
+
 export default function MasterUserTable({ data, loading, onEdit, onDelete }: Props) {
 
   const [pageSize, setPageSize] = React.useState(12)
@@ -59,7 +122,7 @@ export default function MasterUserTable({ data, loading, onEdit, onDelete }: Pro
   const end = Math.min((pageIndex + 1) * pageSize, data.length)
 
   if (loading) {
-    return <p className="text-sm text-[#202224]/40 py-8 text-center">Memuat data...</p>
+    return <HybridLoader />
   }
 
   return (
@@ -138,6 +201,7 @@ export default function MasterUserTable({ data, loading, onEdit, onDelete }: Pro
 
         <div className="flex items-center gap-2">
           <span>Jumlah per halaman</span>
+
           <Select
             value={String(pageSize)}
             onValueChange={(val) => {
@@ -148,9 +212,12 @@ export default function MasterUserTable({ data, loading, onEdit, onDelete }: Pro
             <SelectTrigger className="h-8 w-16">
               <SelectValue />
             </SelectTrigger>
+
             <SelectContent>
               {PAGE_SIZE_OPTIONS.map((n) => (
-                <SelectItem key={n} value={String(n)}>{n}</SelectItem>
+                <SelectItem key={n} value={String(n)}>
+                  {n}
+                </SelectItem>
               ))}
             </SelectContent>
           </Select>
@@ -168,16 +235,29 @@ export default function MasterUserTable({ data, loading, onEdit, onDelete }: Pro
       </div>
 
       {/* Konfirmasi Hapus */}
-      <AlertDialog open={!!deleteId} onOpenChange={(open) => { if (!open) setDeleteId(null) }}>
+      <AlertDialog
+        open={!!deleteId}
+        onOpenChange={(open) => {
+          if (!open) setDeleteId(null)
+        }}
+      >
         <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle>Hapus user ini?</AlertDialogTitle>
-            <AlertDialogDescription>Data tidak bisa dikembalikan.</AlertDialogDescription>
+            <AlertDialogDescription>
+              Data tidak bisa dikembalikan.
+            </AlertDialogDescription>
           </AlertDialogHeader>
+
           <AlertDialogFooter>
             <AlertDialogCancel>Batal</AlertDialogCancel>
             <AlertDialogAction
-              onClick={() => { if (deleteId) { onDelete(deleteId); setDeleteId(null) } }}
+              onClick={() => {
+                if (deleteId) {
+                  onDelete(deleteId)
+                  setDeleteId(null)
+                }
+              }}
               className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
             >
               Hapus

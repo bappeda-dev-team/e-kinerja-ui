@@ -17,21 +17,18 @@ import {
 } from "../_services"
 
 export default function PermintaanClient() {
-
-  const [data, setData] = useState<any[]>([])
+  const [data, setData] = useState<PermintaanResponse[]>([])
   const [showAdd, setShowAdd] = useState(false)
-  const [editItem, setEditItem] = useState<any | null>(null)
+  const [editItem, setEditItem] = useState<PermintaanResponse | null>(null)
+  const [loading, setLoading] = useState(true)
 
   const loadData = async () => {
-
     try {
-
+      setLoading(true) // 1. Mulai loading
       const res = await getPermintaan()
 
       if (res.status === 200) {
-
         const raw = res.data?.data || []
-
         const mapped = raw.map((item: any) => ({
           id: item.id,
           pemda: item.pemda,
@@ -43,115 +40,69 @@ export default function PermintaanClient() {
           pembuat: item.pembuat,
           created_at: item.created_at,
         }))
-
         setData(mapped)
-
       }
-
     } catch (err: any) {
-
       toast.error(err.message || "Gagal memuat data")
-
+    } finally {
+      // 2. WAJIB: Loading harus dimatikan di sini, 
+      // baik request berhasil maupun gagal.
+      setLoading(false) 
     }
-
   }
 
   useEffect(() => {
-
     loadData()
-
   }, [])
 
   const handleAdd = async (val: PermintaanRequest) => {
-
     try {
-
       const res = await createPermintaan(val)
-
       if (res.status === 200 || res.status === 201) {
-
         toast.success("Permintaan berhasil ditambahkan")
-
         setShowAdd(false)
-
         loadData()
-
       } else {
-
         toast.error(res.data?.message || res.message)
-
       }
-
     } catch (err: any) {
-
       toast.error(err.message || "Gagal menambah data")
-
     }
-
   }
 
   const handleEdit = async (val: PermintaanRequest, id?: string) => {
-
     if (!id) return
-
     try {
-
       const res = await updatePermintaan(id, val)
-
       if (res.status === 200) {
-
         toast.success("Permintaan berhasil diperbarui")
-
         setEditItem(null)
-
         loadData()
-
       } else {
-
         toast.error(res.data?.message || res.message)
-
       }
-
     } catch (err: any) {
-
       toast.error(err.message || "Gagal memperbarui data")
-
     }
-
   }
 
   const handleDelete = async (id: string) => {
-
     try {
-
       const res = await deletePermintaan(id)
-
       if (res.status === 200) {
-
         toast.success("Permintaan berhasil dihapus")
-
         loadData()
-
       } else {
-
         toast.error(res.data?.message || res.message)
-
       }
-
     } catch (err: any) {
-
       toast.error(err.message || "Gagal menghapus data")
-
     }
-
   }
 
   return (
-
     <div className="px-4 space-y-6">
-
       <div className="flex justify-between items-center">
-
         <h2 className="text-2xl font-bold text-[#202224]">
           Permintaan Klien
         </h2>
@@ -162,36 +113,29 @@ export default function PermintaanClient() {
         >
           + Tambah Permintaan
         </button>
-
       </div>
 
       <PermintaanTable
         data={data}
         onEdit={setEditItem}
         onDelete={handleDelete}
+        loading={loading}
       />
 
       {showAdd && (
-
         <AddPermintaan
           onClose={() => setShowAdd(false)}
           onSave={(val) => handleAdd(val)}
         />
-
       )}
 
       {editItem && (
-
         <EditPermintaan
           data={editItem}
           onClose={() => setEditItem(null)}
           onSave={(val, id) => handleEdit(val, id)}
         />
-
       )}
-
     </div>
-
   )
-
 }
