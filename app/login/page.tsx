@@ -3,8 +3,9 @@
 import { useState } from "react"
 import { useForm } from "react-hook-form"
 import { TbEye, TbEyeClosed } from "react-icons/tb"
-import { signIn } from "next-auth/react"
-import { useRouter } from "next/navigation"
+import { signIn, getSession } from "next-auth/react"
+import { setCookie } from "cookies-next"
+import { toast } from "sonner"
 
 interface FormValues {
   username: string
@@ -13,7 +14,6 @@ interface FormValues {
 
 const LoginPage = () => {
   const { handleSubmit } = useForm<FormValues>()
-  const router = useRouter()
 
   const [username, setUsername] = useState("")
   const [password, setPassword] = useState("")
@@ -33,7 +33,12 @@ const LoginPage = () => {
       alert(res.error)
       setLoading(false)
     } else if (res?.ok) {
-      router.push("/dashboard")
+      const session: any = await getSession()
+      if (session?.accessToken) {
+        setCookie("auth", session.accessToken, { path: "/", maxAge: 60 * 60 * 24 })
+      }
+      toast.success("Login berhasil! Selamat datang.")
+      window.location.href = "/dashboard"
     } else {
       setLoading(false)
     }

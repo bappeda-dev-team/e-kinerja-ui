@@ -12,12 +12,7 @@ export default function AuthenticatedLayout({
       <div className="flex min-h-screen w-full">
         <AppSidebar />
         <SidebarInset className="flex flex-1 flex-col">
-          <Header
-            title="Aplikasi Penunjang Kinerja"
-            userName="Maw"
-            role="super_admin"
-            avatarUrl=""
-          />
+          <Header title="Aplikasi Penunjang Kinerja" />
           <main className="flex-1 p-6">
             {children}
           </main>

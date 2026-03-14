@@ -1,5 +1,9 @@
 "use client"
 
+import { useEffect, useState } from "react"
+import { useSession } from "next-auth/react"
+import { useRouter } from "next/navigation"
+
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -22,38 +26,21 @@ import {
 } from "@/components/ui/avatar"
 
 import { Settings, LogOut, User, Bell, ChevronDown } from "lucide-react"
-
 import { SidebarTrigger } from "@/components/ui/sidebar"
-
-type UserRole = "super_admin" | "admin" | "level1" | "level2"
+import { fetchApi } from "@/lib/fetcher"
+import { APIResponse } from "@/types/api"
+import { signOut } from "next-auth/react"
+import { deleteCookie } from "cookies-next"
 
 interface HeaderProps {
   title: string
-  userName: string
-  role: UserRole
-  avatarUrl?: string
 }
 
-const roleConfig: Record<
-  UserRole,
-  { label: string; className: string }
-> = {
-  super_admin: {
-    label: "Super Admin",
-    className: "bg-purple-600 text-white",
-  },
-  admin: {
-    label: "Admin",
-    className: "bg-blue-600 text-white",
-  },
-  level1: {
-    label: "Programmer",
-    className: "bg-orange-500 text-white",
-  },
-  level2: {
-    label: "Verifikator",
-    className: "bg-green-600 text-white",
-  },
+interface UserProfile {
+  full_name: string
+  username: string
+  profile_picture?: string
+  role: { name: string; description: string }
 }
 
 const NOTIFIKASI = [
@@ -67,19 +54,34 @@ const NOTIFIKASI = [
   { id: "8", pesan: "Laporan kamu perlu revisi oleh Verifikator", waktu: "20 menit lalu" },
 ]
 
-export function Header({
-  title,
-  userName,
-  role,
-  avatarUrl,
-}: HeaderProps) {
-  const roleData = roleConfig[role]
+export function Header({ title }: HeaderProps) {
+  const { data: session, status } = useSession()
+  const router = useRouter()
 
-  const initials = userName
+  const [profile, setProfile] = useState<UserProfile | null>(null)
+
+  useEffect(() => {
+    if (status === "loading") return
+    const userId = (session?.user as any)?.user_id ?? (session?.user as any)?.id
+    if (!userId) return
+
+    const fetchProfile = async () => {
+      const res = await fetchApi<APIResponse<UserProfile>>(`/users/${userId}`, { method: "GET" })
+      if (res.status === 200 && res.data?.data) {
+        setProfile(res.data.data)
+      }
+    }
+
+    fetchProfile()
+  }, [session, status])
+
+  const displayName = profile?.full_name ?? ""
+  const roleName = profile?.role?.description ?? ""
+  const initials = displayName
     .split(" ")
     .map((n) => n[0])
     .join("")
-    .toUpperCase()
+    .toUpperCase() || "U"
 
   return (
     <header className="flex h-16 items-center justify-between border-b bg-background px-6">
@@ -110,18 +112,13 @@ export function Header({
             align="end"
             className="w-72 p-0 rounded-2xl shadow-lg border border-gray-100"
           >
-
-            {/* Header */}
             <div className="flex items-center justify-between px-4 pt-4 pb-2">
-              <h2 className="text-base font-bold text-[#202224]">
-                Notifikasi
-              </h2>
+              <h2 className="text-base font-bold text-[#202224]">Notifikasi</h2>
               <button className="text-xs font-semibold text-primary hover:underline">
                 Baca Semua
               </button>
             </div>
 
-            {/* List */}
             <div className="overflow-y-auto max-h-80 divide-y divide-gray-100 px-2 pb-3">
               {NOTIFIKASI.map((item) => (
                 <div
@@ -130,17 +127,12 @@ export function Header({
                 >
                   <div className="w-9 h-9 rounded-full bg-gray-200 shrink-0 mt-0.5" />
                   <div className="min-w-0">
-                    <p className="text-sm font-semibold text-[#202224] leading-snug">
-                      {item.pesan}
-                    </p>
-                    <p className="text-xs text-[#797A7C] mt-0.5">
-                      {item.waktu}
-                    </p>
+                    <p className="text-sm font-semibold text-[#202224] leading-snug">{item.pesan}</p>
+                    <p className="text-xs text-[#797A7C] mt-0.5">{item.waktu}</p>
                   </div>
                 </div>
               ))}
             </div>
-
           </PopoverContent>
         </Popover>
 
@@ -148,30 +140,26 @@ export function Header({
           <DropdownMenuTrigger asChild>
             <button className="flex items-center gap-2 rounded-full focus:outline-none focus:ring-2 focus:ring-primary">
               <Avatar className="h-9 w-9 cursor-pointer">
-                <AvatarImage src={avatarUrl} />
-                <AvatarFallback>
-                  {initials}
-                </AvatarFallback>
+                <AvatarImage src={profile?.profile_picture} />
+                <AvatarFallback>{initials}</AvatarFallback>
               </Avatar>
               <div className="flex flex-col items-start leading-tight">
-                <span className="text-sm font-medium">{userName}</span>
-                <span className={`inline-flex items-center rounded px-1.5 py-0 text-[11px] font-semibold ${roleData.className}`}>
-                  {roleData.label}
-                </span>
+                <span className="text-sm font-medium">{displayName}</span>
+                {roleName && (
+                  <span className="inline-flex items-center rounded px-1.5 py-0 text-[11px] font-semibold bg-purple-600 text-white">
+                    {roleName}
+                  </span>
+                )}
               </div>
               <ChevronDown className="h-4 w-4 text-muted-foreground" />
             </button>
           </DropdownMenuTrigger>
 
           <DropdownMenuContent align="end" className="w-48">
-
-            <DropdownMenuLabel>
-              {userName}
-            </DropdownMenuLabel>
-
+            <DropdownMenuLabel>{displayName}</DropdownMenuLabel>
             <DropdownMenuSeparator />
 
-            <DropdownMenuItem>
+            <DropdownMenuItem onClick={() => router.push("/profile")}>
               <User className="mr-2 h-4 w-4" />
               Profile
             </DropdownMenuItem>
@@ -183,11 +171,16 @@ export function Header({
 
             <DropdownMenuSeparator />
 
-            <DropdownMenuItem className="text-red-600">
+            <DropdownMenuItem
+              className="text-red-600"
+              onClick={() => {
+                deleteCookie("auth", { path: "/" })
+                signOut({ callbackUrl: "/" })
+              }}
+            >
               <LogOut className="mr-2 h-4 w-4" />
               Logout
             </DropdownMenuItem>
-
           </DropdownMenuContent>
         </DropdownMenu>
 

@@ -1,6 +1,7 @@
 import type { Metadata } from "next"
 import { Inter, JetBrains_Mono } from "next/font/google"
 import { Toaster } from "sonner"
+import { Providers } from "@/components/providers"
 
 import "./globals.css"
 
@@ -35,7 +36,9 @@ export default function RootLayout({
           antialiased
         `}
       >
-        {children}
+        <Providers>
+          {children}
+        </Providers>
 
         <Toaster
           position="top-center"

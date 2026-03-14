@@ -8,7 +8,7 @@ import { authOptions } from "@/app/api/auth/[...nextauth]/route";
 interface ReqApi {
   type?: "auth" | "withoutAuth";
   url: string;
-  method?: "GET" | "POST" | "PUT" | "DELETE";
+  method?: "GET" | "POST" | "PUT" | "PATCH" | "DELETE";
   body?: any;
   token?: string;
   web?: string;
@@ -28,7 +28,7 @@ export async function fetchApi<T = any>(
   // Parse parameters
   let type: "auth" | "withoutAuth";
   let url: string;
-  let method: "GET" | "POST" | "PUT" | "DELETE";
+  let method: "GET" | "POST" | "PUT" | "PATCH" | "DELETE";
   let body: any;
   let token: string | undefined;
   let web: string | undefined;
