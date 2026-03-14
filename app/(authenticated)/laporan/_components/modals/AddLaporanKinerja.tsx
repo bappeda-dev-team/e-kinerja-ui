@@ -71,10 +71,10 @@ export default function AddLaporanKinerja({
 
     if (initialData) {
 
-      setPermintaanId(initialData.permintaan_id)
+      setPermintaanId(initialData.permintaan.id)
       setProgress(initialData.laporan_progress)
       setSelectedProgrammer(
-        initialData.programmer_id ? [initialData.programmer_id] : []
+        initialData.programmer?.id ? [initialData.programmer.id] : []
       )
 
     } else {
@@ -122,13 +122,25 @@ export default function AddLaporanKinerja({
 
     const now = new Date().toISOString()
 
+    const selectedPermintaan = permintaanList.find(p => p.id === permintaanId)
+    const selectedProgrammerData = masterPegawai.find(p => p.id === selectedProgrammer[0])
+
     const newItem: LaporanKinerjaItem = {
 
       id: initialData?.id ?? crypto.randomUUID(),
 
-      permintaan_id: permintaanId,
+      permintaan: {
+        id: permintaanId,
+        pemda: selectedPermintaan?.pemda ?? "",
+        aplikasi: selectedPermintaan?.menu ?? "",
+        menu: selectedPermintaan?.menu ?? "",
+      },
 
-      programmer_id: selectedProgrammer[0],
+      programmer: {
+        id: selectedProgrammer[0] ?? "",
+        username: selectedProgrammerData?.nama_pegawai ?? "",
+        full_name: selectedProgrammerData?.nama_pegawai ?? "",
+      },
 
       laporan_progress: progress,
 

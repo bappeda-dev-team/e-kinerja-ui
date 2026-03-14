@@ -35,6 +35,9 @@ export interface DistribusiItem {
   status: "didistribusikan" | "selesai"
   jumlah_komentar?: number
   komentar?: string
+  hasil?: string
+  kualitas?: string
+  ketepatan?: string
 }
 
 export default function DistribusiClient() {

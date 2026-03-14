@@ -62,7 +62,7 @@ const fetchData = async () => {
         permintaan_id: item.permintaan.id,
       })
 
-      if (!res.success) throw new Error(res.message)
+      if (res.status < 200 || res.status >= 300) throw new Error(res.message)
 
       await fetchData()
 
@@ -87,7 +87,7 @@ const fetchData = async () => {
         permintaan_id: item.permintaan.id,
       })
 
-      if (!res.success) throw new Error(res.message)
+      if (res.status < 200 || res.status >= 300) throw new Error(res.message)
 
       await fetchData()
 
@@ -109,7 +109,7 @@ const fetchData = async () => {
 
       const res = await deleteLaporan(id)
 
-      if (!res.success) throw new Error(res.message)
+      if (res.status < 200 || res.status >= 300) throw new Error(res.message)
 
       setData((prev) => prev.filter((d) => d.id !== id))
 

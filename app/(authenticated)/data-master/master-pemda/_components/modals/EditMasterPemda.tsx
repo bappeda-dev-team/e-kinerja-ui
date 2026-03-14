@@ -34,6 +34,7 @@ export default function EditMasterPemda({
 }: Props) {
 
   const [nama, setNama] = useState("")
+  const [logo, setLogo] = useState("")
 
   useEffect(() => {
 
@@ -43,6 +44,7 @@ export default function EditMasterPemda({
 
     if (selected) {
       setNama(selected.name)
+      setLogo(selected.logo)
     }
 
   }, [idPemda, data])
@@ -57,6 +59,7 @@ export default function EditMasterPemda({
     onSubmit({
       id: idPemda!,
       name: nama,
+      logo,
       created_at: "",
       updated_at: "",
     })

@@ -17,6 +17,11 @@ export interface VerifikasiItem {
   status: "menunggu" | "revisi" | "terverifikasi"
   tanggal_diajukan: string
   tanggal_verifikasi?: string
+  deadline?: string
+  catatan_revisi?: string
+  nama_pemda?: string
+  aplikasi?: string
+  menu?: string
 }
 
 export default function VerifikasiClient() {

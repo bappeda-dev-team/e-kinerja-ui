@@ -51,6 +51,7 @@ export default function EditMasterAplikasi({
     onSave({
       id: data.id,
       nama_aplikasi: nama,
+      logo: data.logo,
       created_at: data.created_at,
       updated_at: new Date().toISOString(),
     })
