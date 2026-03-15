@@ -25,7 +25,7 @@ export async function fetchApi<T = any>(
   urlOrParams: string | ReqApi,
   options?: Partial<Omit<ReqApi, 'url'>>
 ): Promise<{ status: number; message: string; data: T }> {
-  // Parse parameters
+  // 1. Parse parameters
   let type: "auth" | "withoutAuth";
   let url: string;
   let method: "GET" | "POST" | "PUT" | "PATCH" | "DELETE";
@@ -34,7 +34,6 @@ export async function fetchApi<T = any>(
   let web: string | undefined;
 
   if (typeof urlOrParams === 'string') {
-    // Called as fetchApi(url) or fetchApi(url, options)
     url = urlOrParams;
     type = options?.type ?? "auth";
     method = options?.method ?? "GET";
@@ -42,7 +41,6 @@ export async function fetchApi<T = any>(
     token = options?.token;
     web = options?.web;
   } else {
-    // Called as fetchApi({ type, url, method, ... })
     type = urlOrParams.type ?? "auth";
     url = urlOrParams.url;
     method = urlOrParams.method ?? "GET";
@@ -50,18 +48,23 @@ export async function fetchApi<T = any>(
     token = urlOrParams.token;
     web = urlOrParams.web;
   }
+
   const baseURL = process.env.NEXT_PUBLIC_API_URL || process.env.SITE_URL;
   const headers = new Headers();
 
+  // 2. FormData Check (Kunci utama perbaikan)
   const isFormData = body instanceof FormData;
 
-  const cookieToken = getCookie("auth") as string | undefined;
-  const overrideToken = token || cookieToken;
+  // Jika BUKAN FormData, baru tambahkan Content-Type JSON
+  // Jika IA FormData, biarkan kosong agar browser otomatis set multipart/form-data + boundary
+  if (!isFormData) {
+    headers.append("Content-Type", "application/json");
+  }
 
+  // 3. Auth Handling
   if (type === "auth") {
-    if (!isFormData) {
-      headers.append("Content-Type", "application/json");
-    }
+    const cookieToken = getCookie("auth") as string | undefined;
+    const overrideToken = token || cookieToken;
 
     if (web === "basic") {
       headers.append("Authorization", `Basic ${process.env.BASIC_AUTH_TOKEN}`);
@@ -78,20 +81,21 @@ export async function fetchApi<T = any>(
         authToken = session?.accessToken ?? null;
       }
 
-      headers.append("Authorization", `Bearer ${authToken}`);
+      if (authToken) {
+        headers.append("Authorization", `Bearer ${authToken}`);
+      }
     }
-  } else if (type === "withoutAuth") {
-    headers.append("Content-Type", "application/json");
   }
 
+  // 4. Execution
   try {
     const response = await fetch(`${baseURL}${url}`, {
       method,
       headers,
       body: body
         ? isFormData
-          ? body
-          : JSON.stringify(body)
+          ? body // Kirim langsung jika FormData
+          : JSON.stringify(body) // Stringify jika JSON
         : null
     });
 
@@ -103,15 +107,22 @@ export async function fetchApi<T = any>(
     let data = null;
     try {
       data = await response.json();
-    } catch {}
+    } catch {
+      data = null;
+    }
 
     return {
       status: response.status,
-      message: response.ok ? "Success" : response.statusText,
+      message: response.ok ? "Success" : (data?.message || response.statusText),
       data
     };
 
   } catch (error: any) {
-    return error;
+    console.error("FetchAPI Error:", error);
+    return {
+      status: 500,
+      message: error.message || "Internal Server Error",
+      data: null as any
+    };
   }
 }

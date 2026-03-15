@@ -1,13 +1,15 @@
 import type { Metadata } from "next"
-import { Inter, JetBrains_Mono } from "next/font/google"
+import { Nunito_Sans, JetBrains_Mono } from "next/font/google" // Ganti Inter ke Nunito_Sans
 import { Toaster } from "sonner"
 import { Providers } from "@/components/providers"
 
 import "./globals.css"
 
-const fontSans = Inter({
+// Konfigurasi Nunito Sans
+const fontSans = Nunito_Sans({
   subsets: ["latin"],
   variable: "--font-sans",
+  weight: ["300", "400", "600", "700", "800"], // Menambahkan variasi ketebalan agar aman untuk Bold/SemiBold
 })
 
 const fontMono = JetBrains_Mono({
