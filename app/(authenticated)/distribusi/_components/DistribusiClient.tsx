@@ -1,77 +1,54 @@
 "use client"
 
-import * as React from "react" // Import React untuk HybridLoader hooks
+import * as React from "react"
 import { useEffect, useState } from "react"
 import { toast } from "sonner"
+import { Table2 } from "lucide-react"
 
 import DistribusiBoard from "./DistribusiBoard"
 import AssignDistribusiModal from "./modals/AssignDistribusiModal"
+import EditPelaksanaModal from "./modals/EditPelaksanaModal"
+import KomentarModal from "./modals/KomentarModal"
 
 import {
-  getDistribusi,
-  createDistribusi,
-  deleteDistribusi,
+  getPermintaan, getDistribusi, getPelaksana,
+  createDistribusi, createPelaksana,
+  deleteDistribusi, deletePelaksana, getUsers,
 } from "../_services"
+import { getVerifikasi } from "@/app/(authenticated)/verifikasi/_services"
+import { getLaporan } from "@/app/(authenticated)/laporan/_services"
 
-import type { DistribusiResponse } from "../_types"
+import type { DistribusiResponse, PelaksanaResponse, PermintaanResponse } from "../_types"
 
-// --- Komponen Hybrid Loader ---
 const HybridLoader = () => {
-  const [progress, setProgress] = React.useState(0);
-
+  const [progress, setProgress] = React.useState(0)
   React.useEffect(() => {
     const interval = setInterval(() => {
-      setProgress((prev) => (prev >= 90 ? prev : prev + Math.floor(Math.random() * 10)));
-    }, 200);
-    return () => clearInterval(interval);
-  }, []);
-
+      setProgress((prev) => (prev >= 90 ? prev : prev + Math.floor(Math.random() * 10)))
+    }, 200)
+    return () => clearInterval(interval)
+  }, [])
   return (
     <div className="flex flex-col items-center justify-center py-12 space-y-4 min-h-[400px]">
       <div className="relative flex items-center justify-center">
-        {/* Lingkaran Progress */}
         <svg className="w-24 h-24 transform -rotate-90">
-          <circle
-            cx="48"
-            cy="48"
-            r="40"
-            stroke="currentColor"
-            strokeWidth="6"
-            fill="transparent"
-            className="text-blue-100"
-          />
-          <circle
-            cx="48"
-            cy="48"
-            r="40"
-            stroke="currentColor"
-            strokeWidth="6"
-            fill="transparent"
-            strokeDasharray={251.2}
-            strokeDashoffset={251.2 - (251.2 * progress) / 100}
-            className="text-blue-600 transition-all duration-300 ease-out"
-            strokeLinecap="round"
-          />
+          <circle cx="48" cy="48" r="40" stroke="currentColor" strokeWidth="6" fill="transparent" className="text-blue-100" />
+          <circle cx="48" cy="48" r="40" stroke="currentColor" strokeWidth="6" fill="transparent"
+            strokeDasharray={251.2} strokeDashoffset={251.2 - (251.2 * progress) / 100}
+            className="text-blue-600 transition-all duration-300 ease-out" strokeLinecap="round" />
         </svg>
-        
-        {/* Ikon Jam Pasir di Tengah */}
         <div className="absolute flex flex-col items-center">
           <span className="text-blue-600 animate-bounce text-xl">⏳</span>
           <span className="text-[10px] font-bold text-blue-600">{progress}%</span>
         </div>
       </div>
-      
       <div className="text-center">
-        <p className="text-sm font-semibold text-[#202224]" style={{ fontFamily: "'Nunito Sans', sans-serif" }}>
-            Sedang memproses...
-        </p>
-        <p className="text-[11px] text-[#202224]/50" style={{ fontFamily: "'Nunito Sans', sans-serif" }}>
-            Mohon tunggu sebentar
-        </p>
+        <p className="text-sm font-semibold text-[#202224]">Sedang memproses...</p>
+        <p className="text-[11px] text-[#202224]/50">Mohon tunggu sebentar</p>
       </div>
     </div>
-  );
-};
+  )
+}
 
 export interface PermintaanItem {
   id: string
@@ -81,6 +58,7 @@ export interface PermintaanItem {
   awal: string
   target: string
   deadline: string
+  lampiran: string[]
 }
 
 export interface DistribusiItem {
@@ -89,7 +67,7 @@ export interface DistribusiItem {
   aplikasi: string
   menu: string
   admin: string
-  programmer: string[]
+  programmer: { id: string; nama: string; pelaksana_id: string }[]
   deadline: string
   status: "didistribusikan" | "selesai"
   jumlah_komentar?: number
@@ -97,85 +75,127 @@ export interface DistribusiItem {
   hasil?: string
   kualitas?: string
   ketepatan?: string
+  lampiran: string[]
+}
+
+export interface UserItem {
+  id: string
+  full_name: string
+  username: string
 }
 
 export default function DistribusiClient() {
   const [permintaan, setPermintaan] = useState<PermintaanItem[]>([])
   const [distribusi, setDistribusi] = useState<DistribusiItem[]>([])
-  const [loading, setLoading] = useState(true) // 1. Tambahkan state loading
-
+  const [users, setUsers] = useState<UserItem[]>([])
+  const [loading, setLoading] = useState(true)
+  const [showTable, setShowTable] = useState(false) // ✅
   const [assignItem, setAssignItem] = useState<PermintaanItem | null>(null)
+  const [editItem, setEditItem] = useState<DistribusiItem | null>(null)
   const [selectedKomentar, setSelectedKomentar] = useState<string | null>(null)
 
-  const fetchDistribusi = async () => {
+  const fetchAll = async () => {
     try {
-      setLoading(true) // 2. Mulai loading
-      const res = await getDistribusi()
+      setLoading(true)
+      const [permintaanRes, distribusiRes, pelaksanaRes, usersRes, verifikasiRes, laporanRes] = await Promise.all([
+        getPermintaan(), getDistribusi(), getPelaksana(), getUsers(),
+        getVerifikasi(), getLaporan(),
+      ])
 
-      const mapped: DistribusiItem[] =
-        (res.data.data ?? []).map((item: DistribusiResponse) => ({
+      const pelaksanaList: PelaksanaResponse[] = pelaksanaRes.data?.data ?? []
+      const verifikasiList = verifikasiRes.data?.data ?? []
+      const laporanList = laporanRes.data?.data ?? []
+
+      const laporanToPermintaan = new Map(
+        laporanList.map((l: any) => [l.id, l.permintaan?.id])
+      )
+
+      const approvedPermintaanIds = new Set(
+        verifikasiList
+          .filter((v: any) => v.status_verified === "approved")
+          .map((v: any) => laporanToPermintaan.get(v.laporan?.id))
+          .filter(Boolean)
+      )
+
+      const allUsers = usersRes.data?.data ?? []
+      const programmerUsers = allUsers
+        .filter((u: any) => u.is_active)
+        .map((u: any) => ({ id: u.id, full_name: u.full_name, username: u.username }))
+      setUsers(programmerUsers)
+
+      const mappedDistribusi: DistribusiItem[] = (distribusiRes.data?.data ?? []).map((item: DistribusiResponse) => {
+        const pelaksanaForThis = pelaksanaList.filter((p: any) =>
+          (p.distribusi?.id ?? p.distribusi_id) === item.id
+        )
+        const programmerList = pelaksanaForThis.map((p: any) => ({
+          id: p.programmer?.id ?? "",
+          nama: p.programmer?.full_name ?? p.programmer?.username ?? "Programmer",
+          pelaksana_id: p.id ?? "",
+        }))
+
+        const permintaanId = item.permintaan?.id
+        const isApproved = approvedPermintaanIds.has(permintaanId)
+
+        return {
           id: item.id,
-          nama_pemda: item.permintaan?.pemda ?? "-",
-          aplikasi: item.permintaan?.aplikasi ?? "-",
+          nama_pemda: typeof item.permintaan?.pemda === "object"
+            ? item.permintaan.pemda.name
+            : item.permintaan?.pemda ?? "-",
+          aplikasi: typeof item.permintaan?.aplikasi === "object"
+            ? item.permintaan.aplikasi.name
+            : item.permintaan?.aplikasi ?? "-",
           menu: item.permintaan?.menu ?? "-",
           deadline: item.permintaan?.tanggal_deadline ?? "",
           admin: item.admin?.full_name ?? "-",
-          programmer: [],
-          status: "didistribusikan",
+          programmer: programmerList,
+          status: isApproved ? "selesai" : "didistribusikan",
           jumlah_komentar: item.komentar ? 1 : 0,
           komentar: item.komentar ?? "",
+          lampiran: item.permintaan?.lampiran ?? [],
+          _permintaan_id: permintaanId,
+        }
+      })
+
+      const distribusiPermintaanIds = new Set(
+        (distribusiRes.data?.data ?? []).map((d: any) => d.permintaan?.id).filter(Boolean)
+      )
+
+      const mappedPermintaan: PermintaanItem[] = (permintaanRes.data?.data ?? [])
+        .filter((p: PermintaanResponse) => !distribusiPermintaanIds.has(p.id))
+        .map((p: PermintaanResponse) => ({
+          id: p.id,
+          nama_pemda: p.pemda?.name ?? "-",
+          aplikasi: p.aplikasi?.name ?? "-",
+          menu: p.menu ?? "-",
+          awal: p.kondisi_awal ?? "-",
+          target: p.kondisi_diharapkan ?? "-",
+          deadline: p.tanggal_deadline ?? "",
+          lampiran: p.lampiran ?? [],
         }))
 
-      setDistribusi(mapped)
+      setDistribusi(mappedDistribusi)
+      setPermintaan(mappedPermintaan)
     } catch {
-      toast.error("Gagal mengambil data distribusi")
+      toast.error("Gagal mengambil data")
     } finally {
-      // 3. Matikan loading dengan sedikit delay biar smooth
       setTimeout(() => setLoading(false), 800)
     }
   }
 
-  useEffect(() => {
-    fetchDistribusi()
-  }, [])
+  useEffect(() => { fetchAll() }, [])
 
-  const handleSaveAssign = async (val: {
-    admin: string
-    programmer: string[]
-    deadline: string
-  }) => {
+  const handleSaveAssign = async (val: { programmer_ids: string[]; komentar: string }) => {
     if (!assignItem) return
-
     try {
-      const payload = {
-        permintaan_id: assignItem.id,
-        komentar: "",
-      }
-
-      const res = await createDistribusi(payload)
-      const newDistribusi = res.data.data
-
-      if (!newDistribusi) return
-
-      const newItem: DistribusiItem = {
-        id: newDistribusi.id ?? crypto.randomUUID(),
-        nama_pemda: assignItem.nama_pemda,
-        aplikasi: assignItem.aplikasi,
-        menu: assignItem.menu,
-        admin: val.admin,
-        programmer: val.programmer,
-        deadline: val.deadline,
-        status: "didistribusikan",
-        jumlah_komentar: 0,
-      }
-
-      setDistribusi(prev => [...prev, newItem])
-      setPermintaan(prev =>
-        prev.filter(p => p.id !== assignItem.id)
-      )
-
+      const distribusiRes = await createDistribusi({ permintaan_id: assignItem.id, komentar: val.komentar })
+      const newDistribusi = distribusiRes.data?.data
+      if (!newDistribusi?.id) throw new Error("Gagal membuat distribusi")
+      await Promise.all(val.programmer_ids.map((programmer_id) =>
+        createPelaksana({ distribusi_id: newDistribusi.id, programmer_id })
+      ))
       toast.success("Pekerjaan berhasil didistribusikan")
       setAssignItem(null)
+      await fetchAll()
     } catch {
       toast.error("Gagal mendistribusikan pekerjaan")
     }
@@ -184,71 +204,105 @@ export default function DistribusiClient() {
   const handleDelete = async (id: string) => {
     try {
       await deleteDistribusi(id)
-      setDistribusi(prev =>
-        prev.filter(item => item.id !== id)
-      )
+      setDistribusi((prev) => prev.filter((item) => item.id !== id))
       toast.success("Data berhasil dihapus")
     } catch {
       toast.error("Gagal menghapus data")
     }
   }
 
+  const handleAddPelaksana = async (distribusi_id: string, programmer_id: string) => {
+    try {
+      await createPelaksana({ distribusi_id, programmer_id })
+      await fetchAll()
+      setEditItem((prev) => {
+        if (!prev || prev.id !== distribusi_id) return prev
+        const user = users.find((u) => u.id === programmer_id)
+        if (!user) return prev
+        return { ...prev, programmer: [...prev.programmer, { id: programmer_id, nama: user.full_name, pelaksana_id: "" }] }
+      })
+      toast.success("Programmer berhasil ditambahkan")
+    } catch {
+      toast.error("Gagal menambahkan programmer")
+    }
+  }
+
+  const handleDeletePelaksana = async (pelaksana_id: string, distribusi_id: string) => {
+    try {
+      await deletePelaksana(pelaksana_id)
+      await fetchAll()
+      setEditItem((prev) => {
+        if (!prev || prev.id !== distribusi_id) return prev
+        return { ...prev, programmer: prev.programmer.filter((p) => p.pelaksana_id !== pelaksana_id) }
+      })
+      toast.success("Programmer berhasil dihapus")
+    } catch {
+      toast.error("Gagal menghapus programmer")
+    }
+  }
+
   const handleSelesai = (id: string) => {
-    setDistribusi(prev =>
-      prev.map(item =>
-        item.id === id
-          ? { ...item, status: "selesai" }
-          : item
-      )
-    )
+    setDistribusi((prev) => prev.map((item) => item.id === id ? { ...item, status: "selesai" } : item))
     toast.success("Pekerjaan ditandai selesai")
   }
 
   return (
     <div className="space-y-6 px-4">
-      <h2 className="text-2xl font-bold text-[#202224]">
-        Distribusi Pekerjaan
-      </h2>
+      <div className="flex items-center justify-between">
+        <h2 className="text-3xl font-bold text-[#202224]">Distribusi Pekerjaan</h2>
+        {/* ✅ Tombol lihat semua sebagai tabel */}
+        {!loading && (
+          <button
+            onClick={() => setShowTable((prev) => !prev)}
+            className={`flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-semibold transition active:scale-95 ${
+              showTable
+                ? "bg-blue-600 text-white"
+                : "bg-white text-[#202224] border border-gray-200 hover:border-blue-300 hover:text-blue-600"
+            }`}
+          >
+            <Table2 className="size-4" />
+            {showTable ? "Lihat Board" : "Lihat Semua (Tabel)"}
+          </button>
+        )}
+      </div>
 
-      {/* 4. Tampilkan HybridLoader saat loading, jika sudah selesai tampilkan Board */}
-      {loading ? (
-        <HybridLoader />
-      ) : (
+      {loading ? <HybridLoader /> : (
         <DistribusiBoard
           permintaan={permintaan}
           distribusi={distribusi}
-          onAssign={(item) => setAssignItem(item)}
+          showTable={showTable} // ✅
+          onAssign={setAssignItem}
           onSelesai={handleSelesai}
           onDelete={handleDelete}
-          onShowKomentar={(text) => setSelectedKomentar(text)}
+          onEditPelaksana={setEditItem}
+          onShowKomentar={setSelectedKomentar}
         />
       )}
 
       {assignItem && (
         <AssignDistribusiModal
           item={assignItem}
+          users={users}
           onClose={() => setAssignItem(null)}
           onSave={handleSaveAssign}
         />
       )}
 
+      {editItem && (
+        <EditPelaksanaModal
+          item={editItem}
+          users={users}
+          onClose={() => setEditItem(null)}
+          onAddPelaksana={handleAddPelaksana}
+          onDeletePelaksana={handleDeletePelaksana}
+        />
+      )}
+
       {selectedKomentar && (
-        <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50">
-          <div className="bg-white rounded-xl p-6 w-[420px] shadow-lg animate-in fade-in zoom-in duration-200">
-            <h3 className="text-lg font-bold mb-3">
-              Komentar Distribusi
-            </h3>
-            <p className="text-sm text-gray-600 leading-relaxed">
-              {selectedKomentar}
-            </p>
-            <button
-              onClick={() => setSelectedKomentar(null)}
-              className="mt-6 w-full px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-semibold transition active:scale-95"
-            >
-              Tutup
-            </button>
-          </div>
-        </div>
+        <KomentarModal
+          komentar={selectedKomentar}
+          onClose={() => setSelectedKomentar(null)}
+        />
       )}
     </div>
   )

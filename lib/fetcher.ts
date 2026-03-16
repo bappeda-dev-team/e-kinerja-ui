@@ -15,17 +15,14 @@ interface ReqApi {
   req?: NextRequest;
 }
 
-// Overload signatures
 export async function fetchApi<T = any>(url: string): Promise<{ status: number; message: string; data: T }>;
 export async function fetchApi<T = any>(url: string, options: Partial<Omit<ReqApi, 'url'>>): Promise<{ status: number; message: string; data: T }>;
 export async function fetchApi<T = any>(params: ReqApi): Promise<{ status: number; message: string; data: T }>;
 
-// Implementation
 export async function fetchApi<T = any>(
   urlOrParams: string | ReqApi,
   options?: Partial<Omit<ReqApi, 'url'>>
 ): Promise<{ status: number; message: string; data: T }> {
-  // 1. Parse parameters
   let type: "auth" | "withoutAuth";
   let url: string;
   let method: "GET" | "POST" | "PUT" | "PATCH" | "DELETE";
@@ -51,17 +48,12 @@ export async function fetchApi<T = any>(
 
   const baseURL = process.env.NEXT_PUBLIC_API_URL || process.env.SITE_URL;
   const headers = new Headers();
-
-  // 2. FormData Check (Kunci utama perbaikan)
   const isFormData = body instanceof FormData;
 
-  // Jika BUKAN FormData, baru tambahkan Content-Type JSON
-  // Jika IA FormData, biarkan kosong agar browser otomatis set multipart/form-data + boundary
   if (!isFormData) {
     headers.append("Content-Type", "application/json");
   }
 
-  // 3. Auth Handling
   if (type === "auth") {
     const cookieToken = getCookie("auth") as string | undefined;
     const overrideToken = token || cookieToken;
@@ -87,16 +79,26 @@ export async function fetchApi<T = any>(
     }
   }
 
-  // 4. Execution
   try {
+    const stringifiedBody = body
+      ? isFormData
+        ? body
+        : JSON.stringify(body)
+      : null
+
+    // 🔍 DEBUG — hapus setelah berhasil
+    if (method === "PUT") {
+      console.log("=== FETCHER DEBUG PUT ===")
+      console.log("URL:", `${baseURL}${url}`)
+      console.log("BODY RAW:", body)
+      console.log("BODY FINAL:", stringifiedBody)
+      console.log("========================")
+    }
+
     const response = await fetch(`${baseURL}${url}`, {
       method,
       headers,
-      body: body
-        ? isFormData
-          ? body // Kirim langsung jika FormData
-          : JSON.stringify(body) // Stringify jika JSON
-        : null
+      body: stringifiedBody,
     });
 
     if (response.status === 403) {

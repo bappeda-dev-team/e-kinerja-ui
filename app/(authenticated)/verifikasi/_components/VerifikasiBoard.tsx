@@ -1,224 +1,186 @@
 "use client"
 
-import { Building2, MoreVertical } from "lucide-react"
-
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu"
-
+import { useState } from "react"
+import { MoreVertical, ArrowLeft } from "lucide-react"
+import VerifikasiCard from "./VerifikasiCard"
 import type { VerifikasiItem } from "./VerifikasiClient"
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
 
 interface Props {
   data: VerifikasiItem[]
-  loading?: boolean
+  showTable: boolean // ✅
   onVerify: (item: VerifikasiItem) => void
 }
 
-// 💡 Tambahkan pengecekan jika dateStr kosong/tidak valid
-function formatTgl(dateStr?: string) {
-  if (!dateStr) return "-"
-  try {
-    return new Date(dateStr).toLocaleDateString("id-ID", {
-      day: "numeric",
-      month: "short",
-      year: "numeric",
-    })
-  } catch (error) {
-    return "-"
-  }
-}
-
-function PemdaAvatar() {
-  return (
-    <div className="w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center shrink-0">
-      <Building2 className="size-5 text-gray-400" />
-    </div>
-  )
-}
-
-function KanbanCard({
-  item,
-  onVerify,
-}: {
-  item: VerifikasiItem
-  onVerify: (item: VerifikasiItem) => void
-}) {
-  return (
-    <div className="bg-white rounded-xl border border-gray-100 shadow-sm p-4 space-y-3">
-      {/* Header: avatar + ID/Laporan Info + kebab */}
-      <div className="flex items-start gap-3">
-        <PemdaAvatar />
-        <div className="flex-1 min-w-0">
-          <p className="font-bold text-sm text-[#202224] leading-snug truncate">
-            {/* Karena dari API kita cuma dapat laporan_id, tampilkan ID-nya untuk sementara.
-                Kalau API ngirim relasi data pemda, tinggal ganti ke item.nama_pemda */}
-            Laporan ID: {item.laporan_id?.substring(0, 8)}...
-          </p>
-          <p className="text-xs text-[#797A7C] mt-0.5">
-            Status: {item.status.toUpperCase()}
-          </p>
-        </div>
-
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <button className="p-1 rounded hover:bg-gray-100 transition shrink-0">
-              <MoreVertical className="size-4 text-gray-400" />
-            </button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align="end" className="w-36">
-            <DropdownMenuItem onClick={() => onVerify(item)}>
-              Edit Verifikasi
-            </DropdownMenuItem>
-          </DropdownMenuContent>
-        </DropdownMenu>
-      </div>
-
-      <div className="border-t border-black/10" />
-
-      {/* Konten Spesifik per Status */}
-      {item.status === "menunggu" && (
-        <div className="flex items-center justify-between">
-          <span className="inline-flex items-center px-2.5 py-1 rounded-md bg-blue-50 text-blue-600 text-xs font-semibold">
-            Perlu Cek
-          </span>
-          <span className="text-xs text-[#797A7C]">
-            Diajukan: {formatTgl(item.tanggal_diajukan)}
-          </span>
-        </div>
-      )}
-
-      {item.status === "revisi" && (
-        <div className="space-y-2">
-          <div className="flex items-center gap-2">
-            <span className="inline-flex items-center px-2.5 py-1 rounded-md bg-orange-50 text-orange-500 text-xs font-semibold">
-              Butuh Revisi
-            </span>
-          </div>
-          {item.komentar && (
-            <div className="bg-orange-50/50 p-2 rounded-md">
-              <p className="text-xs text-[#797A7C] italic">
-                "{item.komentar}"
-              </p>
-            </div>
-          )}
-          <p className="text-xs text-[#797A7C]">
-            Update Terakhir: {formatTgl(item.tanggal_verifikasi)}
-          </p>
-        </div>
-      )}
-
-      {item.status === "terverifikasi" && (
-        <div className="space-y-2">
-          <div className="flex items-center justify-between">
-             <span className="inline-flex items-center px-2.5 py-1 rounded-md bg-green-50 text-green-600 text-xs font-semibold">
-              Approved
-            </span>
-          </div>
-          
-          {item.komentar && (
-            <div className="bg-gray-50 p-2 rounded-md">
-              <p className="text-xs text-[#797A7C] italic">
-                "{item.komentar}"
-              </p>
-            </div>
-          )}
-
-          <div className="flex justify-between items-center pt-1">
-             <p className="text-[10px] text-[#797A7C]">
-              Oleh: {item.verifikator?.substring(0, 8)}...
-            </p>
-            <p className="text-[10px] text-[#797A7C]">
-              {formatTgl(item.tanggal_verifikasi)}
-            </p>
-          </div>
-        </div>
-      )}
-    </div>
-  )
-}
-
-const COLUMNS: {
-  key: VerifikasiItem["status"]
-  label: string
-  headerColor: string
-  badgeClass: string
-}[] = [
-  {
-    key: "menunggu",
-    label: "Menunggu",
-    headerColor: "text-[#202224]",
-    badgeClass: "bg-blue-100 text-blue-600", // Soft blue
-  },
-  {
-    key: "revisi",
-    label: "Revisi",
-    headerColor: "text-[#202224]",
-    badgeClass: "bg-orange-100 text-orange-600", // Soft orange
-  },
-  {
-    key: "terverifikasi",
-    label: "Terverifikasi",
-    headerColor: "text-[#202224]",
-    badgeClass: "bg-green-100 text-green-600", // Soft green
-  },
+const COLUMNS: { key: VerifikasiItem["status"]; label: string; color: string; bg: string }[] = [
+  { key: "menunggu", label: "Menunggu", color: "text-[#123F84]", bg: "bg-[#E4EBFA]" },
+  { key: "revisi", label: "Revisi", color: "text-[#E14C8E]", bg: "bg-[#FDEDF5]" },
+  { key: "terverifikasi", label: "Terverifikasi", color: "text-[#00B69B]", bg: "bg-[#CCF0EB]" },
 ]
 
-export default function VerifikasiBoard({ data, loading, onVerify }: Props) {
-  if (loading) {
+type ViewAll = "menunggu" | "revisi" | "terverifikasi" | null
+
+function formatTgl(d?: string) {
+  if (!d) return "-"
+  return new Date(d).toLocaleDateString("id-ID", { day: "numeric", month: "short", year: "numeric" })
+}
+
+// ✅ Tabel gabungan semua status
+function TableView({ data, onVerify }: { data: VerifikasiItem[]; onVerify: (item: VerifikasiItem) => void }) {
+  const statusBadge = (status: VerifikasiItem["status"]) => {
+    if (status === "menunggu") return <span className="px-2 py-0.5 rounded-full text-xs font-semibold bg-[#E4EBFA] text-[#123F84]">Menunggu</span>
+    if (status === "revisi") return <span className="px-2 py-0.5 rounded-full text-xs font-semibold bg-[#FDEDF5] text-[#E14C8E]">Revisi</span>
+    return <span className="px-2 py-0.5 rounded-full text-xs font-semibold bg-[#CCF0EB] text-[#00B69B]">Terverifikasi</span>
+  }
+
+  return (
+    <div className="bg-white rounded-2xl shadow-[6px_6px_54px_rgba(0,0,0,0.05)] overflow-hidden">
+      <div className="px-4 py-3 border-b border-gray-100 flex items-center gap-2">
+        <span className="text-sm font-bold text-[#202224]">Semua Verifikasi</span>
+        <span className="px-2 py-0.5 rounded-full text-xs font-bold bg-gray-100 text-[#202224]/60">{data.length}</span>
+      </div>
+      <div className="overflow-x-auto">
+        <table className="w-full text-sm">
+          <thead>
+            <tr className="border-b border-gray-100 bg-gray-50/50">
+              <th className="text-left px-4 py-3 text-xs font-semibold text-[#202224]/50 w-8">#</th>
+              <th className="text-left px-4 py-3 text-xs font-semibold text-[#202224]/50">Status</th>
+              <th className="text-left px-4 py-3 text-xs font-semibold text-[#202224]/50">Pemda</th>
+              <th className="text-left px-4 py-3 text-xs font-semibold text-[#202224]/50">Aplikasi</th>
+              <th className="text-left px-4 py-3 text-xs font-semibold text-[#202224]/50">Menu</th>
+              <th className="text-left px-4 py-3 text-xs font-semibold text-[#202224]/50">Progress</th>
+              <th className="text-left px-4 py-3 text-xs font-semibold text-[#202224]/50">Verifikator</th>
+              <th className="text-left px-4 py-3 text-xs font-semibold text-[#202224]/50">Komentar</th>
+              <th className="text-left px-4 py-3 text-xs font-semibold text-[#202224]/50">Diajukan</th>
+              <th className="px-4 py-3 w-8"></th>
+            </tr>
+          </thead>
+          <tbody>
+            {data.length === 0 ? (
+              <tr>
+                <td colSpan={10} className="text-center py-12 text-sm text-[#202224]/40">Belum ada data.</td>
+              </tr>
+            ) : data.map((item, i) => (
+              <tr key={item.id} className="border-b border-gray-50 hover:bg-gray-50/50 transition">
+                <td className="px-4 py-3 text-xs text-[#202224]/40">{i + 1}</td>
+                <td className="px-4 py-3">{statusBadge(item.status)}</td>
+                <td className="px-4 py-3">
+                  <div className="flex items-center gap-2">
+                    <div className="w-7 h-7 rounded-lg bg-[#CCF0EB]/50 border border-[#CCF0EB] flex items-center justify-center shrink-0">
+                      <span className="text-[10px] font-bold text-[#00B69B]">
+                        {item.nama_pemda?.slice(0, 2).toUpperCase()}
+                      </span>
+                    </div>
+                    <span className="font-semibold text-xs text-[#202224] whitespace-nowrap">{item.nama_pemda}</span>
+                  </div>
+                </td>
+                <td className="px-4 py-3 text-xs text-[#797A7C] whitespace-nowrap">{item.aplikasi}</td>
+                <td className="px-4 py-3 text-xs text-[#797A7C]">{item.menu}</td>
+                <td className="px-4 py-3 text-xs text-blue-600 italic max-w-[160px] truncate">
+                  {item.progres_deskripsi ? `"${item.progres_deskripsi}"` : "-"}
+                </td>
+                <td className="px-4 py-3 text-xs text-[#797A7C] whitespace-nowrap">{item.verifikator || "-"}</td>
+                <td className="px-4 py-3 text-xs text-[#797A7C] max-w-[160px] truncate">{item.komentar || "-"}</td>
+                <td className="px-4 py-3 text-xs text-[#797A7C] whitespace-nowrap">{formatTgl(item.tanggal_diajukan)}</td>
+                <td className="px-4 py-3">
+                  <button
+                    onClick={() => onVerify(item)}
+                    className="px-3 py-1.5 bg-blue-50 hover:bg-blue-100 text-blue-600 text-xs font-semibold rounded-lg transition whitespace-nowrap"
+                  >
+                    Proses
+                  </button>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  )
+}
+
+export default function VerifikasiBoard({ data, showTable, onVerify }: Props) {
+  const [viewAll, setViewAll] = useState<ViewAll>(null)
+
+  // ✅ Table view — semua status
+  if (showTable) {
+    return <TableView data={data} onVerify={onVerify} />
+  }
+
+  // ✅ View All per kategori (card grid)
+  if (viewAll) {
+    const col = COLUMNS.find((c) => c.key === viewAll)!
+    const items = data.filter((d) => d.status === viewAll)
+
     return (
-      <div className="flex items-center justify-center py-20 text-gray-500">
-        Memuat data papan verifikasi...
+      <div className="space-y-4">
+        <div className="flex items-center gap-3">
+          <button
+            onClick={() => setViewAll(null)}
+            className="flex items-center gap-2 text-sm font-semibold text-[#202224]/60 hover:text-[#202224] transition"
+          >
+            <ArrowLeft className="size-4" />
+            Kembali
+          </button>
+          <div className="flex items-center gap-2">
+            <div className={`${col.bg} w-6 h-6 rounded-full flex items-center justify-center`}>
+              <span className={`${col.color} text-xs font-bold`}>{items.length}</span>
+            </div>
+            <span className="text-lg font-bold text-[#202224]">{col.label}</span>
+          </div>
+        </div>
+
+        {items.length === 0 ? (
+          <div className="text-center py-16 text-sm text-[#202224]/40 bg-white rounded-2xl shadow-[6px_6px_54px_rgba(0,0,0,0.05)]">
+            Kosong
+          </div>
+        ) : (
+          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+            {items.map((item) => (
+              <VerifikasiCard key={item.id} item={item} onVerify={onVerify} />
+            ))}
+          </div>
+        )}
       </div>
     )
   }
 
+  // ✅ Normal board view
   return (
-    <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
+    <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
       {COLUMNS.map((col) => {
-        // Filter data berdasarkan status kolom
         const items = data.filter((d) => d.status === col.key)
-
         return (
-          <div key={col.key} className="space-y-4">
-            {/* Column Header */}
-            <div className="flex items-center justify-between bg-gray-50/50 p-2 rounded-lg border border-transparent">
-              <div className="flex items-center gap-2">
-                <span className={`text-sm font-bold ${col.headerColor}`}>
-                  {col.label}
-                </span>
-                <span
-                  className={`inline-flex items-center justify-center min-w-[20px] h-5 px-1.5 rounded-full text-[10px] font-bold ${col.badgeClass}`}
-                >
-                  {items.length}
-                </span>
+          <div key={col.key} className="space-y-6">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <div className={`${col.bg} w-7 h-7 rounded-full flex items-center justify-center`}>
+                  <span className={`${col.color} text-xs font-bold`}>{items.length}</span>
+                </div>
+                <h3 className="text-xl font-bold text-black">{col.label}</h3>
               </div>
-
+              {/* ✅ Titik tiga dengan Lihat Semua */}
               <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <button className="p-1 rounded-md hover:bg-gray-200 transition">
-                    <MoreVertical className="size-4 text-gray-500" />
-                  </button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent align="end" className="w-32">
-                  <DropdownMenuItem>Urutkan Terlama</DropdownMenuItem>
-                  <DropdownMenuItem>Urutkan Terbaru</DropdownMenuItem>
-                </DropdownMenuContent>
-              </DropdownMenu>
+  <DropdownMenuTrigger asChild>
+    <button className="p-1 hover:bg-gray-100 rounded-full transition">
+      <MoreVertical className="size-4 text-gray-400" />
+    </button>
+  </DropdownMenuTrigger>
+  <DropdownMenuContent align="end" className="w-32">
+    <DropdownMenuItem onClick={() => setViewAll(col.key)}>
+      Lihat Semua
+    </DropdownMenuItem>
+  </DropdownMenuContent>
+</DropdownMenu>
             </div>
 
-            {/* Kanban Cards Container */}
-            <div className="space-y-3 min-h-[150px] p-1">
+            <div className="space-y-4 min-h-[400px]">
               {items.length === 0 ? (
-                <div className="border-2 border-dashed border-gray-100 rounded-xl h-24 flex items-center justify-center">
-                  <span className="text-xs text-gray-400 font-medium">Kosong</span>
+                <div className="h-24 border-2 border-dashed border-gray-100 rounded-xl flex items-center justify-center text-gray-300 text-sm italic">
+                  Kosong
                 </div>
               ) : (
-                items.map((item) => (
-                  <KanbanCard key={item.id} item={item} onVerify={onVerify} />
-                ))
+                items.map((item) => <VerifikasiCard key={item.id} item={item} onVerify={onVerify} />)
               )}
             </div>
           </div>

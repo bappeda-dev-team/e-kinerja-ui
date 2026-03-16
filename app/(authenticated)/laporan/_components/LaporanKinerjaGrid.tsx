@@ -6,6 +6,8 @@ interface Props {
   loading?: boolean
   onEdit: (item: LaporanKinerjaItem) => void
   onDelete: (id: string) => void
+  onSubmitVerifikasi: (item: LaporanKinerjaItem) => void // ✅
+  submittingId: string | null                            // ✅
 }
 
 export default function LaporanKinerjaGrid({
@@ -13,6 +15,8 @@ export default function LaporanKinerjaGrid({
   loading,
   onEdit,
   onDelete,
+  onSubmitVerifikasi,
+  submittingId,
 }: Props) {
 
   if (loading) {
@@ -39,6 +43,8 @@ export default function LaporanKinerjaGrid({
           item={item}
           onEdit={onEdit}
           onDelete={onDelete}
+          onSubmitVerifikasi={onSubmitVerifikasi} // ✅
+          isSubmitting={submittingId === item.id} // ✅
         />
       ))}
     </div>

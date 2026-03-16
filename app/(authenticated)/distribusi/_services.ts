@@ -1,6 +1,10 @@
 import { fetchApi } from "@/lib/fetcher";
 import { APIResponse } from "@/types/api";
-import { DistribusiRequest, DistribusiResponse, PelaksanaRequest, PelaksanaResponse } from "./_types";
+import { DistribusiRequest, DistribusiResponse, PelaksanaRequest, PelaksanaResponse, PermintaanResponse, UserResponse } from "./_types";
+
+export const getPermintaan = async () => {
+  return fetchApi<APIResponse<PermintaanResponse[]>>("/permintaan", { method: "GET" });
+};
 
 export const getDistribusi = async () => {
   return fetchApi<APIResponse<DistribusiResponse[]>>("/distribusi", { method: "GET" });
@@ -40,4 +44,8 @@ export const updatePelaksana = async (id: string, data: PelaksanaRequest) => {
 
 export const deletePelaksana = async (id: string) => {
   return fetchApi<APIResponse<any>>(`/pelaksana/${id}`, { method: "DELETE" });
+};
+
+export const getUsers = async () => {
+  return fetchApi<APIResponse<UserResponse[]>>("/users", { method: "GET" });
 };

@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect, useState } from "react"
-import { Plus } from "lucide-react"
+import { Plus, Table2, LayoutGrid } from "lucide-react"
 import { toast } from "sonner"
 
 import MasterRolesGrid from "./MasterRolesGrid"
@@ -22,17 +22,14 @@ export interface MasterRolesItem {
 
 export default function MasterRolesClient() {
   const [data, setData] = useState<MasterRolesItem[]>([])
-  // 1. Tambahkan state loading di sini
-  const [loading, setLoading] = useState(true) 
-  
+  const [loading, setLoading] = useState(true)
+  const [showTable, setShowTable] = useState(false) // ✅
   const [showAdd, setShowAdd] = useState(false)
   const [editId, setEditId] = useState<string | null>(null)
-
   const [page, setPage] = useState(1)
   const [pageSize, setPageSize] = useState(4)
 
   const fetchData = async () => {
-    // 2. Set loading true setiap kali fetch mulai
     setLoading(true)
     try {
       const res = await getRoles()
@@ -47,14 +44,11 @@ export default function MasterRolesClient() {
     } catch {
       toast.error("Gagal mengambil data roles")
     } finally {
-      // 3. Set loading false (pake delay sedikit biar animasi loader kelihatan smooth)
       setTimeout(() => setLoading(false), 800)
     }
   }
 
-  useEffect(() => {
-    fetchData()
-  }, [])
+  useEffect(() => { fetchData() }, [])
 
   const handleDelete = (id: string) => {
     setData(prev => prev.filter(item => item.id !== id))
@@ -63,74 +57,79 @@ export default function MasterRolesClient() {
 
   const handleAdd = (item: { name: string; description: string }) => {
     const now = new Date().toISOString()
-    setData(prev => [
-      ...prev,
-      {
-        id: Date.now().toString(),
-        name: item.name,
-        description: item.description,
-        created_at: now,
-        updated_at: now,
-      }
-    ])
+    setData(prev => [...prev, {
+      id: Date.now().toString(),
+      name: item.name,
+      description: item.description,
+      created_at: now,
+      updated_at: now,
+    }])
     toast.success("Role berhasil ditambahkan")
     setShowAdd(false)
   }
 
   const handleEdit = (updated: MasterRolesItem) => {
-    setData(prev =>
-      prev.map(item =>
-        item.id === updated.id ? updated : item
-      )
-    )
+    setData(prev => prev.map(item => item.id === updated.id ? updated : item))
     toast.success("Role berhasil diperbarui")
     setEditId(null)
   }
 
   const selectedData = data.find(item => item.id === editId)
-
-  const paginated = data.slice(
-    (page - 1) * pageSize,
-    page * pageSize
-  )
+  const paginated = data.slice((page - 1) * pageSize, page * pageSize)
 
   return (
     <div className="flex flex-1 flex-col gap-6 min-h-screen">
       <div className="flex items-center justify-between">
-        <h1 className="text-3xl font-bold text-[#202224]">
-          Master Roles
-        </h1>
+        <h1 className="text-3xl font-bold text-[#202224]">Master Roles</h1>
 
-        <button
-          onClick={() => setShowAdd(true)}
-          className="inline-flex items-center gap-2 bg-primary text-primary-foreground px-4 py-2 rounded-md text-sm font-semibold transition active:scale-95"
-        >
-          <Plus className="h-4 w-4" />
-          Tambah Role
-        </button>
+        <div className="flex items-center gap-2">
+          {/* ✅ Toggle Card/Table */}
+          {!loading && (
+            <button
+              onClick={() => setShowTable(prev => !prev)}
+              className={`flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-semibold transition active:scale-95 ${
+                showTable
+                  ? "bg-blue-600 text-white"
+                  : "bg-white text-[#202224] border border-gray-200 hover:border-blue-300 hover:text-blue-600"
+              }`}
+            >
+              {showTable ? <LayoutGrid className="size-4" /> : <Table2 className="size-4" />}
+              {showTable ? "Lihat Card" : "Lihat Tabel"}
+            </button>
+          )}
+
+          <button
+            onClick={() => setShowAdd(true)}
+            className="inline-flex items-center gap-2 bg-primary text-primary-foreground px-4 py-2 rounded-md text-sm font-semibold transition active:scale-95"
+          >
+            <Plus className="h-4 w-4" />
+            Tambah Role
+          </button>
+        </div>
       </div>
 
-      {/* 4. PASSING PROP LOADING KE GRID */}
       <MasterRolesGrid
         data={paginated}
-        loading={loading} 
+        allData={data}       // ✅ pass semua data untuk table view
+        loading={loading}
+        showTable={showTable} // ✅
         onEdit={setEditId}
         onDelete={handleDelete}
       />
 
-      <MasterRolesPagination
-        page={page}
-        pageSize={pageSize}
-        total={data.length}
-        onPageChange={setPage}
-        onPageSizeChange={setPageSize}
-      />
+      {/* Sembunyikan pagination saat table view */}
+      {!showTable && (
+        <MasterRolesPagination
+          page={page}
+          pageSize={pageSize}
+          total={data.length}
+          onPageChange={setPage}
+          onPageSizeChange={setPageSize}
+        />
+      )}
 
       {showAdd && (
-        <AddMasterRoles
-          onClose={() => setShowAdd(false)}
-          onSave={handleAdd}
-        />
+        <AddMasterRoles onClose={() => setShowAdd(false)} onSave={handleAdd} />
       )}
 
       {editId && selectedData && (

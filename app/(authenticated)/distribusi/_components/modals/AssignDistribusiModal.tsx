@@ -3,59 +3,42 @@
 import { useState } from "react"
 import { toast } from "sonner"
 import { X } from "lucide-react"
-
 import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogFooter,
+  Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter,
 } from "@/components/ui/dialog"
-
 import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
+import { Textarea } from "@/components/ui/textarea"
 import { Badge } from "@/components/ui/badge"
-
-import type { PermintaanItem } from "../DistribusiClient"
-
-const PROGRAMMER_OPTIONS = ["Ilham", "Daniel", "Maura", "Zul", "Myko", "Agnar", "Reza", "Dimas"]
+import type { PermintaanItem, UserItem } from "../DistribusiClient"
 
 interface Props {
   item: PermintaanItem
+  users: UserItem[]
   onClose: () => void
-  onSave: (val: {
-    admin: string
-    programmer: string[]
-    deadline: string
-  }) => void
+  onSave: (val: { programmer_ids: string[]; komentar: string }) => void
 }
 
-export default function AssignDistribusiModal({ item, onClose, onSave }: Props) {
+export default function AssignDistribusiModal({ item, users, onClose, onSave }: Props) {
+  const [selectedIds, setSelectedIds] = useState<string[]>([])
+  const [komentar, setKomentar] = useState("")
 
-  const [admin, setAdmin] = useState("Ilham")
-  const [deadline, setDeadline] = useState(item.deadline)
-  const [programmer, setProgrammer] = useState<string[]>([])
-  const [progInput, setProgInput] = useState("")
-
-  const handleAddProg = (name: string) => {
-    if (name && !programmer.includes(name)) {
-      setProgrammer(prev => [...prev, name])
-    }
-    setProgInput("")
+  const handleToggle = (id: string) => {
+    setSelectedIds((prev) =>
+      prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]
+    )
   }
 
   const handleSubmit = () => {
-    if (!admin.trim()) {
-      toast.error("Admin harus diisi")
+    if (selectedIds.length === 0) {
+      toast.error("Pilih minimal satu programmer")
       return
     }
-    if (programmer.length === 0) {
-      toast.error("Programmer belum dipilih")
-      return
-    }
-    onSave({ admin, programmer, deadline })
+    onSave({ programmer_ids: selectedIds, komentar })
   }
+
+  const selectedUsers = users.filter((u) => selectedIds.includes(u.id))
+  const unselectedUsers = users.filter((u) => !selectedIds.includes(u.id))
 
   return (
     <Dialog open onOpenChange={onClose}>
@@ -65,7 +48,6 @@ export default function AssignDistribusiModal({ item, onClose, onSave }: Props) 
         </DialogHeader>
 
         <div className="space-y-4 text-sm">
-
           <div className="rounded-md bg-muted px-3 py-2 text-muted-foreground">
             <span className="font-semibold text-foreground">{item.nama_pemda}</span>
             {" — "}
@@ -73,41 +55,23 @@ export default function AssignDistribusiModal({ item, onClose, onSave }: Props) 
           </div>
 
           <div className="space-y-1">
-            <Label>Admin</Label>
-            <Input
-              value={admin}
-              onChange={(e) => setAdmin(e.target.value)}
-              placeholder="Nama admin"
-            />
-          </div>
-
-          <div className="space-y-1">
             <Label>Programmer</Label>
-            <div className="flex gap-2">
-              <select
-                className="flex-1 border rounded-md px-3 py-2 text-sm"
-                value={progInput}
-                onChange={(e) => setProgInput(e.target.value)}
-              >
-                <option value="">Pilih programmer...</option>
-                {PROGRAMMER_OPTIONS.filter(p => !programmer.includes(p)).map(p => (
-                  <option key={p} value={p}>{p}</option>
-                ))}
-              </select>
-              <Button
-                type="button"
-                variant="outline"
-                onClick={() => handleAddProg(progInput)}
-              >
-                Tambah
-              </Button>
-            </div>
-            {programmer.length > 0 && (
-              <div className="flex flex-wrap gap-1.5 mt-1">
-                {programmer.map(p => (
-                  <Badge key={p} variant="secondary" className="flex items-center gap-1">
-                    {p}
-                    <button onClick={() => setProgrammer(prev => prev.filter(x => x !== p))}>
+            <select
+              className="w-full border rounded-md px-3 py-2 text-sm"
+              value=""
+              onChange={(e) => { if (e.target.value) handleToggle(e.target.value) }}
+            >
+              <option value="">Pilih programmer...</option>
+              {unselectedUsers.map((u) => (
+                <option key={u.id} value={u.id}>{u.full_name}</option>
+              ))}
+            </select>
+            {selectedUsers.length > 0 && (
+              <div className="flex flex-wrap gap-1.5 mt-2">
+                {selectedUsers.map((u) => (
+                  <Badge key={u.id} variant="secondary" className="flex items-center gap-1">
+                    {u.full_name}
+                    <button onClick={() => handleToggle(u.id)}>
                       <X className="size-3" />
                     </button>
                   </Badge>
@@ -117,19 +81,19 @@ export default function AssignDistribusiModal({ item, onClose, onSave }: Props) 
           </div>
 
           <div className="space-y-1">
-            <Label>Deadline</Label>
-            <Input
-              type="date"
-              value={deadline}
-              onChange={(e) => setDeadline(e.target.value)}
+            <Label>Komentar (opsional)</Label>
+            <Textarea
+              value={komentar}
+              onChange={(e) => setKomentar(e.target.value)}
+              placeholder="Tambahkan catatan untuk programmer..."
+              rows={3}
             />
           </div>
-
         </div>
 
         <DialogFooter>
           <Button variant="outline" onClick={onClose}>Batal</Button>
-          <Button onClick={handleSubmit}>Simpan</Button>
+          <Button onClick={handleSubmit}>Distribusikan</Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>
