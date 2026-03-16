@@ -1,6 +1,12 @@
+export interface UserRole {
+  id: string
+  name: string
+  description: string
+}
+
 export interface UserResponse {
   id: string
-  role_id: string
+  role: UserRole
   username: string
   full_name: string
   profile_picture?: string

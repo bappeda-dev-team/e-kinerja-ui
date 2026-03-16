@@ -61,7 +61,7 @@ export default function EditMasterUser({
     if (selected) {
       setUsername(selected.username)
       setFullName(selected.full_name)
-      setRole(selected.role_id)
+      setRole(selected.role.id)
     }
 
   }, [idUser, data])

@@ -115,7 +115,7 @@ export default function MasterUserTable({ data, loading, showTable, onEdit, onDe
                       <span className="font-semibold text-xs text-[#202224]">{item.full_name}</span>
                     </td>
                     <td className="px-4 py-3 text-xs text-[#797A7C]">{item.username}</td>
-                    <td className="px-4 py-3 text-xs text-[#797A7C]">{item.role_id}</td>
+                    <td className="px-4 py-3 text-xs text-[#797A7C]">{item.role.description}</td>
                     <td className="px-4 py-3">
                       <span className={`px-2 py-0.5 rounded-full text-xs font-semibold ${
                         item.is_active
@@ -183,8 +183,8 @@ export default function MasterUserTable({ data, loading, showTable, onEdit, onDe
               </div>
 
               <p className="font-bold text-sm text-[#202224] leading-snug">{item.full_name}</p>
-              <p className="text-xs text-[#202224]/60 mt-0.5">{item.role_id}</p>
-              <p className="text-xs text-[#202224]/60 mt-0.5 break-all">{item.username}</p>
+              <p className="text-xs text-[#202224]/60 mt-0.5">{item.role.description}</p>
+              <p className="text-xs text-[#202224]/60 mt-0.5 break-all">@{item.username}</p>
               <span className={`mt-2 px-2 py-0.5 rounded-full text-xs font-semibold ${
                 item.is_active ? "bg-green-100 text-green-600" : "bg-red-100 text-red-500"
               }`}>

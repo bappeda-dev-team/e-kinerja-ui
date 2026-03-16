@@ -14,7 +14,7 @@ import type { UserResponse, UserRequest } from "../_types"
 export default function MasterUserClient() {
   const [data, setData] = useState<UserResponse[]>([])
   const [loading, setLoading] = useState(true)
-  const [showTable, setShowTable] = useState(false) // ✅
+  const [showTable, setShowTable] = useState(false)
   const [showAdd, setShowAdd] = useState(false)
   const [editId, setEditId] = useState<string | null>(null)
 
