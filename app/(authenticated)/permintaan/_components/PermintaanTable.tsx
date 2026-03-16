@@ -39,6 +39,26 @@ interface Props {
   onDelete: (id: string) => void
 }
 
+const STATUS_MAP: Record<string, { label: string; className: string }> = {
+  proses:   { label: "Dalam Proses", className: "bg-[#FFA756]/15 text-[#FFA756]" },
+  selesai:  { label: "Selesai",      className: "bg-[#00B69B]/15 text-[#00B69B]" },
+  revisi:   { label: "Revisi",       className: "bg-[#FD5454]/15 text-[#FD5454]" },
+  pending:  { label: "Pending",      className: "bg-gray-100 text-gray-500" },
+}
+
+function StatusBadge({ status }: { status?: string }) {
+  const key = (status ?? "").toLowerCase()
+  const cfg = STATUS_MAP[key] ?? { label: status ?? "-", className: "bg-gray-100 text-gray-500" }
+  return (
+    <span
+      className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-bold ${cfg.className}`}
+      style={{ fontFamily: "'Nunito Sans', sans-serif" }}
+    >
+      {cfg.label}
+    </span>
+  )
+}
+
 function formatTgl(dateStr: string) {
   return new Date(dateStr).toLocaleDateString("id-ID", {
     day: "numeric",
@@ -141,10 +161,13 @@ export default function PermintaanTable({ data, onEdit, onDelete }: Props) {
 
               <div className="border-t border-black/5" />
 
-              {/* Deadline */}
-              <p className="text-[11px] font-bold text-red-500">
-                Deadline: {item.tanggal_deadline ? formatTgl(item.tanggal_deadline) : "Belum ditentukan"}
-              </p>
+              {/* Deadline + Status */}
+              <div className="flex items-center justify-between">
+                <p className="text-[11px] font-bold text-red-500">
+                  Deadline: {item.tanggal_deadline ? formatTgl(item.tanggal_deadline) : "Belum ditentukan"}
+                </p>
+                <StatusBadge status={item.status} />
+              </div>
             </div>
 
             {/* Lampiran Section */}

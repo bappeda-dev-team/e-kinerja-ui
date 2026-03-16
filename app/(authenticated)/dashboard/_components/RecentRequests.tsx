@@ -64,6 +64,23 @@ const HybridLoader = () => {
   );
 };
 
+const STATUS_MAP: Record<string, { label: string; className: string }> = {
+  proses:  { label: "Dalam Proses", className: "bg-[#FFA756]/15 text-[#FFA756]" },
+  selesai: { label: "Selesai",      className: "bg-[#00B69B]/15 text-[#00B69B]" },
+  revisi:  { label: "Revisi",       className: "bg-[#FD5454]/15 text-[#FD5454]" },
+  pending: { label: "Pending",      className: "bg-gray-100 text-gray-500" },
+}
+
+function StatusBadge({ status }: { status?: string }) {
+  const key = (status ?? "").toLowerCase()
+  const cfg = STATUS_MAP[key] ?? { label: status ?? "-", className: "bg-gray-100 text-gray-500" }
+  return (
+    <span className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-bold ${cfg.className}`}>
+      {cfg.label}
+    </span>
+  )
+}
+
 function formatDate(iso?: string) {
   if (!iso) return "-";
   return new Date(iso).toLocaleDateString("id-ID", {
@@ -95,7 +112,8 @@ export default function RecentRequests({ data, loading }: Props) {
                 <th className="rounded-l-md px-3 py-2 text-left">Pemda</th>
                 <th className="px-3 py-2 text-left">Aplikasi</th>
                 <th className="px-3 py-2 text-left">Menu</th>
-                <th className="rounded-r-md px-3 py-2 text-left">Deadline</th>
+                <th className="px-3 py-2 text-left">Deadline</th>
+                <th className="rounded-r-md px-3 py-2 text-left">Status</th>
               </tr>
             </thead>
             <tbody>
@@ -112,6 +130,9 @@ export default function RecentRequests({ data, loading }: Props) {
                   </td>
                   <td className="px-3 py-3 text-[#202224]/80 font-semibold">
                     {formatDate(row.tanggal_deadline)}
+                  </td>
+                  <td className="px-3 py-3">
+                    <StatusBadge status={row.status} />
                   </td>
                 </tr>
               ))}

@@ -58,7 +58,10 @@ export function Header({ title }: HeaderProps) {
   const { data: session, status } = useSession()
   const router = useRouter()
 
+  const [mounted, setMounted] = useState(false)
   const [profile, setProfile] = useState<UserProfile | null>(null)
+
+  useEffect(() => { setMounted(true) }, [])
 
   useEffect(() => {
     if (status === "loading") return
@@ -98,7 +101,7 @@ export function Header({ title }: HeaderProps) {
       <div className="flex items-center gap-4">
 
         {/* Notification Bell */}
-        <Popover>
+        {!mounted ? null : <Popover>
           <PopoverTrigger asChild>
             <button className="relative rounded-full p-1 hover:bg-muted focus:outline-none focus:ring-2 focus:ring-primary">
               <Bell className="h-5 w-5 text-muted-foreground" />
@@ -134,9 +137,9 @@ export function Header({ title }: HeaderProps) {
               ))}
             </div>
           </PopoverContent>
-        </Popover>
+        </Popover>}
 
-        <DropdownMenu>
+        {!mounted ? null : <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <button className="flex items-center gap-2 rounded-full focus:outline-none focus:ring-2 focus:ring-primary">
               <Avatar className="h-9 w-9 cursor-pointer">
@@ -164,7 +167,7 @@ export function Header({ title }: HeaderProps) {
               Profile
             </DropdownMenuItem>
 
-            <DropdownMenuItem>
+            <DropdownMenuItem onClick={() => router.push("/settings")}>
               <Settings className="mr-2 h-4 w-4" />
               Settings
             </DropdownMenuItem>
@@ -182,7 +185,7 @@ export function Header({ title }: HeaderProps) {
               Logout
             </DropdownMenuItem>
           </DropdownMenuContent>
-        </DropdownMenu>
+        </DropdownMenu>}
 
       </div>
     </header>

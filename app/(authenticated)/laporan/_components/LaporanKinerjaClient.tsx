@@ -3,6 +3,7 @@
 import * as React from "react"
 import { useEffect, useState } from "react"
 import { Button } from "@/components/ui/button"
+import { Table2, LayoutGrid } from "lucide-react"
 import { toast } from "sonner"
 
 import LaporanKinerjaGrid from "./LaporanKinerjaGrid"
@@ -10,8 +11,12 @@ import AddLaporanKinerja from "./modals/AddLaporanKinerja"
 import EditLaporanKinerja from "./modals/EditLaporanKinerja"
 
 import { getLaporan, createLaporan, updateLaporan, deleteLaporan } from "../_services"
-import { createVerifikasi } from "@/app/(authenticated)/verifikasi/_services" // ✅ import dari verifikasi
+import { createVerifikasi } from "@/app/(authenticated)/verifikasi/_services"
 import { LaporanKinerjaItem, LaporanResponse } from "../_types"
+import { getPermintaan } from "@/app/(authenticated)/permintaan/_services"
+import { getUsers } from "@/app/(authenticated)/data-master/master-user/_services"
+import type { PermintaanResponse } from "@/app/(authenticated)/permintaan/_types"
+import type { UserResponse } from "@/app/(authenticated)/data-master/master-user/_types"
 
 const HybridLoader = () => {
   const [progress, setProgress] = React.useState(0)
@@ -52,10 +57,14 @@ const HybridLoader = () => {
 export default function LaporanKinerjaClient() {
   const [data, setData] = useState<LaporanKinerjaItem[]>([])
   const [loading, setLoading] = useState(true)
-  const [submittingId, setSubmittingId] = useState<string | null>(null) // ✅ track loading per item
+  const [submittingId, setSubmittingId] = useState<string | null>(null)
 
   const [showAdd, setShowAdd] = useState(false)
   const [editItem, setEditItem] = useState<LaporanKinerjaItem | null>(null)
+  const [showTable, setShowTable] = useState(false)
+
+  const [permintaanList, setPermintaanList] = useState<{ id: string; pemda: string; menu: string }[]>([])
+  const [masterPegawai, setMasterPegawai] = useState<{ id: string; nama_pegawai: string; jabatan: string }[]>([])
 
   const fetchData = async () => {
     try {
@@ -80,36 +89,54 @@ export default function LaporanKinerjaClient() {
     }
   }
 
-  useEffect(() => { fetchData() }, [])
-
-  const handleAdd = async (item: LaporanKinerjaItem) => {
+  const fetchDropdownData = async () => {
     try {
-      const res = await createLaporan({
-        laporan_progress: item.laporan_progress,
-        permintaan_id: item.permintaan.id,
-      })
-      if (res.status < 200 || res.status >= 300) throw new Error(res.message)
-      await fetchData()
-      toast.success("Laporan berhasil ditambahkan")
-      setShowAdd(false)
-    } catch (err: any) {
-      toast.error(err.message)
+      const [permRes, userRes] = await Promise.all([getPermintaan(), getUsers()])
+
+      if (permRes.status === 200) {
+        const mapped = (permRes.data?.data ?? []).map((p: PermintaanResponse) => ({
+          id: p.id,
+          pemda: p.pemda?.name ?? "",
+          menu: p.menu ?? "",
+        }))
+        setPermintaanList(mapped)
+      }
+
+      if (userRes.status === 200) {
+        const mapped = (userRes.data?.data ?? []).map((u: UserResponse) => ({
+          id: u.id,
+          nama_pegawai: u.full_name,
+          jabatan: "Programmer - Level 1",
+        }))
+        setMasterPegawai(mapped)
+      }
+    } catch {
+      // dropdown failure is non-critical
     }
   }
 
+  useEffect(() => {
+    fetchData()
+    fetchDropdownData()
+  }, [])
+
+  const handleAdd = async (item: LaporanKinerjaItem) => {
+    const res = await createLaporan({
+      laporan_progress: item.laporan_progress,
+      permintaan_id: item.permintaan.id,
+    })
+    if (res.status < 200 || res.status >= 300) throw new Error(res.data?.message || "Gagal menambahkan laporan")
+    await fetchData()
+  }
+
   const handleEdit = async (item: LaporanKinerjaItem) => {
-    try {
-      const res = await updateLaporan(item.id, {
-        laporan_progress: item.laporan_progress,
-        permintaan_id: item.permintaan.id,
-      })
-      if (res.status < 200 || res.status >= 300) throw new Error(res.message)
-      await fetchData()
-      toast.success("Laporan berhasil diperbarui")
-      setEditItem(null)
-    } catch (err: any) {
-      toast.error(err.message)
-    }
+    const res = await updateLaporan(item.id, {
+      laporan_progress: item.laporan_progress,
+      permintaan_id: item.permintaan.id,
+    })
+    if (res.status < 200 || res.status >= 300) throw new Error(res.data?.message || "Gagal memperbarui laporan")
+    await fetchData()
+    setEditItem(null)
   }
 
   const handleDelete = async (id: string) => {
@@ -146,9 +173,24 @@ export default function LaporanKinerjaClient() {
     <div className="flex flex-1 flex-col gap-6 min-h-screen">
       <div className="flex items-center justify-between">
         <h1 className="text-3xl font-bold text-[#202224]">Laporan Kinerja</h1>
-        <Button onClick={() => setShowAdd(true)} className="transition active:scale-95 font-bold">
-          + Tambah Laporan
-        </Button>
+        <div className="flex items-center gap-3">
+          {!loading && (
+            <button
+              onClick={() => setShowTable((prev) => !prev)}
+              className={`flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-semibold transition active:scale-95 ${
+                showTable
+                  ? "bg-blue-600 text-white"
+                  : "bg-white text-[#202224] border border-gray-200 hover:border-blue-300 hover:text-blue-600"
+              }`}
+            >
+              {showTable ? <LayoutGrid className="size-4" /> : <Table2 className="size-4" />}
+              {showTable ? "Lihat Grid" : "Lihat Tabel"}
+            </button>
+          )}
+          <Button onClick={() => setShowAdd(true)} className="transition active:scale-95 font-bold">
+            + Tambah Laporan
+          </Button>
+        </div>
       </div>
 
       {loading ? (
@@ -157,10 +199,11 @@ export default function LaporanKinerjaClient() {
         <LaporanKinerjaGrid
           data={data}
           loading={loading}
+          showTable={showTable}
           onEdit={setEditItem}
           onDelete={handleDelete}
-          onSubmitVerifikasi={handleSubmitVerifikasi} // ✅ pass ke grid
-          submittingId={submittingId}                 // ✅ pass loading state
+          onSubmitVerifikasi={handleSubmitVerifikasi}
+          submittingId={submittingId}
         />
       )}
 
@@ -168,8 +211,8 @@ export default function LaporanKinerjaClient() {
         open={showAdd}
         onClose={() => setShowAdd(false)}
         onSave={handleAdd}
-        permintaanList={[]}
-        masterPegawai={[]}
+        permintaanList={permintaanList}
+        masterPegawai={masterPegawai}
       />
 
       <EditLaporanKinerja
@@ -177,8 +220,8 @@ export default function LaporanKinerjaClient() {
         data={editItem}
         onClose={() => setEditItem(null)}
         onSave={handleEdit}
-        permintaanList={[]}
-        masterPegawai={[]}
+        permintaanList={permintaanList}
+        masterPegawai={masterPegawai}
       />
     </div>
   )

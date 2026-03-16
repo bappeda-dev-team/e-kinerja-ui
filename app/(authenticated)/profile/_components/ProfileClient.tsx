@@ -4,7 +4,7 @@ import { useEffect, useRef, useState } from "react"
 import { useSession } from "next-auth/react"
 import { useRouter } from "next/navigation"
 import { toast } from "sonner"
-import { Camera, Loader2, User } from "lucide-react"
+import { Camera, Loader2, Pencil, User } from "lucide-react"
 
 import { getProfileById, updateProfilePicture } from "../_services"
 import type { ProfileResponse } from "../_types"
@@ -187,8 +187,9 @@ export default function ProfileClient() {
         className="bg-white border border-[#B9B9B9] rounded-2xl px-10 py-8 space-y-5"
         style={{ borderWidth: "0.3px" }}
       >
-        {/* Avatar + Ubah */}
-        <div className="flex items-center gap-4 mb-2">
+        {/* Top bar: Avatar + Edit button */}
+        <div className="flex items-start justify-between mb-2">
+        <div className="flex items-center gap-4">
           <div className="w-[72px] h-[72px] rounded-full overflow-hidden bg-gray-100 flex items-center justify-center shrink-0 border">
             {profile.profile_picture ? (
               <img
@@ -226,6 +227,19 @@ export default function ProfileClient() {
           )}
         </div>
 
+        {/* Edit Profil button — top right, only when not editing */}
+        {!isEditing && (
+          <button
+            onClick={() => setIsEditing(true)}
+            className="flex items-center gap-2 px-4 py-2 rounded-lg border border-[#D5D5D5] text-sm font-semibold text-[#606060] hover:bg-gray-50 transition"
+            style={{ fontFamily: "'Nunito Sans', sans-serif" }}
+          >
+            <Pencil className="w-4 h-4" />
+            Edit Profil
+          </button>
+        )}
+        </div>
+
         {/* Form Fields */}
         <EditableField 
           label="Nama Lengkap" 
@@ -244,29 +258,27 @@ export default function ProfileClient() {
         <ReadOnlyField label="Peran" value={profile.role.description} />
         <ReadOnlyField label="Status" value={profile.is_active ? "Aktif" : "Tidak Aktif"} />
 
-        {/* Actions */}
-        <div className="flex justify-end gap-3 pt-4">
-          <button
-            onClick={() => (isEditing ? setIsEditing(false) : router.back())}
-            className="px-6 py-2.5 rounded-lg border border-[#D5D5D5] text-sm font-semibold text-[#202224] hover:bg-gray-50 transition"
-            style={{ fontFamily: "var(--font-sans)" }}
-          >
-            {isEditing ? "Batal" : "Kembali"}
-          </button>
+        {/* Bottom actions — only visible when editing */}
+        {isEditing && (
+          <div className="flex justify-end gap-3 pt-4">
+            <button
+              onClick={() => setIsEditing(false)}
+              className="px-6 py-2.5 rounded-lg border border-[#D5D5D5] text-sm font-semibold text-[#202224] hover:bg-gray-50 transition"
+              style={{ fontFamily: "var(--font-sans)" }}
+            >
+              Batal
+            </button>
 
-          <button
-            onClick={() => (isEditing ? handleSave() : setIsEditing(true))}
-            disabled={loading}
-            className="px-6 py-2.5 rounded-lg transition active:scale-95 font-semibold text-sm text-white disabled:opacity-70 flex items-center justify-center"
-            style={{ 
-              backgroundColor: "#4880FF",
-              fontFamily: "var(--font-sans)",
-              minWidth: "108px"
-            }}
-          >
-            {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : (isEditing ? "Simpan" : "Edit Profil")}
-          </button>
-        </div>
+            <button
+              onClick={handleSave}
+              disabled={loading}
+              className="px-6 py-2.5 rounded-lg transition active:scale-95 font-semibold text-sm text-white disabled:opacity-70 flex items-center justify-center"
+              style={{ backgroundColor: "#4880FF", fontFamily: "var(--font-sans)", minWidth: "108px" }}
+            >
+              {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : "Simpan"}
+            </button>
+          </div>
+        )}
       </div>
     </div>
   )

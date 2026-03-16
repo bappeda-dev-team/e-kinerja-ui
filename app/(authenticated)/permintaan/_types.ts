@@ -30,6 +30,8 @@ export interface PermintaanResponse {
 
   lampiran?: string[]
 
+  status?: string
+
   pembuat?: PermintaanPembuat
 
   created_at?: string
