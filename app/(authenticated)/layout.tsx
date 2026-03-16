@@ -1,6 +1,10 @@
+"use client"
+
+import dynamic from "next/dynamic"
 import { SidebarProvider, SidebarInset } from "@/components/ui/sidebar"
 import { AppSidebar } from "@/components/app-sidebar"
-import { Header } from "@/components/header"
+
+const Header = dynamic(() => import("@/components/header").then(m => m.Header), { ssr: false })
 
 export default function AuthenticatedLayout({
   children,
