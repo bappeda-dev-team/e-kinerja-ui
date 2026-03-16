@@ -6,7 +6,7 @@ import type { PermintaanResponse, PermintaanRequest } from "../../_types"
 interface Props {
   data: PermintaanResponse
   onClose: () => void
-  onSave: (val: PermintaanRequest, id?: string) => void
+  onSave: (val: PermintaanRequest, files: File[], id?: string) => void
 }
 
 export default function EditPermintaan({
