@@ -17,7 +17,7 @@ import type { MasterAplikasiItem } from "./MasterAplikasiClient"
 
 interface Props {
   data: MasterAplikasiItem[]
-  showTable?: boolean // ✅
+  showTable?: boolean
   onEdit: (id: string) => void
   onDelete: (id: string) => void
 }
@@ -74,9 +74,10 @@ export default function MasterAplikasiTable({ data, showTable, onEdit, onDelete 
                   <tr key={item.id} className="border-b border-gray-50 hover:bg-gray-50/50 transition">
                     <td className="px-4 py-3 text-xs text-[#202224]/40">{i + 1}</td>
                     <td className="px-4 py-3">
-                      <div className="w-9 h-9 rounded-full overflow-hidden bg-gray-100 flex items-center justify-center shrink-0">
+                      {/* Logo Container Table: BG White + Border + Padding */}
+                      <div className="w-10 h-10 rounded-full overflow-hidden bg-white border border-gray-200 flex items-center justify-center shrink-0 p-1.5 shadow-sm">
                         {item.logo ? (
-                          <img src={item.logo} alt={item.nama_aplikasi} className="w-full h-full object-cover" />
+                          <img src={item.logo} alt={item.nama_aplikasi} className="w-full h-full object-contain" />
                         ) : (
                           <AppWindow className="size-5 text-gray-400" />
                         )}
@@ -112,10 +113,10 @@ export default function MasterAplikasiTable({ data, showTable, onEdit, onDelete 
           </div>
         </div>
       ) : (
-        // ✅ Card grid view (original)
+        /* ✅ Card grid view */
         <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
           {paginatedData.map((item) => (
-            <div key={item.id} className="bg-white rounded-xl border border-gray-100 shadow-sm p-5 flex flex-col items-center text-center relative">
+            <div key={item.id} className="bg-white rounded-xl border border-gray-100 shadow-sm p-5 flex flex-col items-center text-center relative hover:shadow-md transition-shadow">
               <div className="absolute top-3 right-3">
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
@@ -136,16 +137,17 @@ export default function MasterAplikasiTable({ data, showTable, onEdit, onDelete 
                 </DropdownMenu>
               </div>
 
-              <div className="w-20 h-20 rounded-full overflow-hidden bg-gray-100 flex items-center justify-center mb-3 shrink-0">
+              {/* Logo Container Card: BG White + Border + Padding + Contain */}
+              <div className="w-20 h-20 rounded-full overflow-hidden bg-white border border-gray-100 flex items-center justify-center mb-4 shrink-0 p-3 shadow-inner">
                 {item.logo ? (
-                  <img src={item.logo} alt={item.nama_aplikasi} className="w-full h-full object-cover" />
+                  <img src={item.logo} alt={item.nama_aplikasi} className="w-full h-full object-contain" />
                 ) : (
                   <AppWindow className="size-9 text-gray-400" />
                 )}
               </div>
 
-              <p className="font-bold text-sm text-[#202224] leading-snug">{item.nama_aplikasi}</p>
-              <p className="text-xs text-[#202224]/60 mt-1">Dibuat {formatTanggal(item.created_at)}</p>
+              <p className="font-bold text-sm text-[#202224] leading-snug h-10 flex items-center">{item.nama_aplikasi}</p>
+              <p className="text-[10px] uppercase tracking-wider text-[#202224]/40 mt-1 font-semibold">Dibuat {formatTanggal(item.created_at)}</p>
             </div>
           ))}
         </div>
@@ -153,9 +155,9 @@ export default function MasterAplikasiTable({ data, showTable, onEdit, onDelete 
 
       {/* Pagination — hanya tampil di card view */}
       {!showTable && (
-        <div className="flex items-center justify-between text-sm text-[#313131]">
+        <div className="flex items-center justify-between text-sm text-[#313131] mt-4">
           <div className="flex items-center gap-2">
-            <span>Jumlah per halaman</span>
+            <span className="text-xs text-gray-500">Jumlah per halaman</span>
             <Select value={String(pageSize)} onValueChange={(val) => { setPageSize(Number(val)); setPageIndex(0) }}>
               <SelectTrigger className="h-8 w-16">
                 <SelectValue />
@@ -168,7 +170,7 @@ export default function MasterAplikasiTable({ data, showTable, onEdit, onDelete 
             </Select>
           </div>
 
-          <span className="text-right">{start}-{end} dari {data.length}</span>
+          <span className="text-xs font-medium text-gray-500">{start}-{end} dari {data.length}</span>
 
           <div className="flex items-center gap-1">
             <Button variant="outline" size="icon" className="h-8 w-8" onClick={() => setPageIndex(0)} disabled={pageIndex === 0}>«</Button>

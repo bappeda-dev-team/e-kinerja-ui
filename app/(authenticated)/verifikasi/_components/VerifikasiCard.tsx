@@ -10,16 +10,21 @@ export default function VerifikasiCard({ item, onVerify }: { item: VerifikasiIte
   return (
     <div className="bg-white rounded-2xl shadow-[6px_6px_54px_rgba(0,0,0,0.05)] p-5 border border-transparent hover:border-blue-100 transition-all relative">
       <div className="flex gap-4">
-        {/* Avatar/Logo Pemda */}
-        <div className="w-[50px] h-[54px] bg-[#CCF0EB]/30 rounded flex items-center justify-center font-bold text-[#00B69B] shrink-0 border border-[#CCF0EB]">
-          {item.nama_pemda?.substring(0,2).toUpperCase()}
+        {/* ✅ Update Avatar/Logo Pemda */}
+        <div className="w-[50px] h-[54px] bg-white rounded flex items-center justify-center shrink-0 border border-gray-100 overflow-hidden">
+          {item.logo_pemda ? (
+            <img src={item.logo_pemda} className="w-full h-full object-contain p-1" alt="logo" />
+          ) : (
+            <span className="font-bold text-[#00B69B]">
+              {item.nama_pemda?.substring(0,2).toUpperCase()}
+            </span>
+          )}
         </div>
 
         <div className="flex-1 min-w-0 pr-6">
           <h4 className="font-bold text-[#202224] text-base truncate leading-tight">{item.nama_pemda}</h4>
           <p className="text-xs text-gray-400 font-medium mt-0.5">{item.aplikasi} • {item.menu}</p>
           
-          {/* Progres Deskripsi dari Programmer */}
           {item.progres_deskripsi && (
             <p className="text-[11px] text-blue-600 font-bold italic mt-2 line-clamp-2 leading-relaxed bg-blue-50/50 p-1.5 rounded">
               "{item.progres_deskripsi}"
@@ -44,7 +49,7 @@ export default function VerifikasiCard({ item, onVerify }: { item: VerifikasiIte
       <div className="mt-4 space-y-3">
         {item.status === "revisi" && (
           <div className="space-y-2">
-            <span className="bg-[#FD5454]/10 text-[#FD5454] text-[10px] font-black px-2 py-1 rounded-[3px] tracking-wider">REVISI</span>
+            <span className="bg-[#FD5454]/10 text-[#FD5454] text-[10px] font-bold px-2 py-1 rounded-[3px] tracking-wider">Revisi</span>
             <p className="text-sm text-[#202224] font-semibold opacity-80 leading-snug">{item.komentar}</p>
           </div>
         )}

@@ -21,3 +21,7 @@ export const updateVerifikasi = async (id: string, data: VerifikasiRequest) => {
 export const deleteVerifikasi = async (id: string) => {
   return fetchApi<APIResponse<any>>(`/verifikasi/${id}`, { method: "DELETE" });
 };
+
+export const getPemda = async () => {
+  return fetchApi<APIResponse<any[]>>("/master-pemda", { method: "GET" });
+};

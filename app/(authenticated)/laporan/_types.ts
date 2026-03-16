@@ -44,4 +44,5 @@ export interface LaporanKinerjaItem {
   programmer: LaporanProgrammer
   status?: string
   created_at?: string
+  logo_pemda?: string // ✅ Tambahkan ini
 }

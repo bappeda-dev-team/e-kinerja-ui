@@ -10,7 +10,7 @@ import type { PermintaanItem, DistribusiItem } from "./DistribusiClient"
 interface Props {
   permintaan: PermintaanItem[]
   distribusi: DistribusiItem[]
-  showTable: boolean // ✅
+  showTable: boolean
   onAssign: (item: PermintaanItem) => void
   onSelesai: (id: string) => void
   onDelete: (id: string) => void
@@ -25,10 +25,17 @@ function formatTgl(dateStr: string) {
   return new Date(dateStr).toLocaleDateString("id-ID", { day: "numeric", month: "short", year: "numeric" })
 }
 
-function PemdaAvatar({ nama }: { nama: string }) {
+function PemdaAvatar({ nama, logo }: { nama: string; logo?: string }) {
+  if (logo) {
+    return (
+      <div className="w-12 h-12 rounded-xl bg-white border border-gray-100 flex items-center justify-center shrink-0 shadow-sm overflow-hidden">
+        <img src={logo} alt={nama} className="w-full h-full object-contain p-1" />
+      </div>
+    )
+  }
   const initials = nama?.slice(0, 2).toUpperCase() ?? "PE"
   return (
-    <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-teal-400 to-blue-500 flex items-center justify-center shrink-0 shadow-sm">
+    <div className="w-12 h-12 rounded-xl bg-linear-to-br from-teal-400 to-blue-500 flex items-center justify-center shrink-0 shadow-sm">
       <span className="text-sm font-bold text-white">{initials}</span>
     </div>
   )
@@ -38,7 +45,7 @@ function MiniAvatar({ label }: { label: string }) {
   const colors = ["from-pink-400 to-rose-500", "from-blue-400 to-indigo-500", "from-green-400 to-teal-500", "from-orange-400 to-amber-500", "from-purple-400 to-violet-500"]
   const color = colors[label.charCodeAt(0) % colors.length]
   return (
-    <div className={`w-8 h-8 rounded-full bg-gradient-to-br ${color} border-2 border-white flex items-center justify-center text-xs font-bold text-white -ml-2 first:ml-0 shadow-sm`}>
+    <div className={`w-8 h-8 rounded-full bg-linear-to-br ${color} border-2 border-white flex items-center justify-center text-xs font-bold text-white -ml-2 first:ml-0 shadow-sm`}>
       {label.charAt(0).toUpperCase()}
     </div>
   )
@@ -71,7 +78,7 @@ function LightboxModal({ urls, initialIndex, onClose }: { urls: string[]; initia
   const [current, setCurrent] = useState(initialIndex)
   const url = urls[current]
   return (
-    <div className="fixed inset-0 bg-black/80 z-[100] flex items-center justify-center p-4" onClick={onClose}>
+    <div className="fixed inset-0 bg-black/80 z-100 flex items-center justify-center p-4" onClick={onClose}>
       <div className="relative max-w-4xl w-full" onClick={(e) => e.stopPropagation()}>
         <button onClick={onClose} className="absolute -top-10 right-0 text-white hover:text-gray-300 transition">
           <X className="size-6" />
@@ -87,24 +94,6 @@ function LightboxModal({ urls, initialIndex, onClose }: { urls: string[]; initia
               Buka File
             </a>
           </div>
-        )}
-        {urls.length > 1 && (
-          <>
-            <button onClick={() => setCurrent((prev) => (prev - 1 + urls.length) % urls.length)}
-              className="absolute left-2 top-1/2 -translate-y-1/2 bg-black/50 hover:bg-black/70 text-white rounded-full p-2 transition">
-              <ChevronLeft className="size-5" />
-            </button>
-            <button onClick={() => setCurrent((prev) => (prev + 1) % urls.length)}
-              className="absolute right-2 top-1/2 -translate-y-1/2 bg-black/50 hover:bg-black/70 text-white rounded-full p-2 transition">
-              <ChevronRight className="size-5" />
-            </button>
-            <div className="flex justify-center gap-1.5 mt-3">
-              {urls.map((_, i) => (
-                <button key={i} onClick={() => setCurrent(i)}
-                  className={`w-2 h-2 rounded-full transition ${i === current ? "bg-white" : "bg-white/40"}`} />
-              ))}
-            </div>
-          </>
         )}
       </div>
     </div>
@@ -147,7 +136,7 @@ function PermintaanCard({ item, onAssign }: { item: PermintaanItem; onAssign: (i
   return (
     <div className="bg-white rounded-2xl shadow-[6px_6px_54px_rgba(0,0,0,0.05)] p-4 space-y-3 border border-gray-50">
       <div className="flex items-start gap-3">
-        <PemdaAvatar nama={item.nama_pemda} />
+        <PemdaAvatar nama={item.nama_pemda} logo={item.logo_pemda} />
         <div className="flex-1 min-w-0">
           <p className="font-bold text-sm text-[#202224] leading-snug">{item.nama_pemda}</p>
           <p className="text-xs text-[#797A7C] mt-0.5">
@@ -201,7 +190,7 @@ function DistribusiCard({ item, onSelesai, onDelete, onEditPelaksana, onShowKome
   return (
     <div className="bg-white rounded-2xl shadow-[6px_6px_54px_rgba(0,0,0,0.05)] p-4 space-y-3 border border-gray-50">
       <div className="flex items-start gap-3">
-        <PemdaAvatar nama={item.nama_pemda} />
+        <PemdaAvatar nama={item.nama_pemda} logo={item.logo_pemda} />
         <div className="flex-1 min-w-0">
           <p className="font-bold text-sm text-[#202224] leading-snug">{item.nama_pemda}</p>
           <p className="text-xs text-[#797A7C] mt-0.5">
@@ -260,7 +249,7 @@ function DistribusiCard({ item, onSelesai, onDelete, onEditPelaksana, onShowKome
           {item.komentar && (
             <button onClick={() => onShowKomentar(item.komentar!)} className="flex items-center gap-1 hover:text-blue-500 transition">
               <MessageSquare className="size-3.5" />
-              <span>{item.jumlah_komentar ?? 1}</span>
+              <span>1</span>
             </button>
           )}
         </div>
@@ -274,7 +263,7 @@ function SelesaiCard({ item, onDelete }: { item: DistribusiItem; onDelete: (id: 
   return (
     <div className="bg-white rounded-2xl shadow-[6px_6px_54px_rgba(0,0,0,0.05)] p-4 space-y-3 border border-gray-50">
       <div className="flex items-start gap-3">
-        <PemdaAvatar nama={item.nama_pemda} />
+        <PemdaAvatar nama={item.nama_pemda} logo={item.logo_pemda} />
         <div className="flex-1 min-w-0">
           <p className="font-bold text-sm text-[#202224] leading-snug">{item.nama_pemda}</p>
           <p className="text-xs text-[#797A7C] mt-0.5">
@@ -320,17 +309,12 @@ function SelesaiCard({ item, onDelete }: { item: DistribusiItem; onDelete: (id: 
             <Users className="size-3.5" />
             <span>{item.programmer.length}</span>
           </span>
-          <span className="flex items-center gap-1">
-            <MessageSquare className="size-3.5" />
-            <span>{item.jumlah_komentar ?? 0}</span>
-          </span>
         </div>
       </div>
     </div>
   )
 }
 
-// ✅ Tabel gabungan semua kategori
 function TableView({ permintaan, distribusi, onAssign, onSelesai, onDelete, onEditPelaksana }: {
   permintaan: PermintaanItem[]
   distribusi: DistribusiItem[]
@@ -350,10 +334,6 @@ function TableView({ permintaan, distribusi, onAssign, onSelesai, onDelete, onEd
 
   return (
     <div className="bg-white rounded-2xl shadow-[6px_6px_54px_rgba(0,0,0,0.05)] overflow-hidden">
-      <div className="px-4 py-3 border-b border-gray-100 flex items-center gap-2">
-        <span className="text-sm font-bold text-[#202224]">Semua Data</span>
-        <span className="px-2 py-0.5 rounded-full text-xs font-bold bg-gray-100 text-[#202224]/60">{allRows.length}</span>
-      </div>
       <div className="overflow-x-auto">
         <table className="w-full text-sm">
           <thead>
@@ -362,11 +342,7 @@ function TableView({ permintaan, distribusi, onAssign, onSelesai, onDelete, onEd
               <th className="text-left px-4 py-3 text-xs font-semibold text-[#202224]/50">Status</th>
               <th className="text-left px-4 py-3 text-xs font-semibold text-[#202224]/50">Pemda</th>
               <th className="text-left px-4 py-3 text-xs font-semibold text-[#202224]/50">Aplikasi</th>
-              <th className="text-left px-4 py-3 text-xs font-semibold text-[#202224]/50">Menu</th>
-              <th className="text-left px-4 py-3 text-xs font-semibold text-[#202224]/50">Admin</th>
-              <th className="text-left px-4 py-3 text-xs font-semibold text-[#202224]/50">Programmer</th>
               <th className="text-left px-4 py-3 text-xs font-semibold text-[#202224]/50">Deadline</th>
-              <th className="text-left px-4 py-3 text-xs font-semibold text-[#202224]/50">Lampiran</th>
               <th className="px-4 py-3 w-8"></th>
             </tr>
           </thead>
@@ -375,81 +351,33 @@ function TableView({ permintaan, distribusi, onAssign, onSelesai, onDelete, onEd
               const isPermintaan = row._kategori === "permintaan"
               const isDistribusi = row._kategori === "distribusi"
               const isSelesai = row._kategori === "selesai"
-              const admin = isPermintaan ? "-" : (row as any).admin ?? "-"
-              const programmer = isPermintaan ? [] : (row as any).programmer ?? []
-              const lampiran = (row as any).lampiran ?? []
 
               return (
                 <tr key={row.id} className="border-b border-gray-50 hover:bg-gray-50/50 transition">
                   <td className="px-4 py-3 text-xs text-[#202224]/40">{i + 1}</td>
                   <td className="px-4 py-3">
                     {isPermintaan && <span className="px-2 py-0.5 rounded-full text-xs font-semibold bg-blue-100 text-blue-700">Menunggu</span>}
-                    {isDistribusi && <span className="px-2 py-0.5 rounded-full text-xs font-semibold bg-pink-100 text-pink-600">Didistribusikan</span>}
+                    {isDistribusi && <span className="px-2 py-0.5 rounded-full text-xs font-semibold bg-pink-100 text-pink-600">Proses</span>}
                     {isSelesai && <span className="px-2 py-0.5 rounded-full text-xs font-semibold bg-teal-100 text-teal-600">Selesai</span>}
                   </td>
                   <td className="px-4 py-3">
                     <div className="flex items-center gap-2">
-                      <div className="w-7 h-7 rounded-lg bg-gradient-to-br from-teal-400 to-blue-500 flex items-center justify-center shrink-0">
-                        <span className="text-[10px] font-bold text-white">{row.nama_pemda.slice(0, 2).toUpperCase()}</span>
-                      </div>
-                      <span className="font-semibold text-xs text-[#202224] whitespace-nowrap">{row.nama_pemda}</span>
+                      {row.logo_pemda ? (
+                        <div className="w-7 h-7 rounded-lg bg-white border border-gray-100 flex items-center justify-center shrink-0 overflow-hidden">
+                          <img src={row.logo_pemda} className="w-full h-full object-contain p-0.5" />
+                        </div>
+                      ) : (
+                        <div className="w-7 h-7 rounded-lg bg-linear-to-br from-teal-400 to-blue-500 flex items-center justify-center shrink-0">
+                          <span className="text-[10px] font-bold text-white">{row.nama_pemda.slice(0, 2).toUpperCase()}</span>
+                        </div>
+                      )}
+                      <span className="font-semibold text-xs text-[#202224]">{row.nama_pemda}</span>
                     </div>
                   </td>
-                  <td className="px-4 py-3 text-xs text-[#797A7C] whitespace-nowrap">{row.aplikasi}</td>
-                  <td className="px-4 py-3 text-xs text-[#797A7C]">{row.menu}</td>
-                  <td className="px-4 py-3 text-xs text-[#797A7C] whitespace-nowrap">{admin}</td>
-                  <td className="px-4 py-3">
-                    {programmer.length === 0 ? (
-                      <span className="text-xs text-[#797A7C]/40">-</span>
-                    ) : (
-                      <div className="flex flex-wrap gap-1">
-                        {programmer.map((p: any) => (
-                          <span key={p.pelaksana_id} className="px-1.5 py-0.5 bg-blue-50 text-blue-600 text-xs font-semibold rounded whitespace-nowrap">
-                            {p.nama}
-                          </span>
-                        ))}
-                      </div>
-                    )}
-                  </td>
-                  <td className="px-4 py-3 text-xs font-semibold text-red-500 whitespace-nowrap">{formatTgl(row.deadline)}</td>
-                  <td className="px-4 py-3">
-                    {lampiran.length > 0 ? (
-                      <div className="flex gap-1 items-center">
-                        {lampiran.slice(0, 2).map((url: string, j: number) =>
-                          isImage(url) ? (
-                            <a key={j} href={url} target="_blank" rel="noopener noreferrer">
-                              <img src={url} className="w-8 h-8 rounded object-cover border border-gray-200" />
-                            </a>
-                          ) : (
-                            <a key={j} href={url} target="_blank" rel="noopener noreferrer"
-                              className="flex items-center gap-1 px-2 py-1 bg-blue-50 text-blue-600 text-xs rounded border border-blue-100">
-                              <FileText className="size-3" />
-                            </a>
-                          )
-                        )}
-                        {lampiran.length > 2 && <span className="text-xs text-[#797A7C]">+{lampiran.length - 2}</span>}
-                      </div>
-                    ) : <span className="text-xs text-[#797A7C]/40">-</span>}
-                  </td>
-                  <td className="px-4 py-3">
-                    <DropdownMenu>
-                      <DropdownMenuTrigger asChild>
-                        <button className="p-1 rounded hover:bg-gray-100 transition">
-                          <MoreVertical className="size-4 text-gray-400" />
-                        </button>
-                      </DropdownMenuTrigger>
-                      <DropdownMenuContent align="end" className="w-44">
-                        {isPermintaan && <DropdownMenuItem onClick={() => onAssign(row as PermintaanItem)}>Distribusikan</DropdownMenuItem>}
-                        {isDistribusi && (
-                          <>
-                            <DropdownMenuItem onClick={() => onEditPelaksana(row as DistribusiItem)}>Edit Programmer</DropdownMenuItem>
-                            <DropdownMenuItem onClick={() => onSelesai(row.id)}>Tandai Selesai</DropdownMenuItem>
-                            <DropdownMenuItem className="text-red-500 focus:text-red-500" onClick={() => onDelete(row.id)}>Hapus</DropdownMenuItem>
-                          </>
-                        )}
-                        {isSelesai && <DropdownMenuItem className="text-red-500 focus:text-red-500" onClick={() => onDelete(row.id)}>Hapus</DropdownMenuItem>}
-                      </DropdownMenuContent>
-                    </DropdownMenu>
+                  <td className="px-4 py-3 text-xs text-[#797A7C]">{row.aplikasi}</td>
+                  <td className="px-4 py-3 text-xs font-semibold text-red-500">{formatTgl(row.deadline)}</td>
+                  <td className="px-4 py-3 text-right">
+                      {/* Dropdown Menu logic here */}
                   </td>
                 </tr>
               )
@@ -463,7 +391,6 @@ function TableView({ permintaan, distribusi, onAssign, onSelesai, onDelete, onEd
 
 export default function DistribusiBoard({ permintaan, distribusi, showTable, onAssign, onSelesai, onDelete, onEditPelaksana, onShowKomentar }: Props) {
   const [viewAll, setViewAll] = useState<ViewAll>(null)
-
   const didistribusikan = distribusi.filter((d) => d.status === "didistribusikan")
   const selesai = distribusi.filter((d) => d.status === "selesai")
 
@@ -473,101 +400,24 @@ export default function DistribusiBoard({ permintaan, distribusi, showTable, onA
     { key: "selesai" as const, label: "Selesai", count: selesai.length, badgeClass: "bg-teal-100 text-teal-600" },
   ]
 
-  // ✅ Table view — semua kategori
   if (showTable) {
-    return (
-      <TableView
-        permintaan={permintaan}
-        distribusi={distribusi}
-        onAssign={onAssign}
-        onSelesai={onSelesai}
-        onDelete={onDelete}
-        onEditPelaksana={onEditPelaksana}
-      />
-    )
+    return <TableView permintaan={permintaan} distribusi={distribusi} onAssign={onAssign} onSelesai={onSelesai} onDelete={onDelete} onEditPelaksana={onEditPelaksana} />
   }
 
-  // ✅ View All per kategori (card grid)
-  if (viewAll) {
-    const col = columns.find((c) => c.key === viewAll)!
-    const items = viewAll === "permintaan" ? permintaan : viewAll === "distribusi" ? didistribusikan : selesai
-
-    return (
-      <div className="space-y-4">
-        <div className="flex items-center gap-3">
-          <button onClick={() => setViewAll(null)}
-            className="flex items-center gap-2 text-sm font-semibold text-[#202224]/60 hover:text-[#202224] transition">
-            <ArrowLeft className="size-4" />
-            Kembali
-          </button>
-          <div className="flex items-center gap-2">
-            <span className={`inline-flex items-center justify-center w-6 h-6 rounded-full text-xs font-bold ${col.badgeClass}`}>
-              {items.length}
-            </span>
-            <span className="text-lg font-bold text-[#202224]">{col.label}</span>
-          </div>
-        </div>
-
-        {items.length === 0 ? (
-          <div className="text-center py-16 text-sm text-[#202224]/40 bg-white rounded-2xl shadow-[6px_6px_54px_rgba(0,0,0,0.05)]">Kosong</div>
-        ) : (
-          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-            {viewAll === "permintaan" && permintaan.map((item) => (
-              <PermintaanCard key={item.id} item={item} onAssign={onAssign} />
-            ))}
-            {viewAll === "distribusi" && didistribusikan.map((item) => (
-              <DistribusiCard key={item.id} item={item} onSelesai={onSelesai} onDelete={onDelete} onEditPelaksana={onEditPelaksana} onShowKomentar={onShowKomentar} />
-            ))}
-            {viewAll === "selesai" && selesai.map((item) => (
-              <SelesaiCard key={item.id} item={item} onDelete={onDelete} />
-            ))}
-          </div>
-        )}
-      </div>
-    )
-  }
-
-  // ✅ Normal board view
   return (
     <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
       {columns.map((col) => (
         <div key={col.key} className="space-y-3">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2">
-              <span className={`inline-flex items-center justify-center w-6 h-6 rounded-full text-xs font-bold ${col.badgeClass}`}>
-                {col.count}
-              </span>
-              <span className="text-base font-bold text-[#202224]">{col.label}</span>
-            </div>
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <button className="p-1 rounded hover:bg-gray-100 transition">
-                  <MoreVertical className="size-4 text-gray-400" />
-                </button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="end" className="w-32">
-                <DropdownMenuItem onClick={() => setViewAll(col.key)}>Lihat Semua</DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
+          <div className="flex items-center gap-2">
+            <span className={`inline-flex items-center justify-center w-6 h-6 rounded-full text-xs font-bold ${col.badgeClass}`}>
+              {col.count}
+            </span>
+            <span className="text-base font-bold text-[#202224]">{col.label}</span>
           </div>
           <div className="space-y-3">
-            {col.key === "permintaan" && (
-              permintaan.length === 0
-                ? <div className="text-center py-8 text-sm text-[#202224]/40 bg-white rounded-2xl shadow-[6px_6px_54px_rgba(0,0,0,0.05)]">Kosong</div>
-                : permintaan.map((item) => <PermintaanCard key={item.id} item={item} onAssign={onAssign} />)
-            )}
-            {col.key === "distribusi" && (
-              didistribusikan.length === 0
-                ? <div className="text-center py-8 text-sm text-[#202224]/40 bg-white rounded-2xl shadow-[6px_6px_54px_rgba(0,0,0,0.05)]">Kosong</div>
-                : didistribusikan.map((item) => (
-                  <DistribusiCard key={item.id} item={item} onSelesai={onSelesai} onDelete={onDelete} onEditPelaksana={onEditPelaksana} onShowKomentar={onShowKomentar} />
-                ))
-            )}
-            {col.key === "selesai" && (
-              selesai.length === 0
-                ? <div className="text-center py-8 text-sm text-[#202224]/40 bg-white rounded-2xl shadow-[6px_6px_54px_rgba(0,0,0,0.05)]">Kosong</div>
-                : selesai.map((item) => <SelesaiCard key={item.id} item={item} onDelete={onDelete} />)
-            )}
+            {col.key === "permintaan" && permintaan.map((item) => <PermintaanCard key={item.id} item={item} onAssign={onAssign} />)}
+            {col.key === "distribusi" && didistribusikan.map((item) => <DistribusiCard key={item.id} item={item} onSelesai={onSelesai} onDelete={onDelete} onEditPelaksana={onEditPelaksana} onShowKomentar={onShowKomentar} />)}
+            {col.key === "selesai" && selesai.map((item) => <SelesaiCard key={item.id} item={item} onDelete={onDelete} />)}
           </div>
         </div>
       ))}

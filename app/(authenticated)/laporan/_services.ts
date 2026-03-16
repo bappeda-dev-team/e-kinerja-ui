@@ -32,3 +32,9 @@ export const deleteLaporan = async (id: string) => {
     method: "DELETE",
   })
 }
+
+export const getPemda = async () => {
+  return fetchApi<APIResponse<any[]>>("/master-pemda", {
+    method: "GET",
+  })
+}

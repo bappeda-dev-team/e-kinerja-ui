@@ -1,6 +1,7 @@
 export interface PermintaanPemda {
   id: string
   name: string
+  logo?: string
 }
 
 export interface PermintaanAplikasi {

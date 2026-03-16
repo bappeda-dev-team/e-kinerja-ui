@@ -123,47 +123,71 @@ export function AppSidebar() {
                       </SidebarMenuButton>
                     </Collapsible.Trigger>
 
-                    <Collapsible.Content>
-                      <SidebarMenuSub>
+<Collapsible.Content>
+  <SidebarMenuSub>
 
-                        <SidebarMenuSubItem>
-                          <SidebarMenuSubButton asChild isActive={isActive("/data-master/master-user")}>
-                            <Link href="/data-master/master-user">
-                              <User className="mr-2 h-4 w-4" />
-                              Master User
-                            </Link>
-                          </SidebarMenuSubButton>
-                        </SidebarMenuSubItem>
+    <SidebarMenuSubItem>
+      <SidebarMenuSubButton asChild isActive={isActive("/data-master/master-user")}>
+        <Link href="/data-master/master-user" className="group/subitem flex items-center">
+          <User className={`mr-2 h-4 w-4 transition-colors ${
+            isActive("/data-master/master-user") 
+              ? "!text-blue-600" 
+              : "!text-[#202224] group-hover/subitem:!text-blue-600"
+          }`} />
+          <span className={isActive("/data-master/master-user") ? "text-blue-600" : "text-[#202224] group-hover/subitem:text-blue-600"}>
+            Master User
+          </span>
+        </Link>
+      </SidebarMenuSubButton>
+    </SidebarMenuSubItem>
 
-                        <SidebarMenuSubItem>
-                          <SidebarMenuSubButton asChild isActive={isActive("/data-master/master-roles")}>
-                            <Link href="/data-master/master-roles">
-                              <Shield className="mr-2 h-4 w-4" />
-                              Master Roles
-                            </Link>
-                          </SidebarMenuSubButton>
-                        </SidebarMenuSubItem>
+    <SidebarMenuSubItem>
+      <SidebarMenuSubButton asChild isActive={isActive("/data-master/master-roles")}>
+        <Link href="/data-master/master-roles" className="group/subitem flex items-center">
+          <Shield className={`mr-2 h-4 w-4 transition-colors ${
+            isActive("/data-master/master-roles") 
+              ? "!text-blue-600" 
+              : "!text-[#202224] group-hover/subitem:!text-blue-600"
+          }`} />
+          <span className={isActive("/data-master/master-roles") ? "text-blue-600" : "text-[#202224] group-hover/subitem:text-blue-600"}>
+            Master Roles
+          </span>
+        </Link>
+      </SidebarMenuSubButton>
+    </SidebarMenuSubItem>
 
-                        <SidebarMenuSubItem>
-                          <SidebarMenuSubButton asChild isActive={isActive("/data-master/master-pemda")}>
-                            <Link href="/data-master/master-pemda">
-                              <Building2 className="mr-2 h-4 w-4" />
-                              Master Pemda
-                            </Link>
-                          </SidebarMenuSubButton>
-                        </SidebarMenuSubItem>
+    <SidebarMenuSubItem>
+      <SidebarMenuSubButton asChild isActive={isActive("/data-master/master-pemda")}>
+        <Link href="/data-master/master-pemda" className="group/subitem flex items-center">
+          <Building2 className={`mr-2 h-4 w-4 transition-colors ${
+            isActive("/data-master/master-pemda") 
+              ? "!text-blue-600" 
+              : "!text-[#202224] group-hover/subitem:!text-blue-600"
+          }`} />
+          <span className={isActive("/data-master/master-pemda") ? "text-blue-600" : "text-[#202224] group-hover/subitem:text-blue-600"}>
+            Master Pemda
+          </span>
+        </Link>
+      </SidebarMenuSubButton>
+    </SidebarMenuSubItem>
 
-                        <SidebarMenuSubItem>
-                          <SidebarMenuSubButton asChild isActive={isActive("/data-master/master-aplikasi")}>
-                            <Link href="/data-master/master-aplikasi">
-                              <AppWindow className="mr-2 h-4 w-4" />
-                              Master Aplikasi
-                            </Link>
-                          </SidebarMenuSubButton>
-                        </SidebarMenuSubItem>
+    <SidebarMenuSubItem>
+      <SidebarMenuSubButton asChild isActive={isActive("/data-master/master-aplikasi")}>
+        <Link href="/data-master/master-aplikasi" className="group/subitem flex items-center">
+          <AppWindow className={`mr-2 h-4 w-4 transition-colors ${
+            isActive("/data-master/master-aplikasi") 
+              ? "!text-blue-600" 
+              : "!text-[#202224] group-hover/subitem:!text-blue-600"
+          }`} />
+          <span className={isActive("/data-master/master-aplikasi") ? "text-blue-600" : "text-[#202224] group-hover/subitem:text-blue-600"}>
+            Master Aplikasi
+          </span>
+        </Link>
+      </SidebarMenuSubButton>
+    </SidebarMenuSubItem>
 
-                      </SidebarMenuSub>
-                    </Collapsible.Content>
+  </SidebarMenuSub>
+</Collapsible.Content>
                   </SidebarMenuItem>
                 </Collapsible.Root>
               )}

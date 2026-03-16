@@ -13,7 +13,7 @@ import KomentarModal from "./modals/KomentarModal"
 import {
   getPermintaan, getDistribusi, getPelaksana,
   createDistribusi, createPelaksana,
-  deleteDistribusi, deletePelaksana, getUsers,
+  deleteDistribusi, deletePelaksana, getUsers, getPemda,
 } from "../_services"
 import { getVerifikasi } from "@/app/(authenticated)/verifikasi/_services"
 import { getLaporan } from "@/app/(authenticated)/laporan/_services"
@@ -53,6 +53,7 @@ const HybridLoader = () => {
 export interface PermintaanItem {
   id: string
   nama_pemda: string
+  logo_pemda?: string
   aplikasi: string
   menu: string
   awal: string
@@ -64,6 +65,7 @@ export interface PermintaanItem {
 export interface DistribusiItem {
   id: string
   nama_pemda: string
+  logo_pemda?: string
   aplikasi: string
   menu: string
   admin: string
@@ -89,7 +91,7 @@ export default function DistribusiClient() {
   const [distribusi, setDistribusi] = useState<DistribusiItem[]>([])
   const [users, setUsers] = useState<UserItem[]>([])
   const [loading, setLoading] = useState(true)
-  const [showTable, setShowTable] = useState(false) // ✅
+  const [showTable, setShowTable] = useState(false)
   const [assignItem, setAssignItem] = useState<PermintaanItem | null>(null)
   const [editItem, setEditItem] = useState<DistribusiItem | null>(null)
   const [selectedKomentar, setSelectedKomentar] = useState<string | null>(null)
@@ -97,14 +99,28 @@ export default function DistribusiClient() {
   const fetchAll = async () => {
     try {
       setLoading(true)
-      const [permintaanRes, distribusiRes, pelaksanaRes, usersRes, verifikasiRes, laporanRes] = await Promise.all([
-        getPermintaan(), getDistribusi(), getPelaksana(), getUsers(),
-        getVerifikasi(), getLaporan(),
+      const [
+        permintaanRes, 
+        distribusiRes, 
+        pelaksanaRes, 
+        usersRes, 
+        verifikasiRes, 
+        laporanRes,
+        pemdaRes
+      ] = await Promise.all([
+        getPermintaan(), 
+        getDistribusi(), 
+        getPelaksana(), 
+        getUsers(),
+        getVerifikasi(), 
+        getLaporan(),
+        getPemda()
       ])
 
       const pelaksanaList: PelaksanaResponse[] = pelaksanaRes.data?.data ?? []
       const verifikasiList = verifikasiRes.data?.data ?? []
       const laporanList = laporanRes.data?.data ?? []
+      const masterPemda = pemdaRes.data?.data ?? []
 
       const laporanToPermintaan = new Map(
         laporanList.map((l: any) => [l.id, l.permintaan?.id])
@@ -135,12 +151,17 @@ export default function DistribusiClient() {
 
         const permintaanId = item.permintaan?.id
         const isApproved = approvedPermintaanIds.has(permintaanId)
+        
+        const namaPemda = typeof item.permintaan?.pemda === "object"
+            ? item.permintaan.pemda.name
+            : item.permintaan?.pemda ?? "-";
+        
+        const pemdaDetail = masterPemda.find((p: any) => p.name === namaPemda);
 
         return {
           id: item.id,
-          nama_pemda: typeof item.permintaan?.pemda === "object"
-            ? item.permintaan.pemda.name
-            : item.permintaan?.pemda ?? "-",
+          nama_pemda: namaPemda,
+          logo_pemda: pemdaDetail?.logo || "",
           aplikasi: typeof item.permintaan?.aplikasi === "object"
             ? item.permintaan.aplikasi.name
             : item.permintaan?.aplikasi ?? "-",
@@ -152,7 +173,6 @@ export default function DistribusiClient() {
           jumlah_komentar: item.komentar ? 1 : 0,
           komentar: item.komentar ?? "",
           lampiran: item.permintaan?.lampiran ?? [],
-          _permintaan_id: permintaanId,
         }
       })
 
@@ -162,16 +182,20 @@ export default function DistribusiClient() {
 
       const mappedPermintaan: PermintaanItem[] = (permintaanRes.data?.data ?? [])
         .filter((p: PermintaanResponse) => !distribusiPermintaanIds.has(p.id))
-        .map((p: PermintaanResponse) => ({
-          id: p.id,
-          nama_pemda: p.pemda?.name ?? "-",
-          aplikasi: p.aplikasi?.name ?? "-",
-          menu: p.menu ?? "-",
-          awal: p.kondisi_awal ?? "-",
-          target: p.kondisi_diharapkan ?? "-",
-          deadline: p.tanggal_deadline ?? "",
-          lampiran: p.lampiran ?? [],
-        }))
+        .map((p: PermintaanResponse) => {
+          const pemdaDetail = masterPemda.find((pem: any) => pem.name === p.pemda?.name);
+          return {
+            id: p.id,
+            nama_pemda: p.pemda?.name ?? "-",
+            logo_pemda: pemdaDetail?.logo || "",
+            aplikasi: p.aplikasi?.name ?? "-",
+            menu: p.menu ?? "-",
+            awal: p.kondisi_awal ?? "-",
+            target: p.kondisi_diharapkan ?? "-",
+            deadline: p.tanggal_deadline ?? "",
+            lampiran: p.lampiran ?? [],
+          }
+        })
 
       setDistribusi(mappedDistribusi)
       setPermintaan(mappedPermintaan)
@@ -215,12 +239,6 @@ export default function DistribusiClient() {
     try {
       await createPelaksana({ distribusi_id, programmer_id })
       await fetchAll()
-      setEditItem((prev) => {
-        if (!prev || prev.id !== distribusi_id) return prev
-        const user = users.find((u) => u.id === programmer_id)
-        if (!user) return prev
-        return { ...prev, programmer: [...prev.programmer, { id: programmer_id, nama: user.full_name, pelaksana_id: "" }] }
-      })
       toast.success("Programmer berhasil ditambahkan")
     } catch {
       toast.error("Gagal menambahkan programmer")
@@ -231,10 +249,6 @@ export default function DistribusiClient() {
     try {
       await deletePelaksana(pelaksana_id)
       await fetchAll()
-      setEditItem((prev) => {
-        if (!prev || prev.id !== distribusi_id) return prev
-        return { ...prev, programmer: prev.programmer.filter((p) => p.pelaksana_id !== pelaksana_id) }
-      })
       toast.success("Programmer berhasil dihapus")
     } catch {
       toast.error("Gagal menghapus programmer")
@@ -250,7 +264,6 @@ export default function DistribusiClient() {
     <div className="space-y-6 px-4">
       <div className="flex items-center justify-between">
         <h2 className="text-3xl font-bold text-[#202224]">Distribusi Pekerjaan</h2>
-        {/* ✅ Tombol lihat semua sebagai tabel */}
         {!loading && (
           <button
             onClick={() => setShowTable((prev) => !prev)}
@@ -270,7 +283,7 @@ export default function DistribusiClient() {
         <DistribusiBoard
           permintaan={permintaan}
           distribusi={distribusi}
-          showTable={showTable} // ✅
+          showTable={showTable}
           onAssign={setAssignItem}
           onSelesai={handleSelesai}
           onDelete={handleDelete}

@@ -1,264 +1,256 @@
 "use client"
 
 import * as React from "react"
-import { MoreVertical, Pencil, Trash2, Building2, Paperclip, Download } from "lucide-react"
-
+import { useState } from "react"
+import { MoreVertical, Pencil, Trash2, X, FileText, ChevronLeft, ChevronRight } from "lucide-react"
 import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
+  DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
-
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select"
-
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-  AlertDialogDescription,
-} from "@/components/ui/alert-dialog"
-
-import { Button } from "@/components/ui/button"
-
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogDescription } from "@/components/ui/alert-dialog"
 import type { PermintaanResponse } from "../_types"
 
 interface Props {
   data: PermintaanResponse[]
+  showTable: boolean
   onEdit: (item: PermintaanResponse) => void
   onDelete: (id: string) => void
 }
 
-const STATUS_MAP: Record<string, { label: string; className: string }> = {
-  proses:   { label: "Dalam Proses", className: "bg-[#FFA756]/15 text-[#FFA756]" },
-  selesai:  { label: "Selesai",      className: "bg-[#00B69B]/15 text-[#00B69B]" },
-  revisi:   { label: "Revisi",       className: "bg-[#FD5454]/15 text-[#FD5454]" },
-  pending:  { label: "Pending",      className: "bg-gray-100 text-gray-500" },
+function formatTgl(dateStr: string) {
+  if (!dateStr) return "-"
+  return new Date(dateStr).toLocaleDateString("id-ID", { day: "numeric", month: "short", year: "numeric" })
 }
 
-function StatusBadge({ status }: { status?: string }) {
-  const key = (status ?? "").toLowerCase()
-  const cfg = STATUS_MAP[key] ?? { label: status ?? "-", className: "bg-gray-100 text-gray-500" }
+// ✅ Avatar dengan Logic Fallback yang sama dengan Distribusi
+function PemdaAvatar({ nama, logo }: { nama: string; logo?: string }) {
+  if (logo) {
+    return (
+      <div className="w-12 h-12 rounded-xl bg-white border border-gray-100 flex items-center justify-center shrink-0 shadow-sm overflow-hidden">
+        <img src={logo} alt={nama} className="w-full h-full object-contain p-1" />
+      </div>
+    )
+  }
+  const initials = nama?.slice(0, 2).toUpperCase() ?? "PE"
   return (
-    <span
-      className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-bold ${cfg.className}`}
-      style={{ fontFamily: "'Nunito Sans', sans-serif" }}
-    >
-      {cfg.label}
+    <div className="w-12 h-12 rounded-xl bg-linear-to-br from-teal-400 to-blue-500 flex items-center justify-center shrink-0 shadow-sm">
+      <span className="text-sm font-bold text-white">{initials}</span>
+    </div>
+  )
+}
+
+function InlineBadge({ label, color }: { label: string; color: "orange" | "green" }) {
+  const styles = {
+    orange: "bg-orange-100/60 text-orange-500",
+    green: "bg-green-100/60 text-green-600",
+  }
+  return (
+    <span className={`inline-flex items-center px-2 py-0.5 rounded text-xs font-semibold shrink-0 ${styles[color]}`}>
+      {label}
     </span>
   )
 }
 
-function formatTgl(dateStr: string) {
-  return new Date(dateStr).toLocaleDateString("id-ID", {
-    day: "numeric",
-    month: "short",
-    year: "numeric",
-  })
+// ✅ Helpers untuk Lampiran
+function isImage(url: string) {
+  return /\.(jpg|jpeg|png|gif|webp)$/i.test(url)
 }
 
-const PAGE_SIZE_OPTIONS = [12, 24, 48]
+function getFileName(url: string) {
+  return decodeURIComponent(url.split("/").pop()?.split("_").slice(-1)[0] ?? url)
+}
 
-export default function PermintaanTable({ data, onEdit, onDelete }: Props) {
-  const [pageSize, setPageSize] = React.useState(12)
-  const [pageIndex, setPageIndex] = React.useState(0)
-  const [deleteId, setDeleteId] = React.useState<string | null>(null)
+// ✅ Lightbox Modal yang identik
+function LightboxModal({ urls, initialIndex, onClose }: { urls: string[]; initialIndex: number; onClose: () => void }) {
+  const [current, setCurrent] = useState(initialIndex)
+  const url = urls[current]
+  return (
+    <div className="fixed inset-0 bg-black/80 z-100 flex items-center justify-center p-4" onClick={onClose}>
+      <div className="relative max-w-4xl w-full" onClick={(e) => e.stopPropagation()}>
+        <button onClick={onClose} className="absolute -top-10 right-0 text-white hover:text-gray-300 transition">
+          <X className="size-6" />
+        </button>
+        {isImage(url) ? (
+          <img src={url} alt="Preview" className="w-full max-h-[80vh] object-contain rounded-xl" />
+        ) : (
+          <div className="bg-white rounded-xl p-8 text-center">
+            <FileText className="size-16 text-gray-400 mx-auto mb-3" />
+            <p className="font-semibold text-[#202224] mb-4">{getFileName(url)}</p>
+            <a href={url} target="_blank" rel="noopener noreferrer"
+              className="px-6 py-2 bg-blue-600 text-white rounded-lg font-semibold text-sm hover:bg-blue-700 transition">
+              Buka File
+            </a>
+          </div>
+        )}
+      </div>
+    </div>
+  )
+}
 
-  const totalPages = Math.max(1, Math.ceil(data.length / pageSize))
+// ✅ Lampiran Section yang identik
+function LampiranSection({ lampiran }: { lampiran: string[] }) {
+  const [lightboxIndex, setLightboxIndex] = useState<number | null>(null)
+  if (!lampiran || lampiran.length === 0) return null
+  return (
+    <>
+      <div className="space-y-1.5">
+        <p className="text-xs font-semibold text-[#202224]/50">Lampiran</p>
+        <div className="flex flex-wrap gap-1.5">
+          {lampiran.map((url, i) =>
+            isImage(url) ? (
+              <button key={i} onClick={() => setLightboxIndex(i)}
+                className="relative w-14 h-14 rounded-lg overflow-hidden border border-gray-200 hover:border-blue-400 transition group">
+                <img src={url} alt="lampiran" className="w-full h-full object-cover" />
+                <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition" />
+              </button>
+            ) : (
+              <a key={i} href={url} target="_blank" rel="noopener noreferrer"
+                className="inline-flex items-center gap-1.5 px-2.5 py-1.5 bg-blue-50 hover:bg-blue-100 text-blue-600 text-xs font-semibold rounded-lg transition border border-blue-100">
+                <FileText className="size-3.5" />
+                <span className="max-w-[100px] truncate">{getFileName(url)}</span>
+              </a>
+            )
+          )}
+        </div>
+      </div>
+      {lightboxIndex !== null && (
+        <LightboxModal urls={lampiran} initialIndex={lightboxIndex} onClose={() => setLightboxIndex(null)} />
+      )}
+    </>
+  )
+}
 
-  const paginatedData = React.useMemo(() => {
-    const start = pageIndex * pageSize
-    return data.slice(start, start + pageSize)
-  }, [data, pageIndex, pageSize])
+function PermintaanCard({ item, onEdit, onDelete }: { item: PermintaanResponse; onEdit: any; onDelete: any }) {
+  return (
+    <div className="bg-white rounded-2xl shadow-[6px_6px_54px_rgba(0,0,0,0.05)] p-4 space-y-3 border border-gray-50">
+      <div className="flex items-start gap-3">
+        <PemdaAvatar nama={item.pemda?.name} logo={item.pemda?.logo} />
+        <div className="flex-1 min-w-0">
+          <p className="font-bold text-sm text-[#202224] leading-snug">{item.pemda?.name}</p>
+          <p className="text-xs text-[#797A7C] mt-0.5">
+            <span className="font-semibold">{item.aplikasi?.name}</span>
+            <span className="mx-1">·</span>
+            {item.menu}
+          </p>
+        </div>
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <button className="p-1 rounded hover:bg-gray-100 transition shrink-0">
+              <MoreVertical className="size-4 text-gray-400" />
+            </button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end" className="w-32">
+            <DropdownMenuItem onClick={() => onEdit(item)}>
+              <Pencil className="size-3.5 mr-2" /> Edit
+            </DropdownMenuItem>
+            <DropdownMenuItem onClick={() => onDelete(item.id)} className="text-red-500">
+              <Trash2 className="size-3.5 mr-2" /> Hapus
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
+      </div>
+      
+      <div className="border-t border-black/5" />
+      
+      <div className="space-y-2">
+        <div className="flex items-start gap-2">
+          <InlineBadge label="Awal" color="orange" />
+          <p className="text-xs text-[#797A7C] leading-relaxed">{item.kondisi_awal}</p>
+        </div>
+        <div className="flex items-start gap-2">
+          <InlineBadge label="Target" color="green" />
+          <p className="text-xs text-[#797A7C] leading-relaxed">{item.kondisi_diharapkan}</p>
+        </div>
+      </div>
 
-  const start = pageIndex * pageSize + 1
-  const end = Math.min((pageIndex + 1) * pageSize, data.length)
+      {item.lampiran && item.lampiran.length > 0 && (
+        <>
+          <div className="border-t border-black/5" />
+          <LampiranSection lampiran={item.lampiran} />
+        </>
+      )}
+
+      <p className="text-xs font-bold text-red-500">
+        Deadline: <span className="font-normal">{formatTgl(item.tanggal_deadline || "")}</span>
+      </p>
+    </div>
+  )
+}
+
+export default function PermintaanTable({ data, showTable, onEdit, onDelete }: Props) {
+  const [deleteId, setDeleteId] = useState<string | null>(null)
+
+  if (showTable) {
+    return (
+      <div className="bg-white rounded-2xl shadow-[6px_6px_54px_rgba(0,0,0,0.05)] overflow-hidden">
+        <div className="overflow-x-auto">
+          <table className="w-full text-sm">
+            <thead>
+              <tr className="border-b border-gray-100 bg-gray-50/50">
+                <th className="text-left px-4 py-3 text-xs font-semibold text-[#202224]/50 w-8">#</th>
+                <th className="text-left px-4 py-3 text-xs font-semibold text-[#202224]/50">Pemda</th>
+                <th className="text-left px-4 py-3 text-xs font-semibold text-[#202224]/50">Aplikasi</th>
+                <th className="text-left px-4 py-3 text-xs font-semibold text-[#202224]/50">Menu</th>
+                <th className="text-left px-4 py-3 text-xs font-semibold text-[#202224]/50">Deadline</th>
+                <th className="px-4 py-3 w-8"></th>
+              </tr>
+            </thead>
+            <tbody>
+              {data.map((row, i) => (
+                <tr key={row.id} className="border-b border-gray-50 hover:bg-gray-50/50 transition">
+                  <td className="px-4 py-3 text-xs text-[#202224]/40">{i + 1}</td>
+                  <td className="px-4 py-3">
+                    <div className="flex items-center gap-2">
+                      {row.pemda?.logo ? (
+                        <div className="w-7 h-7 rounded-lg bg-white border border-gray-100 flex items-center justify-center shrink-0 overflow-hidden">
+                          <img src={row.pemda.logo} className="w-full h-full object-contain p-0.5" />
+                        </div>
+                      ) : (
+                        <div className="w-7 h-7 rounded-lg bg-linear-to-br from-teal-400 to-blue-500 flex items-center justify-center shrink-0">
+                          <span className="text-[10px] font-bold text-white">{row.pemda?.name?.slice(0, 2).toUpperCase()}</span>
+                        </div>
+                      )}
+                      <span className="font-semibold text-xs text-[#202224]">{row.pemda?.name}</span>
+                    </div>
+                  </td>
+                  <td className="px-4 py-3 text-xs text-[#797A7C]">{row.aplikasi?.name}</td>
+                  <td className="px-4 py-3 text-xs text-[#797A7C]">{row.menu}</td>
+                  <td className="px-4 py-3 text-xs font-semibold text-red-500">{formatTgl(row.tanggal_deadline || "")}</td>
+                  <td className="px-4 py-3 text-right">
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                        <button className="p-1 rounded hover:bg-gray-100 transition">
+                          <MoreVertical className="size-4 text-gray-400" />
+                        </button>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent align="end">
+                        <DropdownMenuItem onClick={() => onEdit(row)}>Edit</DropdownMenuItem>
+                        <DropdownMenuItem onClick={() => setDeleteId(row.id)} className="text-red-500">Hapus</DropdownMenuItem>
+                      </DropdownMenuContent>
+                    </DropdownMenu>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    )
+  }
 
   return (
-    <div className="space-y-6 font-['Nunito_Sans']">
-
-      {/* Card Grid */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-
-        {paginatedData.map((item) => (
-          <div
-            key={item.id}
-            className="bg-white rounded-xl border border-gray-100 shadow-sm p-4 space-y-3 flex flex-col justify-between"
-          >
-            <div className="space-y-3">
-              {/* Header */}
-              <div className="flex items-start gap-3">
-                <div className="w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center shrink-0">
-                  <Building2 className="size-5 text-gray-400" />
-                </div>
-
-                <div className="flex-1 min-w-0">
-                  <p className="font-bold text-sm text-[#202224] leading-snug truncate">
-                    {item.pemda?.name || "Pemda (Tidak diketahui)"}
-                  </p>
-                  <p className="text-xs text-[#797A7C] mt-0.5 truncate">
-                    {item.aplikasi?.name || "Aplikasi (Tidak diketahui)"}
-                    <span className="mx-1">·</span>
-                    {item.menu || "-"}
-                  </p>
-                </div>
-
-                <DropdownMenu>
-                  <DropdownMenuTrigger asChild>
-                    <button className="p-1 rounded hover:bg-gray-100 transition shrink-0">
-                      <MoreVertical className="size-4 text-gray-400" />
-                    </button>
-                  </DropdownMenuTrigger>
-
-                  <DropdownMenuContent align="end" className="w-32">
-                    <DropdownMenuItem onClick={() => onEdit(item)}>
-                      <Pencil className="size-3.5 mr-2 text-gray-500" />
-                      Edit
-                    </DropdownMenuItem>
-                    <DropdownMenuItem
-                      onClick={() => setDeleteId(item.id!)}
-                      className="text-red-500 focus:text-red-500"
-                    >
-                      <Trash2 className="size-3.5 mr-2" />
-                      Hapus
-                    </DropdownMenuItem>
-                  </DropdownMenuContent>
-                </DropdownMenu>
-              </div>
-
-              <div className="border-t border-black/5" />
-
-              {/* Kondisi Awal & Target */}
-              <div className="space-y-1.5">
-                <div className="flex items-start gap-2">
-                  <span className="inline-flex items-center px-2 py-0.5 rounded-md bg-purple-100 text-purple-600 text-[10px] font-bold shrink-0 mt-0.5">
-                    AWAL
-                  </span>
-                  <p className="text-xs text-[#797A7C] leading-relaxed line-clamp-2">
-                    {item.kondisi_awal || "-"}
-                  </p>
-                </div>
-
-                <div className="flex items-start gap-2">
-                  <span className="inline-flex items-center px-2 py-0.5 rounded-md bg-teal-100 text-teal-600 text-[10px] font-bold shrink-0 mt-0.5">
-                    TARGET
-                  </span>
-                  <p className="text-xs text-[#797A7C] leading-relaxed line-clamp-2">
-                    {item.kondisi_diharapkan || "-"}
-                  </p>
-                </div>
-              </div>
-
-              <div className="border-t border-black/5" />
-
-              {/* Deadline + Status */}
-              <div className="flex items-center justify-between">
-                <p className="text-[11px] font-bold text-red-500">
-                  Deadline: {item.tanggal_deadline ? formatTgl(item.tanggal_deadline) : "Belum ditentukan"}
-                </p>
-                <StatusBadge status={item.status} />
-              </div>
-            </div>
-
-            {/* Lampiran Section */}
-            <div className="pt-3 border-t border-black/5">
-              <p className="text-[10px] font-bold text-[#606060] uppercase mb-2 flex items-center gap-1">
-                <Paperclip size={10} /> Lampiran :
-              </p>
-              
-              {item.lampiran && item.lampiran.length > 0 ? (
-                <div className="flex flex-wrap gap-2">
-                  {item.lampiran.map((link, index) => (
-                    <a
-                      key={index}
-                      href={link}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="flex items-center gap-2 px-2 py-1 bg-[#F5F6FA] hover:bg-[#4880FF]/10 border border-[#D5D5D5] rounded-md transition-all group"
-                    >
-                      <span className="text-[10px] font-bold text-[#202224]">
-                        File {index + 1}
-                      </span>
-                      <Download size={10} className="text-gray-400 group-hover:text-[#4880FF]" />
-                    </a>
-                  ))}
-                </div>
-              ) : (
-                <p className="text-[10px] italic text-gray-400">Tidak ada lampiran</p>
-              )}
-            </div>
-          </div>
-        ))}
-
-      </div>
-
-      {/* Pagination */}
-      <div className="flex items-center justify-between text-sm text-[#313131] pt-4 border-t">
-        <div className="flex items-center gap-2">
-          <span className="text-xs">Jumlah per halaman</span>
-          <Select
-            value={String(pageSize)}
-            onValueChange={(val) => {
-              setPageSize(Number(val))
-              setPageIndex(0)
-            }}
-          >
-            <SelectTrigger className="h-8 w-16 text-xs">
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              {PAGE_SIZE_OPTIONS.map((n) => (
-                <SelectItem key={n} value={String(n)} className="text-xs">
-                  {n}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </div>
-
-        <span className="text-xs text-gray-500">{start}-{end} dari {data.length}</span>
-
-        <div className="flex items-center gap-1">
-          <Button variant="outline" size="icon" className="h-8 w-8 text-xs" onClick={() => setPageIndex(0)} disabled={pageIndex === 0}>«</Button>
-          <Button variant="outline" size="icon" className="h-8 w-8 text-xs" onClick={() => setPageIndex(p => Math.max(0, p - 1))} disabled={pageIndex === 0}>‹</Button>
-          <Button variant="outline" size="icon" className="h-8 w-8 text-xs" onClick={() => setPageIndex(p => Math.min(totalPages - 1, p + 1))} disabled={pageIndex >= totalPages - 1}>›</Button>
-          <Button variant="outline" size="icon" className="h-8 w-8 text-xs" onClick={() => setPageIndex(totalPages - 1)} disabled={pageIndex >= totalPages - 1}>»</Button>
-        </div>
-      </div>
-
-      {/* Alert Hapus */}
-      <AlertDialog
-        open={!!deleteId}
-        onOpenChange={(open) => { if (!open) setDeleteId(null) }}
-      >
+    <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+      {data.map((item) => (
+        <PermintaanCard key={item.id} item={item} onEdit={onEdit} onDelete={setDeleteId} />
+      ))}
+      <AlertDialog open={!!deleteId} onOpenChange={(o) => !o && setDeleteId(null)}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Yakin ingin menghapus permintaan ini?</AlertDialogTitle>
-            <AlertDialogDescription>Data yang sudah dihapus tidak dapat dikembalikan.</AlertDialogDescription>
+            <AlertDialogTitle>Hapus Data?</AlertDialogTitle>
+            <AlertDialogDescription>Data tidak dapat dikembalikan setelah dihapus.</AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel>Batal</AlertDialogCancel>
-            <AlertDialogAction
-              onClick={() => {
-                if (deleteId) {
-                  onDelete(deleteId)
-                  setDeleteId(null)
-                }
-              }}
-              className="bg-red-500 hover:bg-red-600 text-white"
-            >
-              Hapus
-            </AlertDialogAction>
+            <AlertDialogAction className="bg-red-500 hover:bg-red-600" onClick={() => { if(deleteId) { onDelete(deleteId); setDeleteId(null); } }}>Hapus</AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>

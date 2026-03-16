@@ -3,7 +3,7 @@
 import * as React from "react"
 import { useState, useEffect } from "react"
 import { toast } from "sonner"
-import { Plus } from "lucide-react"
+import { Plus, Table2 } from "lucide-react"
 
 import PermintaanTable from "./PermintaanTable"
 import AddPermintaan from "./modals/AddPermintaan"
@@ -14,10 +14,11 @@ import {
   createPermintaan,
   updatePermintaan,
   deletePermintaan,
-  uploadPermintaanAttachment
+  uploadPermintaanAttachment,
+  getMasterPemda // ✅ Fungsi service baru untuk ambil logo
 } from "../_services"
 
-// --- Komponen Hybrid Loader ---
+// --- Loader Hybrid ---
 const HybridLoader = () => {
   const [progress, setProgress] = React.useState(0);
   React.useEffect(() => {
@@ -32,11 +33,11 @@ const HybridLoader = () => {
       <div className="relative flex items-center justify-center">
         <svg className="w-24 h-24 transform -rotate-90">
           <circle cx="48" cy="48" r="40" stroke="currentColor" strokeWidth="6" fill="transparent" className="text-blue-100" />
-          <circle cx="48" cy="48" r="40" stroke="currentColor" strokeWidth="6" fill="transparent" strokeDasharray={251.2} strokeDashoffset={251.2 - (251.2 * progress) / 100} className="text-blue-600 transition-all duration-300 ease-out" strokeLinecap="round" />
+          <circle cx="48" cy="48" r="40" stroke="currentColor" strokeWidth="6" fill="transparent" strokeDasharray={251.2} strokeDashoffset={251.2 - (251.2 * progress) / 100} className="text-[#4880FF] transition-all duration-300 ease-out" strokeLinecap="round" />
         </svg>
         <div className="absolute flex flex-col items-center">
-          <span className="text-blue-600 animate-bounce text-xl">⏳</span>
-          <span className="text-[10px] font-bold text-blue-600">{progress}%</span>
+          <span className="text-[#4880FF] animate-bounce text-xl">⏳</span>
+          <span className="text-[10px] font-bold text-[#4880FF]">{progress}%</span>
         </div>
       </div>
       <div className="text-center font-sans">
@@ -51,18 +52,40 @@ export default function PermintaanClient() {
   const [data, setData] = useState<PermintaanResponse[]>([])
   const [loading, setLoading] = useState(true)
   const [actionLoading, setActionLoading] = useState(false)
+  const [showTable, setShowTable] = useState(false) // ✅ State untuk switch view
   const [showAdd, setShowAdd] = useState(false)
   const [editItem, setEditItem] = useState<PermintaanResponse | null>(null)
 
   const loadData = async () => {
     try {
       setLoading(true)
-      const res = await getPermintaan()
-      if (res.status === 200) setData(res.data?.data || [])
+      // ✅ Ambil data permintaan dan master pemda secara paralel
+      const [resPermintaan, resPemda] = await Promise.all([
+        getPermintaan(),
+        getMasterPemda()
+      ])
+
+      if (resPermintaan.status === 200 && resPemda.status === 200) {
+        const pemdaList = resPemda.data?.data || []
+        const permintaanList = resPermintaan.data?.data || []
+
+        // ✅ Mapping logo pemda ke data permintaan
+        const enrichedData = permintaanList.map(item => {
+          const matchPemda = pemdaList.find((p: any) => p.id === item.pemda?.id)
+          return {
+            ...item,
+            pemda: {
+              ...item.pemda,
+              logo: matchPemda?.logo || "" 
+            }
+          }
+        })
+        setData(enrichedData)
+      }
     } catch (err: any) {
       toast.error(err.message || "Gagal memuat data")
     } finally {
-      setTimeout(() => setLoading(false), 800)
+      setTimeout(() => setLoading(false), 500)
     }
   }
 
@@ -119,17 +142,41 @@ export default function PermintaanClient() {
   }
 
   return (
-    <div className="px-4 space-y-6 font-sans">
+    // ✅ BG-WHITE & PX-8/PY-8: Agar putih bersih dan margin lega
+    <div className="px-8 py-8 space-y-8 bg-white min-h-screen font-['Nunito_Sans']">
       <div className="flex justify-between items-center">
-        <h2 className="text-2xl font-bold text-[#202224]">Permintaan Klien</h2>
-        <button onClick={() => setShowAdd(true)} className="inline-flex items-center gap-2 bg-[#4880FF] hover:bg-blue-600 text-white px-4 py-2 rounded-md font-bold text-sm transition active:scale-95">
-          <Plus className="size-4" /> Tambah Permintaan
-        </button>
+        <h2 className="text-3xl font-bold text-[#202224]">Permintaan Klien</h2>
+        <div className="flex items-center gap-3">
+          {/* ✅ Tombol Switch View persis seperti di Distribusi */}
+          <button
+            onClick={() => setShowTable(!showTable)}
+            className={`flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-semibold transition active:scale-95 ${
+              showTable 
+                ? "bg-[#4880FF] text-white shadow-md shadow-blue-200" 
+                : "bg-white text-[#202224] border border-gray-200 hover:border-[#4880FF] hover:text-[#4880FF]"
+            }`}
+          >
+            <Table2 className="size-4" />
+            {showTable ? "Lihat Board" : "Lihat Semua (Tabel)"}
+          </button>
+
+          <button 
+            onClick={() => setShowAdd(true)} 
+            className="inline-flex items-center gap-2 bg-[#4880FF] hover:bg-blue-600 text-white px-6 py-2.5 rounded-xl font-bold text-sm transition shadow-[0_4px_14px_0_rgba(72,128,255,0.39)] active:scale-95"
+          >
+            <Plus className="size-4" /> Tambah Permintaan
+          </button>
+        </div>
       </div>
 
-      { (loading || actionLoading) ? <HybridLoader /> : (
-        <PermintaanTable data={data} onEdit={setEditItem} onDelete={handleDelete} />
-      )}
+{ (loading || actionLoading) ? <HybridLoader /> : (
+  <PermintaanTable 
+    data={data} 
+    showTable={showTable} 
+    onEdit={setEditItem} 
+    onDelete={handleDelete} 
+  />
+)}
 
       {(showAdd || editItem) && (
         <AddPermintaan 

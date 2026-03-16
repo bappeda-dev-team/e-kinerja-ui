@@ -49,3 +49,8 @@ export const deletePelaksana = async (id: string) => {
 export const getUsers = async () => {
   return fetchApi<APIResponse<UserResponse[]>>("/users", { method: "GET" });
 };
+
+// Tambahkan ini untuk ambil logo
+export const getPemda = async () => {
+  return fetchApi<APIResponse<any[]>>("/master-pemda", { method: "GET" });
+};

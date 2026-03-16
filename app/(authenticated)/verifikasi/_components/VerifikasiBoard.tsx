@@ -8,7 +8,7 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigge
 
 interface Props {
   data: VerifikasiItem[]
-  showTable: boolean // ✅
+  showTable: boolean
   onVerify: (item: VerifikasiItem) => void
 }
 
@@ -25,7 +25,7 @@ function formatTgl(d?: string) {
   return new Date(d).toLocaleDateString("id-ID", { day: "numeric", month: "short", year: "numeric" })
 }
 
-// ✅ Tabel gabungan semua status
+// ✅ Tabel gabungan semua status dengan Logo
 function TableView({ data, onVerify }: { data: VerifikasiItem[]; onVerify: (item: VerifikasiItem) => void }) {
   const statusBadge = (status: VerifikasiItem["status"]) => {
     if (status === "menunggu") return <span className="px-2 py-0.5 rounded-full text-xs font-semibold bg-[#E4EBFA] text-[#123F84]">Menunggu</span>
@@ -50,7 +50,6 @@ function TableView({ data, onVerify }: { data: VerifikasiItem[]; onVerify: (item
               <th className="text-left px-4 py-3 text-xs font-semibold text-[#202224]/50">Menu</th>
               <th className="text-left px-4 py-3 text-xs font-semibold text-[#202224]/50">Progress</th>
               <th className="text-left px-4 py-3 text-xs font-semibold text-[#202224]/50">Verifikator</th>
-              <th className="text-left px-4 py-3 text-xs font-semibold text-[#202224]/50">Komentar</th>
               <th className="text-left px-4 py-3 text-xs font-semibold text-[#202224]/50">Diajukan</th>
               <th className="px-4 py-3 w-8"></th>
             </tr>
@@ -58,7 +57,7 @@ function TableView({ data, onVerify }: { data: VerifikasiItem[]; onVerify: (item
           <tbody>
             {data.length === 0 ? (
               <tr>
-                <td colSpan={10} className="text-center py-12 text-sm text-[#202224]/40">Belum ada data.</td>
+                <td colSpan={9} className="text-center py-12 text-sm text-[#202224]/40">Belum ada data.</td>
               </tr>
             ) : data.map((item, i) => (
               <tr key={item.id} className="border-b border-gray-50 hover:bg-gray-50/50 transition">
@@ -66,10 +65,15 @@ function TableView({ data, onVerify }: { data: VerifikasiItem[]; onVerify: (item
                 <td className="px-4 py-3">{statusBadge(item.status)}</td>
                 <td className="px-4 py-3">
                   <div className="flex items-center gap-2">
-                    <div className="w-7 h-7 rounded-lg bg-[#CCF0EB]/50 border border-[#CCF0EB] flex items-center justify-center shrink-0">
-                      <span className="text-[10px] font-bold text-[#00B69B]">
-                        {item.nama_pemda?.slice(0, 2).toUpperCase()}
-                      </span>
+                    {/* ✅ Logo Pemda di Tabel */}
+                    <div className="w-7 h-7 rounded-lg bg-white border border-gray-100 flex items-center justify-center shrink-0 overflow-hidden">
+                      {item.logo_pemda ? (
+                        <img src={item.logo_pemda} className="w-full h-full object-contain p-0.5" alt="logo" />
+                      ) : (
+                        <span className="text-[10px] font-bold text-[#00B69B]">
+                          {item.nama_pemda?.slice(0, 2).toUpperCase()}
+                        </span>
+                      )}
                     </div>
                     <span className="font-semibold text-xs text-[#202224] whitespace-nowrap">{item.nama_pemda}</span>
                   </div>
@@ -80,7 +84,6 @@ function TableView({ data, onVerify }: { data: VerifikasiItem[]; onVerify: (item
                   {item.progres_deskripsi ? `"${item.progres_deskripsi}"` : "-"}
                 </td>
                 <td className="px-4 py-3 text-xs text-[#797A7C] whitespace-nowrap">{item.verifikator || "-"}</td>
-                <td className="px-4 py-3 text-xs text-[#797A7C] max-w-[160px] truncate">{item.komentar || "-"}</td>
                 <td className="px-4 py-3 text-xs text-[#797A7C] whitespace-nowrap">{formatTgl(item.tanggal_diajukan)}</td>
                 <td className="px-4 py-3">
                   <button
@@ -102,12 +105,12 @@ function TableView({ data, onVerify }: { data: VerifikasiItem[]; onVerify: (item
 export default function VerifikasiBoard({ data, showTable, onVerify }: Props) {
   const [viewAll, setViewAll] = useState<ViewAll>(null)
 
-  // ✅ Table view — semua status
+  // ✅ View Tabel
   if (showTable) {
     return <TableView data={data} onVerify={onVerify} />
   }
 
-  // ✅ View All per kategori (card grid)
+  // ✅ View Detail Kategori
   if (viewAll) {
     const col = COLUMNS.find((c) => c.key === viewAll)!
     const items = data.filter((d) => d.status === viewAll)
@@ -145,7 +148,7 @@ export default function VerifikasiBoard({ data, showTable, onVerify }: Props) {
     )
   }
 
-  // ✅ Normal board view
+  // ✅ View Board Standar
   return (
     <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
       {COLUMNS.map((col) => {
@@ -159,19 +162,18 @@ export default function VerifikasiBoard({ data, showTable, onVerify }: Props) {
                 </div>
                 <h3 className="text-xl font-bold text-black">{col.label}</h3>
               </div>
-              {/* ✅ Titik tiga dengan Lihat Semua */}
               <DropdownMenu>
-  <DropdownMenuTrigger asChild>
-    <button className="p-1 hover:bg-gray-100 rounded-full transition">
-      <MoreVertical className="size-4 text-gray-400" />
-    </button>
-  </DropdownMenuTrigger>
-  <DropdownMenuContent align="end" className="w-32">
-    <DropdownMenuItem onClick={() => setViewAll(col.key)}>
-      Lihat Semua
-    </DropdownMenuItem>
-  </DropdownMenuContent>
-</DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <button className="p-1 hover:bg-gray-100 rounded-full transition">
+                    <MoreVertical className="size-4 text-gray-400" />
+                  </button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end" className="w-32">
+                  <DropdownMenuItem onClick={() => setViewAll(col.key)}>
+                    Lihat Semua
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
             </div>
 
             <div className="space-y-4 min-h-[400px]">
