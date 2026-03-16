@@ -24,7 +24,7 @@ export default function MasterRolesPagination({
 
       {/* Left: jumlah per halaman */}
       <div className="flex items-center gap-2">
-        <span className="text-[#000]">Jumlah per halaman</span>
+        <span className="text-black">Jumlah per halaman</span>
         <select
           value={pageSize}
           onChange={(e) => {

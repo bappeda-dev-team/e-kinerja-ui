@@ -33,6 +33,64 @@ import { Button } from "@/components/ui/button"
 
 import type { UserResponse } from "../_types"
 
+// --- Komponen Hybrid Loader ---
+const HybridLoader = () => {
+  const [progress, setProgress] = React.useState(0);
+
+  React.useEffect(() => {
+    const interval = setInterval(() => {
+      setProgress((prev) => (prev >= 90 ? prev : prev + Math.floor(Math.random() * 10)));
+    }, 200);
+    return () => clearInterval(interval);
+  }, []);
+
+  return (
+    <div className="flex flex-col items-center justify-center py-12 space-y-4 min-h-[400px]">
+      <div className="relative flex items-center justify-center">
+        {/* Lingkaran Progress */}
+        <svg className="w-24 h-24 transform -rotate-90">
+          <circle
+            cx="48"
+            cy="48"
+            r="40"
+            stroke="currentColor"
+            strokeWidth="6"
+            fill="transparent"
+            className="text-blue-100"
+          />
+          <circle
+            cx="48"
+            cy="48"
+            r="40"
+            stroke="currentColor"
+            strokeWidth="6"
+            fill="transparent"
+            strokeDasharray={251.2}
+            strokeDashoffset={251.2 - (251.2 * progress) / 100}
+            className="text-blue-600 transition-all duration-300 ease-out"
+            strokeLinecap="round"
+          />
+        </svg>
+        
+        {/* Ikon Jam Pasir di Tengah */}
+        <div className="absolute flex flex-col items-center">
+          <span className="text-blue-600 animate-bounce text-xl">⏳</span>
+          <span className="text-[10px] font-bold text-blue-600">{progress}%</span>
+        </div>
+      </div>
+      
+      <div className="text-center">
+        <p className="text-sm font-semibold text-[#202224]" style={{ fontFamily: "'Nunito Sans', sans-serif" }}>
+            Sedang memproses...
+        </p>
+        <p className="text-[11px] text-[#202224]/50" style={{ fontFamily: "'Nunito Sans', sans-serif" }}>
+            Mohon tunggu sebentar
+        </p>
+      </div>
+    </div>
+  );
+};
+
 interface Props {
   data: UserResponse[]
   loading?: boolean
@@ -58,8 +116,9 @@ export default function MasterUserTable({ data, loading, onEdit, onDelete }: Pro
   const start = pageIndex * pageSize + 1
   const end = Math.min((pageIndex + 1) * pageSize, data.length)
 
+  // Menggunakan HybridLoader saat loading
   if (loading) {
-    return <p className="text-sm text-[#202224]/40 py-8 text-center">Memuat data...</p>
+    return <HybridLoader />
   }
 
   return (

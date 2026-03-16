@@ -21,8 +21,10 @@ export interface MasterRolesItem {
 }
 
 export default function MasterRolesClient() {
-
   const [data, setData] = useState<MasterRolesItem[]>([])
+  // 1. Tambahkan state loading di sini
+  const [loading, setLoading] = useState(true) 
+  
   const [showAdd, setShowAdd] = useState(false)
   const [editId, setEditId] = useState<string | null>(null)
 
@@ -30,11 +32,10 @@ export default function MasterRolesClient() {
   const [pageSize, setPageSize] = useState(4)
 
   const fetchData = async () => {
-
+    // 2. Set loading true setiap kali fetch mulai
+    setLoading(true)
     try {
-
       const res = await getRoles()
-
       const mapped = (res.data.data ?? []).map((item: Roles) => ({
         id: item.id ?? "",
         name: item.name ?? "",
@@ -42,15 +43,13 @@ export default function MasterRolesClient() {
         created_at: item.created_at ?? "",
         updated_at: item.updated_at ?? "",
       }))
-
       setData(mapped)
-
     } catch {
-
       toast.error("Gagal mengambil data roles")
-
+    } finally {
+      // 3. Set loading false (pake delay sedikit biar animasi loader kelihatan smooth)
+      setTimeout(() => setLoading(false), 800)
     }
-
   }
 
   useEffect(() => {
@@ -58,17 +57,12 @@ export default function MasterRolesClient() {
   }, [])
 
   const handleDelete = (id: string) => {
-
     setData(prev => prev.filter(item => item.id !== id))
-
     toast.success("Role berhasil dihapus")
-
   }
 
   const handleAdd = (item: { name: string; description: string }) => {
-
     const now = new Date().toISOString()
-
     setData(prev => [
       ...prev,
       {
@@ -79,25 +73,18 @@ export default function MasterRolesClient() {
         updated_at: now,
       }
     ])
-
     toast.success("Role berhasil ditambahkan")
-
     setShowAdd(false)
-
   }
 
   const handleEdit = (updated: MasterRolesItem) => {
-
     setData(prev =>
       prev.map(item =>
         item.id === updated.id ? updated : item
       )
     )
-
     toast.success("Role berhasil diperbarui")
-
     setEditId(null)
-
   }
 
   const selectedData = data.find(item => item.id === editId)
@@ -108,27 +95,25 @@ export default function MasterRolesClient() {
   )
 
   return (
-
-    <div className="flex flex-1 flex-col gap-6 p min-h-screen">
-
+    <div className="flex flex-1 flex-col gap-6 min-h-screen">
       <div className="flex items-center justify-between">
-
         <h1 className="text-3xl font-bold text-[#202224]">
           Master Roles
         </h1>
 
         <button
           onClick={() => setShowAdd(true)}
-          className="inline-flex items-center gap-2 bg-primary text-primary-foreground px-4 py-2 rounded-md text-sm font-semibold"
+          className="inline-flex items-center gap-2 bg-primary text-primary-foreground px-4 py-2 rounded-md text-sm font-semibold transition active:scale-95"
         >
           <Plus className="h-4 w-4" />
           Tambah Role
         </button>
-
       </div>
 
+      {/* 4. PASSING PROP LOADING KE GRID */}
       <MasterRolesGrid
         data={paginated}
+        loading={loading} 
         onEdit={setEditId}
         onDelete={handleDelete}
       />
@@ -142,24 +127,19 @@ export default function MasterRolesClient() {
       />
 
       {showAdd && (
-
         <AddMasterRoles
           onClose={() => setShowAdd(false)}
           onSave={handleAdd}
         />
-
       )}
 
       {editId && selectedData && (
-
         <EditMasterRoles
           data={selectedData}
           onClose={() => setEditId(null)}
           onSave={handleEdit}
         />
-
       )}
-
     </div>
   )
 }

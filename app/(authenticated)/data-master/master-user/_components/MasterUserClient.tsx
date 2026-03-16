@@ -89,9 +89,9 @@ export default function MasterUserClient() {
 
       <div className="flex items-center justify-between mb-4">
 
-        <h2 className="text-2xl font-bold text-[#202224]">
+        <h1 className="text-3xl font-bold text-[#202224]">
           Master User
-        </h2>
+        </h1>
 
         <button
           onClick={() => setShowAdd(true)}

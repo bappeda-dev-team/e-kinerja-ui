@@ -40,6 +40,7 @@ interface Props {
 }
 
 function formatTanggal(dateStr: string) {
+  if (!dateStr) return "-"
   const date = new Date(dateStr)
   return date.toLocaleDateString("id-ID", {
     day: "numeric",
@@ -55,7 +56,6 @@ export default function MasterPemdaTable({
   onEdit,
   onDelete,
 }: Props) {
-
   const [pageSize, setPageSize] = React.useState(12)
   const [pageIndex, setPageIndex] = React.useState(0)
   const [deleteId, setDeleteId] = React.useState<string | null>(null)
@@ -72,16 +72,12 @@ export default function MasterPemdaTable({
 
   return (
     <div className="space-y-6">
-
       <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
-
         {paginatedData.map((item) => (
-
           <div
             key={item.id}
             className="bg-white rounded-xl border border-gray-100 shadow-sm p-5 flex flex-col items-center text-center relative"
           >
-
             <div className="absolute top-3 right-3">
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
@@ -91,12 +87,10 @@ export default function MasterPemdaTable({
                 </DropdownMenuTrigger>
 
                 <DropdownMenuContent align="end" className="w-32">
-
                   <DropdownMenuItem onClick={() => onEdit(item.id)}>
                     <Pencil className="size-3.5 mr-2 text-gray-500" />
                     Edit
                   </DropdownMenuItem>
-
                   <DropdownMenuItem
                     onClick={() => setDeleteId(item.id)}
                     className="text-red-500 focus:text-red-500"
@@ -104,43 +98,38 @@ export default function MasterPemdaTable({
                     <Trash2 className="size-3.5 mr-2" />
                     Hapus
                   </DropdownMenuItem>
-
                 </DropdownMenuContent>
-
               </DropdownMenu>
             </div>
 
-            <div className="w-20 h-20 rounded-full overflow-hidden bg-gray-100 flex items-center justify-center mb-3 shrink-0">
+            {/* BAGIAN LOGO: Sudah diperbaiki dengan object-contain dan padding */}
+            <div className="w-20 h-20 rounded-full overflow-hidden bg-gray-50 border border-gray-100 flex items-center justify-center mb-3 shrink-0 p-2">
               {item.logo ? (
                 <img
                   src={item.logo}
                   alt={item.name}
-                  className="w-full h-full object-cover"
+                  className="w-full h-full object-contain"
                 />
               ) : (
                 <Building2 className="size-9 text-gray-400" />
               )}
             </div>
 
-            <p className="font-bold text-sm text-[#202224] leading-snug">
+            <p className="font-bold text-sm text-[#202224] leading-snug h-10 flex items-center justify-center line-clamp-2">
               {item.name}
             </p>
 
-            <p className="text-xs text-[#202224]/60 mt-1">
+            <p className="text-[11px] text-[#202224]/50 mt-1">
               Dibuat {formatTanggal(item.created_at)}
             </p>
-
           </div>
-
         ))}
-
       </div>
 
-      <div className="flex items-center justify-between text-sm text-[#313131]">
-
+      {/* Pagination Controls */}
+      <div className="flex items-center justify-between text-sm text-[#313131] border-t pt-4">
         <div className="flex items-center gap-2">
-          <span>Jumlah per halaman</span>
-
+          <span className="text-xs text-gray-500">Baris per halaman:</span>
           <Select
             value={String(pageSize)}
             onValueChange={(val) => {
@@ -148,95 +137,79 @@ export default function MasterPemdaTable({
               setPageIndex(0)
             }}
           >
-            <SelectTrigger className="h-8 w-16">
+            <SelectTrigger className="h-8 w-16 text-xs">
               <SelectValue />
             </SelectTrigger>
-
             <SelectContent>
               {PAGE_SIZE_OPTIONS.map((n) => (
-                <SelectItem key={n} value={String(n)}>
+                <SelectItem key={n} value={String(n)} className="text-xs">
                   {n}
                 </SelectItem>
               ))}
             </SelectContent>
-
           </Select>
-
         </div>
 
-        <span className="text-right">
+        <span className="text-xs text-gray-500">
           {start}-{end} dari {data.length}
         </span>
 
         <div className="flex items-center gap-1">
-
           <Button
             variant="outline"
             size="icon"
-            className="h-8 w-8"
+            className="h-8 w-8 text-xs"
             onClick={() => setPageIndex(0)}
             disabled={pageIndex === 0}
           >
             «
           </Button>
-
           <Button
             variant="outline"
             size="icon"
-            className="h-8 w-8"
+            className="h-8 w-8 text-xs"
             onClick={() => setPageIndex((p) => Math.max(0, p - 1))}
             disabled={pageIndex === 0}
           >
             ‹
           </Button>
-
           <Button
             variant="outline"
             size="icon"
-            className="h-8 w-8"
+            className="h-8 w-8 text-xs"
             onClick={() => setPageIndex((p) => Math.min(totalPages - 1, p + 1))}
             disabled={pageIndex >= totalPages - 1}
           >
             ›
           </Button>
-
           <Button
             variant="outline"
             size="icon"
-            className="h-8 w-8"
+            className="h-8 w-8 text-xs"
             onClick={() => setPageIndex(totalPages - 1)}
             disabled={pageIndex >= totalPages - 1}
           >
             »
           </Button>
-
         </div>
-
       </div>
 
+      {/* Delete Confirmation Modal */}
       <AlertDialog
         open={!!deleteId}
         onOpenChange={(open) => {
           if (!open) setDeleteId(null)
         }}
       >
-
         <AlertDialogContent>
-
           <AlertDialogHeader>
-            <AlertDialogTitle>
-              Yakin ingin menghapus data ini?
-            </AlertDialogTitle>
-
+            <AlertDialogTitle>Hapus Data Pemda?</AlertDialogTitle>
             <AlertDialogDescription>
-              Data yang sudah dihapus tidak dapat dikembalikan.
+              Tindakan ini tidak dapat dibatalkan. Data Pemda yang dipilih akan dihapus secara permanen.
             </AlertDialogDescription>
           </AlertDialogHeader>
-
           <AlertDialogFooter>
-
             <AlertDialogCancel>Batal</AlertDialogCancel>
-
             <AlertDialogAction
               onClick={() => {
                 if (deleteId) {
@@ -244,17 +217,13 @@ export default function MasterPemdaTable({
                   setDeleteId(null)
                 }
               }}
-              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+              className="bg-red-500 hover:bg-red-600 text-white"
             >
               Hapus
             </AlertDialogAction>
-
           </AlertDialogFooter>
-
         </AlertDialogContent>
-
       </AlertDialog>
-
     </div>
   )
 }
