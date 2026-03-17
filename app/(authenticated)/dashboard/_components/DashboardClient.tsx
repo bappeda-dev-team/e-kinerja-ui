@@ -66,37 +66,39 @@ export default function DashboardClient() {
 
   if (!isSuperAdmin) {
     return (
-      <div className="flex flex-1 flex-col gap-4 min-h-screen">
-        <h1 className="text-3xl font-bold text-[#202224]">Dashboard</h1>
+      <div className="space-y-6 px-4">
+        <div className="flex flex-1 flex-col gap-4 min-h-screen">
+          <h1 className="text-3xl font-bold text-[#202224]">Dashboard</h1>
 
-        <div className="rounded-2xl bg-white p-6 shadow-[6px_6px_54px_rgba(0,0,0,0.05)] max-w-md">
-          <h2 className="text-base font-bold text-[#202224] mb-4">Informasi Akun</h2>
-          <div className="flex flex-col gap-3 text-sm">
-            <div className="flex items-center gap-3 text-[#202224]/80">
-              <div className="flex h-8 w-8 items-center justify-center rounded-full bg-blue-50">
-                <User className="h-4 w-4 text-blue-500" />
+          <div className="rounded-2xl bg-white p-6 shadow-[6px_6px_54px_rgba(0,0,0,0.05)] max-w-md">
+            <h2 className="text-base font-bold text-[#202224] mb-4">Informasi Akun</h2>
+            <div className="flex flex-col gap-3 text-sm">
+              <div className="flex items-center gap-3 text-[#202224]/80">
+                <div className="flex h-8 w-8 items-center justify-center rounded-full bg-blue-50">
+                  <User className="h-4 w-4 text-blue-500" />
+                </div>
+                <div>
+                  <p className="text-xs text-[#202224]/50 font-medium">Username</p>
+                  <p className="font-semibold">{u?.username ?? "-"}</p>
+                </div>
               </div>
-              <div>
-                <p className="text-xs text-[#202224]/50 font-medium">Username</p>
-                <p className="font-semibold">{u?.username ?? "-"}</p>
+              <div className="flex items-center gap-3 text-[#202224]/80">
+                <div className="flex h-8 w-8 items-center justify-center rounded-full bg-purple-50">
+                  <Shield className="h-4 w-4 text-purple-500" />
+                </div>
+                <div>
+                  <p className="text-xs text-[#202224]/50 font-medium">Role</p>
+                  <p className="font-semibold">{roleName || "-"}</p>
+                </div>
               </div>
-            </div>
-            <div className="flex items-center gap-3 text-[#202224]/80">
-              <div className="flex h-8 w-8 items-center justify-center rounded-full bg-purple-50">
-                <Shield className="h-4 w-4 text-purple-500" />
-              </div>
-              <div>
-                <p className="text-xs text-[#202224]/50 font-medium">Role</p>
-                <p className="font-semibold">{roleName || "-"}</p>
-              </div>
-            </div>
-            <div className="flex items-center gap-3 text-[#202224]/80">
-              <div className="flex h-8 w-8 items-center justify-center rounded-full bg-green-50">
-                <Hash className="h-4 w-4 text-green-500" />
-              </div>
-              <div>
-                <p className="text-xs text-[#202224]/50 font-medium">User ID</p>
-                <p className="font-semibold font-mono text-xs">{u?.user_id ?? "-"}</p>
+              <div className="flex items-center gap-3 text-[#202224]/80">
+                <div className="flex h-8 w-8 items-center justify-center rounded-full bg-green-50">
+                  <Hash className="h-4 w-4 text-green-500" />
+                </div>
+                <div>
+                  <p className="text-xs text-[#202224]/50 font-medium">User ID</p>
+                  <p className="font-semibold font-mono text-xs">{u?.user_id ?? "-"}</p>
+                </div>
               </div>
             </div>
           </div>

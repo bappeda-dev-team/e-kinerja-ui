@@ -82,7 +82,7 @@ export default function MasterUserClient() {
   }
 
   return (
-    <div className="px-4">
+    <div className="space-y-6 px-4">
       <div className="flex items-center justify-between mb-4">
         <h1 className="text-3xl font-bold text-[#202224]">Master User</h1>
 

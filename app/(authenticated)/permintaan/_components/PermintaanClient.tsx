@@ -143,9 +143,9 @@ export default function PermintaanClient() {
 
   return (
     // ✅ BG-WHITE & PX-8/PY-8: Agar putih bersih dan margin lega
-    <div className="px-8 py-8 space-y-8 bg-white min-h-screen font-['Nunito_Sans']">
-      <div className="flex justify-between items-center">
-        <h2 className="text-3xl font-bold text-[#202224]">Permintaan Klien</h2>
+    <div className="space-y-6 px-4">
+      <div className="flex items-center justify-between mb-4">
+        <h2 className="text-3xl font-bold font-nunito text-[#202224]">Permintaan Klien</h2>
         <div className="flex items-center gap-3">
           {/* ✅ Tombol Switch View persis seperti di Distribusi */}
           <button

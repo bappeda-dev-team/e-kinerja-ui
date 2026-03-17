@@ -139,8 +139,8 @@ export default function LaporanKinerjaClient() {
   }
 
   return (
-    <div className="flex flex-1 flex-col gap-6 min-h-screen">
-      <div className="flex items-center justify-between">
+    <div className="space-y-6 px-4">
+      <div className="flex items-center justify-between mb-4">
         <h1 className="text-3xl font-bold text-[#202224]">Laporan Kinerja</h1>
         <div className="flex items-center gap-3">
           {!loading && (

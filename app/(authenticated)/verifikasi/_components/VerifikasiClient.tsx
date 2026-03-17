@@ -113,8 +113,8 @@ export default function VerifikasiClient() {
   }
 
   return (
-    <div className="space-y-6 px-6 py-4">
-      <div className="flex items-center justify-between">
+    <div className="space-y-6 px-4">
+      <div className="flex items-center justify-between mb-4">
         <h2 className="text-3xl font-bold font-nunito text-[#202224]">Verifikasi Laporan</h2>
         {!loading && (
           <button
