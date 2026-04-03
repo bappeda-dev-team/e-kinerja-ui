@@ -65,7 +65,7 @@ export function DistribusiTable({ distribusi, onSelesai, onDelete, onShowKomenta
       <Table>
         <TableHeader>
           <TableRow className="border-b border-gray-100 bg-gray-50/50 hover:bg-gray-50/50">
-            <TableHead className="px-4 py-3 text-xs font-semibold text-[#202224]/50">#</TableHead>
+            <TableHead className="px-4 py-3 text-xs font-semibold text-[#202224]/50">No.</TableHead>
             <TableHead className="px-4 py-3 text-xs font-semibold text-[#202224]/50">Status</TableHead>
             <TableHead className="px-4 py-3 text-xs font-semibold text-[#202224]/50">Pemda</TableHead>
             <TableHead className="px-4 py-3 text-xs font-semibold text-[#202224]/50">Aplikasi</TableHead>

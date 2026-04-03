@@ -16,6 +16,50 @@ interface Props {
   onShowKomentar: (text: string) => void
 }
 
+export function DistribusiPermintaanCard({ item }: { item: DistribusiItem }) {
+  return (
+    <div className="rounded-[22px] border border-[#F0F1F5] bg-white p-6 shadow-[6px_6px_54px_rgba(0,0,0,0.05)]">
+      <div className="flex items-start gap-4">
+        <PemdaAvatar nama={item.nama_pemda} logo={item.logo_pemda} />
+        <div className="min-w-0 flex-1">
+          <p className="truncate text-[15px] font-bold text-[#202224]">{item.nama_pemda}</p>
+          <p className="mt-1 truncate text-sm text-[#7B7D7F]">
+            <span className="font-semibold">{item.aplikasi}</span>
+            <span className="mx-1.5">·</span>
+            {item.menu}
+          </p>
+        </div>
+        <button type="button" className="rounded p-1 text-[#7B7D7F] transition hover:bg-gray-100">
+          <MoreVertical className="size-4" />
+        </button>
+      </div>
+
+      <div className="my-4 border-t border-[#D9D9D9]" />
+
+      <div className="space-y-2.5">
+        <div className="flex items-start gap-3">
+          <span className="inline-flex rounded-md bg-[#FFE9DA] px-4 py-1 text-xs font-medium text-[#FF8A38]">
+            Awal
+          </span>
+          <p className="line-clamp-2 text-sm leading-6 text-[#7B7D7F]">{item.awal}</p>
+        </div>
+        <div className="flex items-start gap-3">
+          <span className="inline-flex rounded-md bg-[#CFF4EF] px-3.5 py-1 text-xs font-medium text-[#00B69B]">
+            Target
+          </span>
+          <p className="line-clamp-2 text-sm leading-6 text-[#7B7D7F]">{item.target}</p>
+        </div>
+      </div>
+
+      <div className="my-4 border-t border-[#D9D9D9]" />
+
+      <p className="text-[15px] font-semibold text-[#FF4D4F]">
+        Deadline: <span className="font-medium">{formatTgl(item.deadline)}</span>
+      </p>
+    </div>
+  )
+}
+
 export function DistribusiCard({ item, onSelesai, onDelete, onShowKomentar }: Props) {
   const statusMeta = getStatusMeta(item.status)
 

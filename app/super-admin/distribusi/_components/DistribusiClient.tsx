@@ -5,7 +5,6 @@
 import * as React from "react"
 import { useEffect, useState } from "react"
 import { toast } from "sonner"
-import { LayoutGrid, Table2 } from "lucide-react"
 
 import DistribusiBoard from "./DistribusiBoard"
 import KomentarModal from "./modals/KomentarModal"
@@ -53,6 +52,8 @@ export interface DistribusiItem {
   logo_pemda?: string
   aplikasi: string
   menu: string
+  awal: string
+  target: string
   admin: string
   programmer: { id: string; nama: string; pelaksana_id: string }[]
   deadline: string
@@ -78,7 +79,6 @@ function mapDistribusiStatus(item: DistribusiResponse): DistribusiItem["status"]
 export default function DistribusiClient() {
   const [distribusi, setDistribusi] = useState<DistribusiItem[]>([])
   const [loading, setLoading] = useState(true)
-  const [viewMode, setViewMode] = useState<"table" | "card">("table")
   const [selectedKomentar, setSelectedKomentar] = useState<string | null>(null)
 
   const fetchAll = async () => {
@@ -105,6 +105,8 @@ export default function DistribusiClient() {
             ? item.permintaan.aplikasi.name
             : item.permintaan?.aplikasi ?? "-",
           menu: item.permintaan?.menu ?? "-",
+          awal: item.permintaan?.kondisi_awal ?? "-",
+          target: item.permintaan?.kondisi_diharapkan ?? "-",
           deadline: item.permintaan?.tanggal_deadline ?? "",
           admin: item.admin?.full_name ?? "-",
           programmer: programmerList,
@@ -142,46 +144,13 @@ export default function DistribusiClient() {
 
   return (
     <div className="space-y-6 px-4">
-      <div className="flex items-center justify-between mb-4">
+      <div className="mb-4">
         <h2 className="text-3xl font-bold text-[#202224]">Distribusi Pekerjaan</h2>
-        {!loading && (
-          <div className="relative inline-flex rounded-[18px] bg-[#EDEFF5] p-1.5 shadow-inner">
-            <div
-              aria-hidden="true"
-              className="absolute top-1.5 bottom-1.5 w-[calc(50%-0.1875rem)] rounded-[14px] bg-white shadow-[0_4px_18px_rgba(0,0,0,0.08)] transition-transform duration-300 ease-out"
-              style={{
-                width: "calc((100% - 0.75rem) / 2)",
-                transform: `translateX(${viewMode === "table" ? "0%" : "100%"})`,
-              }}
-            />
-            <button
-              type="button"
-              onClick={() => setViewMode("table")}
-              className={`relative z-10 inline-flex items-center gap-2 rounded-[14px] px-4 py-2 text-sm font-semibold transition-colors ${
-                viewMode === "table" ? "text-[#202224]" : "text-[#202224]/65"
-              }`}
-            >
-              <Table2 className="size-4" />
-              Table
-            </button>
-            <button
-              type="button"
-              onClick={() => setViewMode("card")}
-              className={`relative z-10 inline-flex items-center gap-2 rounded-[14px] px-4 py-2 text-sm font-semibold transition-colors ${
-                viewMode === "card" ? "text-[#202224]" : "text-[#202224]/65"
-              }`}
-            >
-              <LayoutGrid className="size-4" />
-              Card View
-            </button>
-          </div>
-        )}
       </div>
 
       {loading ? <HybridLoader /> : (
         <DistribusiBoard
           distribusi={distribusi}
-          showTable={viewMode === "table"}
           onSelesai={handleSelesai}
           onDelete={handleDelete}
           onShowKomentar={setSelectedKomentar}
