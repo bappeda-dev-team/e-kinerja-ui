@@ -34,11 +34,17 @@ const onSubmit = async () => {
       toast.error("Username atau password salah!")
     } else {
       const session = await getSession()
-      // Simpan token ke cookie jika perlu
-      // setCookie("token", session?.user?.token)
-      
+      const roleId = (session?.user as any)?.role_id as string | undefined
+
+      const ROLE_HOME: Record<string, string> = {
+        "3fc5cfba-e591-4b67-9e99-78562fba36e8": "/super-admin/dashboard",
+        "8c0c4dda-eaa9-4abc-b79e-132cf7f696d2": "/admin/dashboard",
+        "7726b58e-3223-415e-aef9-3784af6754a6": "/programmer/dashboard",
+        "bee727b8-a9c2-4577-bf63-7b4a8d201798": "/verifikator/dashboard",
+      }
+
       toast.success("Login berhasil!")
-      window.location.href = "/dashboard" // arahkan ke halaman utama
+      window.location.href = roleId ? (ROLE_HOME[roleId] ?? "/login") : "/login"
     }
   } catch (error) {
     toast.error("Terjadi kesalahan, coba lagi.")

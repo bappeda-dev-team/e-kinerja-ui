@@ -1,7 +1,7 @@
 "use client"
 
 import { useEffect, useState } from "react"
-import { useSession } from "next-auth/react"
+import { Session } from "next-auth"
 import { useRouter } from "next/navigation"
 
 import {
@@ -31,9 +31,11 @@ import { fetchApi } from "@/lib/fetcher"
 import { APIResponse } from "@/types/api"
 import { signOut } from "next-auth/react"
 import { deleteCookie } from "cookies-next"
+import { getRolePrefix } from "@/lib/roles"
 
 interface HeaderProps {
   title: string
+  session: Session | null
 }
 
 interface UserProfile {
@@ -54,9 +56,9 @@ const NOTIFIKASI = [
   { id: "8", pesan: "Laporan kamu perlu revisi oleh Verifikator", waktu: "20 menit lalu" },
 ]
 
-export function Header({ title }: HeaderProps) {
-  const { data: session, status } = useSession()
+export function Header({ title, session }: HeaderProps) {
   const router = useRouter()
+  const rolePrefix = getRolePrefix(session)
 
   const [mounted, setMounted] = useState(false)
   const [profile, setProfile] = useState<UserProfile | null>(null)
@@ -64,7 +66,6 @@ export function Header({ title }: HeaderProps) {
   useEffect(() => { setMounted(true) }, [])
 
   useEffect(() => {
-    if (status === "loading") return
     const userId = (session?.user as any)?.user_id ?? (session?.user as any)?.id
     if (!userId) return
 
@@ -76,10 +77,10 @@ export function Header({ title }: HeaderProps) {
     }
 
     fetchProfile()
-  }, [session, status])
+  }, [session])
 
   const displayName = profile?.full_name ?? ""
-  const roleName = profile?.role?.description ?? ""
+  const roleLabel = profile?.role?.description ?? ""
   const initials = displayName
     .split(" ")
     .map((n) => n[0])
@@ -142,15 +143,15 @@ export function Header({ title }: HeaderProps) {
         {!mounted ? null : <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <button className="flex items-center gap-2 rounded-full focus:outline-none focus:ring-2 focus:ring-primary">
-              <Avatar className="h-9 w-9 cursor-pointer">
-                <AvatarImage src={profile?.profile_picture} />
+              <Avatar className="h-9 w-9 shrink-0 cursor-pointer">
+                <AvatarImage src={profile?.profile_picture} className="object-cover" />
                 <AvatarFallback>{initials}</AvatarFallback>
               </Avatar>
               <div className="flex flex-col items-start leading-tight">
                 <span className="text-sm font-medium">{displayName}</span>
-                {roleName && (
+                {roleLabel && (
                   <span className="inline-flex items-center rounded px-1.5 py-0 text-[11px] font-semibold bg-purple-600 text-white">
-                    {roleName}
+                    {roleLabel}
                   </span>
                 )}
               </div>
@@ -162,12 +163,12 @@ export function Header({ title }: HeaderProps) {
             <DropdownMenuLabel>{displayName}</DropdownMenuLabel>
             <DropdownMenuSeparator />
 
-            <DropdownMenuItem onClick={() => router.push("/profile")}>
+            <DropdownMenuItem onClick={() => router.push(`${rolePrefix}/profile`)}>
               <User className="mr-2 h-4 w-4" />
               Profile
             </DropdownMenuItem>
 
-            <DropdownMenuItem onClick={() => router.push("/settings")}>
+            <DropdownMenuItem onClick={() => router.push(`${rolePrefix}/settings`)}>
               <Settings className="mr-2 h-4 w-4" />
               Settings
             </DropdownMenuItem>

@@ -3,8 +3,9 @@
 import Link from "next/link"
 import { usePathname } from "next/navigation"
 import { useState, useEffect } from "react"
-import { useSession } from "next-auth/react"
+import { Session } from "next-auth"
 import { Collapsible } from "radix-ui"
+import { getRoleName, getRolePrefix, ROLE_MENUS } from "@/lib/roles"
 
 import {
   Sidebar,
@@ -36,40 +37,22 @@ import {
   ChevronDown,
 } from "lucide-react"
 
-// Map role UUID → role name
-const ROLE_ID_MAP: Record<string, string> = {
-  "3fc5cfba-e591-4b67-9e99-78562fba36e8": "super_admin",
-  "8c0c4dda-eaa9-4abc-b79e-132cf7f696d2": "admin",
-  "7726b58e-3223-415e-aef9-3784af6754a6": "programmer",
-  "bee727b8-a9c2-4577-bf63-7b4a8d201798": "level2",
-}
-
-// Menu visibility per role
-const ROLE_MENUS: Record<string, string[]> = {
-  super_admin: ["dashboard", "data-master", "permintaan", "distribusi", "laporan", "verifikasi"],
-  admin:       ["dashboard", "distribusi"],
-  programmer:  ["dashboard", "laporan"],
-  level2:      ["dashboard", "verifikasi"],
-}
-
-export function AppSidebar() {
+export function AppSidebar({ session }: { session: Session | null }) {
   const pathname = usePathname()
-  const { data: session } = useSession()
   const [openDataMaster, setOpenDataMaster] = useState(false)
 
-  const u = session?.user as any
-  const roleId = u?.role_id as string | undefined
-  const roleName = roleId ? ROLE_ID_MAP[roleId] : undefined
+  const roleName = getRoleName(session)
+  const rolePrefix = getRolePrefix(session)
   const allowedMenus = roleName ? (ROLE_MENUS[roleName] ?? []) : []
 
   const can = (menu: string) => allowedMenus.includes(menu)
-  const isActive = (path: string) => pathname === path
+  const buildPath = (path: string) => `${rolePrefix}${path}`
+  const isActive = (path: string) => pathname === buildPath(path)
+  const isActivePrefix = (path: string) => pathname.startsWith(buildPath(path))
 
   useEffect(() => {
-    if (pathname.startsWith("/data-master")) {
-      setOpenDataMaster(true)
-    }
-  }, [pathname])
+    setOpenDataMaster(isActivePrefix("/data-master"))
+  }, [pathname, rolePrefix])
 
   return (
     <Sidebar collapsible="icon">
@@ -95,7 +78,7 @@ export function AppSidebar() {
               {can("dashboard") && (
                 <SidebarMenuItem>
                   <SidebarMenuButton asChild isActive={isActive("/dashboard")} tooltip="Dashboard">
-                    <Link href="/dashboard" className="flex items-center gap-2">
+                    <Link href={buildPath("/dashboard")} className="flex items-center gap-2">
                       <LayoutDashboard className="h-5 w-5" />
                       <span>Dashboard</span>
                     </Link>
@@ -114,7 +97,7 @@ export function AppSidebar() {
                   <SidebarMenuItem>
                     <Collapsible.Trigger asChild>
                       <SidebarMenuButton
-                        isActive={pathname.startsWith("/data-master")}
+                        isActive={isActivePrefix("/data-master")}
                         tooltip="Data Master"
                       >
                         <Database className="h-5 w-5" />
@@ -128,9 +111,9 @@ export function AppSidebar() {
 
     <SidebarMenuSubItem>
       <SidebarMenuSubButton asChild isActive={isActive("/data-master/master-user")}>
-        <Link href="/data-master/master-user" className="group/subitem flex items-center">
+        <Link href={buildPath("/data-master/master-user")} className="group/subitem flex items-center">
           <User className={`mr-2 h-4 w-4 transition-colors ${
-            isActive("/data-master/master-user") 
+            isActive("/data-master/master-user")
               ? "!text-blue-600" 
               : "!text-[#202224] group-hover/subitem:!text-blue-600"
           }`} />
@@ -143,9 +126,9 @@ export function AppSidebar() {
 
     <SidebarMenuSubItem>
       <SidebarMenuSubButton asChild isActive={isActive("/data-master/master-roles")}>
-        <Link href="/data-master/master-roles" className="group/subitem flex items-center">
+        <Link href={buildPath("/data-master/master-roles")} className="group/subitem flex items-center">
           <Shield className={`mr-2 h-4 w-4 transition-colors ${
-            isActive("/data-master/master-roles") 
+            isActive("/data-master/master-roles")
               ? "!text-blue-600" 
               : "!text-[#202224] group-hover/subitem:!text-blue-600"
           }`} />
@@ -158,9 +141,9 @@ export function AppSidebar() {
 
     <SidebarMenuSubItem>
       <SidebarMenuSubButton asChild isActive={isActive("/data-master/master-pemda")}>
-        <Link href="/data-master/master-pemda" className="group/subitem flex items-center">
+        <Link href={buildPath("/data-master/master-pemda")} className="group/subitem flex items-center">
           <Building2 className={`mr-2 h-4 w-4 transition-colors ${
-            isActive("/data-master/master-pemda") 
+            isActive("/data-master/master-pemda")
               ? "!text-blue-600" 
               : "!text-[#202224] group-hover/subitem:!text-blue-600"
           }`} />
@@ -173,9 +156,9 @@ export function AppSidebar() {
 
     <SidebarMenuSubItem>
       <SidebarMenuSubButton asChild isActive={isActive("/data-master/master-aplikasi")}>
-        <Link href="/data-master/master-aplikasi" className="group/subitem flex items-center">
+        <Link href={buildPath("/data-master/master-aplikasi")} className="group/subitem flex items-center">
           <AppWindow className={`mr-2 h-4 w-4 transition-colors ${
-            isActive("/data-master/master-aplikasi") 
+            isActive("/data-master/master-aplikasi")
               ? "!text-blue-600" 
               : "!text-[#202224] group-hover/subitem:!text-blue-600"
           }`} />
@@ -196,7 +179,7 @@ export function AppSidebar() {
               {can("permintaan") && (
                 <SidebarMenuItem>
                   <SidebarMenuButton asChild isActive={isActive("/permintaan")} tooltip="Permintaan Klien">
-                    <Link href="/permintaan" className="flex items-center gap-2">
+                    <Link href={buildPath("/permintaan")} className="flex items-center gap-2">
                       <FileText className="h-5 w-5" />
                       <span>Permintaan Klien</span>
                     </Link>
@@ -208,7 +191,7 @@ export function AppSidebar() {
               {can("distribusi") && (
                 <SidebarMenuItem>
                   <SidebarMenuButton asChild isActive={isActive("/distribusi")} tooltip="Distribusi Pekerjaan">
-                    <Link href="/distribusi" className="flex items-center gap-2">
+                    <Link href={buildPath("/distribusi")} className="flex items-center gap-2">
                       <Send className="h-5 w-5" />
                       <span>Distribusi Pekerjaan</span>
                     </Link>
@@ -220,7 +203,7 @@ export function AppSidebar() {
               {can("laporan") && (
                 <SidebarMenuItem>
                   <SidebarMenuButton asChild isActive={isActive("/laporan")} tooltip="Laporan Kinerja">
-                    <Link href="/laporan" className="flex items-center gap-2">
+                    <Link href={buildPath("/laporan")} className="flex items-center gap-2">
                       <ClipboardCheck className="h-5 w-5" />
                       <span>Laporan Kinerja</span>
                     </Link>
@@ -232,7 +215,7 @@ export function AppSidebar() {
               {can("verifikasi") && (
                 <SidebarMenuItem>
                   <SidebarMenuButton asChild isActive={isActive("/verifikasi")} tooltip="Verifikasi Laporan">
-                    <Link href="/verifikasi" className="flex items-center gap-2">
+                    <Link href={buildPath("/verifikasi")} className="flex items-center gap-2">
                       <BadgeCheck className="h-5 w-5" />
                       <span>Verifikasi Laporan</span>
                     </Link>
