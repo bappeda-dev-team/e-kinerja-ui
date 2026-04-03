@@ -1,4 +1,4 @@
-// app/super-admin/laporan/_types.ts
+// app/super-admin/laporan/types.ts
 
 export interface APIResponse<T> {
   status: number

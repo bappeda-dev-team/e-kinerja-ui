@@ -10,9 +10,9 @@ import StatCards from "./StatCards"
 import RecentRequests from "./RecentRequests"
 import RecentActivity from "./RecentActivity"
 
-import { getSuperadminDashboard } from "../_services"
+import { getSuperadminDashboard } from "../services"
 
-import type { DashboardPermintaanItem, DashboardDistribusi } from "../_types"
+import type { DashboardPermintaanItem, DashboardDistribusi } from "../types"
 import { getRoleName } from "@/lib/roles"
 
 export default function DashboardClient({ session }: { session: any }) {

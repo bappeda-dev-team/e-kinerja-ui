@@ -1,4 +1,4 @@
-// app/super-admin/verifikasi/_types.ts
+// app/super-admin/verifikasi/types.ts
 
 export interface VerifikasiRequest {
   laporan_id: string;

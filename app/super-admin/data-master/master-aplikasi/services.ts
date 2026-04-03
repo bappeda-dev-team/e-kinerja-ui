@@ -1,8 +1,8 @@
-// app/super-admin/data-master/master-aplikasi/_services.ts
+// app/super-admin/data-master/master-aplikasi/services.ts
 
 import { fetchApi } from "@/lib/fetcher";
 import { APIResponse } from "@/types/api";
-import { CreateMasterAplikasiRequest, MasterAplikasi } from "./_types";
+import { CreateMasterAplikasiRequest, MasterAplikasi } from "./types";
 import { getSession } from "next-auth/react";
 
 export const getMasterAplikasi = async () => {

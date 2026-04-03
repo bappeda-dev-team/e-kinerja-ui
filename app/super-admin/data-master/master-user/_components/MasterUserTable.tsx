@@ -15,7 +15,7 @@ import {
   AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogDescription,
 } from "@/components/ui/alert-dialog"
 import { Button } from "@/components/ui/button"
-import type { UserResponse } from "../_types"
+import type { UserResponse } from "../types"
 
 const HybridLoader = () => {
   const [progress, setProgress] = React.useState(0)

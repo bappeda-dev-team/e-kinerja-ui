@@ -1,8 +1,8 @@
-// app/super-admin/data-master/master-pemda/_services.ts
+// app/super-admin/data-master/master-pemda/services.ts
 
 import { fetchApi } from "@/lib/fetcher";
 import { APIResponse } from "@/types/api";
-import { MasterPemdaRequest, MasterPemda } from "./_types";
+import { MasterPemdaRequest, MasterPemda } from "./types";
 import { getSession } from "next-auth/react";
 
 export const getMasterPemda = async () => {

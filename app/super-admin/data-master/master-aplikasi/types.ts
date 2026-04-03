@@ -1,4 +1,4 @@
-// app/super-admin/data-master/master-aplikasi/_types.ts
+// app/super-admin/data-master/master-aplikasi/types.ts
 
 export interface CreateMasterAplikasiRequest {
     name: string

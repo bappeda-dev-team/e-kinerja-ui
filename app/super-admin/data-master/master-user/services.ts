@@ -1,8 +1,8 @@
-// app/super-admin/data-master/master-user/_services.ts
+// app/super-admin/data-master/master-user/services.ts
 
 import { fetchApi } from "@/lib/fetcher"
 import { APIResponse } from "@/types/api"
-import { UserRequest, UserResponse } from "./_types"
+import { UserRequest, UserResponse } from "./types"
 
 export const getUsers = async () => {
   return fetchApi<APIResponse<UserResponse[]>>("/users", { method: "GET" })

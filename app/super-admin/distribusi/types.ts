@@ -1,4 +1,4 @@
-// app/super-admin/distribusi/_types.ts
+// app/super-admin/distribusi/types.ts
 
 // ─── Shared sub-types ─────────────────────────────────────
 export interface NamedEntity {

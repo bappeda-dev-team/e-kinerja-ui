@@ -1,8 +1,8 @@
-// app/super-admin/distribusi/_services.ts
+// app/super-admin/distribusi/services.ts
 
 import { fetchApi } from "@/lib/fetcher";
 import { APIResponse } from "@/types/api";
-import { DistribusiRequest, DistribusiResponse, PelaksanaRequest, PelaksanaResponse, PermintaanResponse, UserResponse } from "./_types";
+import { DistribusiRequest, DistribusiResponse, PelaksanaRequest, PelaksanaResponse, PermintaanResponse, UserResponse } from "./types";
 
 export const getPermintaan = async () => {
   return fetchApi<APIResponse<PermintaanResponse[]>>("/permintaan", { method: "GET" });

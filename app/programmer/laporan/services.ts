@@ -5,4 +5,4 @@ export {
   updateLaporan,
   deleteLaporan,
   getPemda,
-} from "@/app/super-admin/laporan/_services"
+} from "@/app/super-admin/laporan/services"

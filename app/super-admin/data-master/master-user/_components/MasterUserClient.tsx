@@ -10,8 +10,8 @@ import MasterUserTable from "./MasterUserTable"
 import AddMasterUser from "./modals/AddMasterUser"
 import EditMasterUser from "./modals/EditMasterUser"
 
-import { getUsers, deleteUser, createUser, updateUser } from "../_services"
-import type { UserResponse, UserRequest } from "../_types"
+import { getUsers, deleteUser, createUser, updateUser } from "../services"
+import type { UserResponse, UserRequest } from "../types"
 
 export default function MasterUserClient() {
   const [data, setData] = useState<UserResponse[]>([])

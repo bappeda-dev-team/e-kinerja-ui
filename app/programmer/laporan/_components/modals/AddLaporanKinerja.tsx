@@ -6,7 +6,7 @@ import { useEffect, useMemo, useState } from "react"
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { X, ChevronDown } from "lucide-react"
 import { toast } from "sonner"
-import type { LaporanKinerjaItem } from "../../_types"
+import type { LaporanKinerjaItem } from "../../types"
 
 interface Props {
   open: boolean

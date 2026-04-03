@@ -10,7 +10,7 @@ import { Plus, Table2 } from "lucide-react"
 import PermintaanTable from "./PermintaanTable"
 import AddPermintaan from "./modals/AddPermintaan"
 
-import type { PermintaanResponse, PermintaanRequest } from "../_types"
+import type { PermintaanResponse, PermintaanRequest } from "../types"
 import {
   getPermintaan,
   createPermintaan,
@@ -18,7 +18,7 @@ import {
   deletePermintaan,
   uploadPermintaanAttachment,
   getMasterPemda // ✅ Fungsi service baru untuk ambil logo
-} from "../_services"
+} from "../services"
 
 // --- Loader Hybrid ---
 const HybridLoader = () => {

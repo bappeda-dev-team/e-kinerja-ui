@@ -25,7 +25,7 @@ import {
   SelectValue,
 } from "@/components/ui/select"
 
-import type { UserRequest } from "../../_types"
+import type { UserRequest } from "../../types"
 
 interface Props {
   open: boolean

@@ -1,8 +1,8 @@
-// app/super-admin/data-master/master-roles/_services.ts
+// app/super-admin/data-master/master-roles/services.ts
 
 import { fetchApi } from "@/lib/fetcher";
 import { APIResponse } from "@/types/api";
-import { Roles, RoleRequest } from "./_types";
+import { Roles, RoleRequest } from "./types";
 
 export const getRoles = async () => {
   return fetchApi<APIResponse<Roles[]>>("/roles", { method: "GET" });

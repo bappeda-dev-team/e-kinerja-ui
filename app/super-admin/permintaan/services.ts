@@ -1,9 +1,9 @@
-// app/super-admin/permintaan/_services.ts
+// app/super-admin/permintaan/services.ts
 
-// _services.ts
+// services.ts
 import { fetchApi } from "@/lib/fetcher";
 import { APIResponse } from "@/types/api";
-import { PermintaanRequest, PermintaanResponse } from "./_types";
+import { PermintaanRequest, PermintaanResponse } from "./types";
 import { getSession } from "next-auth/react";
 
 // Mendapatkan data Master Pemda untuk ambil Logo

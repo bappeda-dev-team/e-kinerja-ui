@@ -23,8 +23,8 @@ import {
   PaginationNext,
   PaginationPrevious,
 } from "@/components/ui/pagination"
-import { getVerifikasi } from "@/app/super-admin/verifikasi/_services"
-import type { VerifikasiResponse } from "@/app/super-admin/verifikasi/_types"
+import { getVerifikasi } from "@/app/super-admin/verifikasi/services"
+import type { VerifikasiResponse } from "@/app/super-admin/verifikasi/types"
 
 type DashboardStatus = "menunggu" | "revisi" | "terverifikasi"
 type StatusFilter = "all" | DashboardStatus

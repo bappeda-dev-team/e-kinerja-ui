@@ -5,4 +5,4 @@ export type {
   LaporanProgrammer,
   LaporanResponse,
   LaporanKinerjaItem,
-} from "@/app/super-admin/laporan/_types"
+} from "@/app/super-admin/laporan/types"

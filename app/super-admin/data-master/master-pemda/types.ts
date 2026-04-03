@@ -1,4 +1,4 @@
-// app/super-admin/data-master/master-pemda/_types.ts
+// app/super-admin/data-master/master-pemda/types.ts
 
 export interface MasterPemdaRequest {
     name: string;

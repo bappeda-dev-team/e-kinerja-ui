@@ -1,4 +1,4 @@
-// app/super-admin/dashboard/_types.ts
+// app/super-admin/dashboard/types.ts
 
 export interface DashboardPemda {
   id: string

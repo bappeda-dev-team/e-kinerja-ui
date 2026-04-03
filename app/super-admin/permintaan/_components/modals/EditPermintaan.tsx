@@ -3,7 +3,7 @@
 "use client"
 
 import AddPermintaan from "./AddPermintaan"
-import type { PermintaanResponse, PermintaanRequest } from "../../_types"
+import type { PermintaanResponse, PermintaanRequest } from "../../types"
 
 interface Props {
   data: PermintaanResponse

@@ -6,7 +6,7 @@ import { MoreVertical, SendHorizonal, Download, Paperclip } from "lucide-react"
 import { Avatar, AvatarFallback } from "@/components/ui/avatar"
 import { Button } from "@/components/ui/button"
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
-import type { LaporanKinerjaItem } from "../_types"
+import type { LaporanKinerjaItem } from "../types"
 
 interface Props {
   item: LaporanKinerjaItem; onEdit: (item: LaporanKinerjaItem) => void; onDelete: (id: string) => void

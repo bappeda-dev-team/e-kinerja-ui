@@ -12,13 +12,13 @@ import LaporanKinerjaGrid from "./LaporanKinerjaGrid"
 import AddLaporanKinerja from "./modals/AddLaporanKinerja"
 import EditLaporanKinerja from "./modals/EditLaporanKinerja"
 
-import { getLaporan, createLaporan, updateLaporan, deleteLaporan } from "../_services"
-import { createVerifikasi } from "@/app/super-admin/verifikasi/_services"
-import { LaporanKinerjaItem } from "../_types"
-import { getPermintaan } from "@/app/super-admin/permintaan/_services"
-import { getUsers } from "@/app/super-admin/data-master/master-user/_services"
-import type { PermintaanResponse } from "@/app/super-admin/permintaan/_types"
-import type { UserResponse } from "@/app/super-admin/data-master/master-user/_types"
+import { getLaporan, createLaporan, updateLaporan, deleteLaporan } from "../services"
+import { createVerifikasi } from "@/app/super-admin/verifikasi/services"
+import { LaporanKinerjaItem } from "../types"
+import { getPermintaan } from "@/app/super-admin/permintaan/services"
+import { getUsers } from "@/app/super-admin/data-master/master-user/services"
+import type { PermintaanResponse } from "@/app/super-admin/permintaan/types"
+import type { UserResponse } from "@/app/super-admin/data-master/master-user/types"
 
 const HybridLoader = () => {
   const [progress, setProgress] = React.useState(0)

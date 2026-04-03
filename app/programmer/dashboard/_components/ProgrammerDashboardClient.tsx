@@ -23,8 +23,8 @@ import {
   PaginationNext,
   PaginationPrevious,
 } from "@/components/ui/pagination"
-import { getLaporan } from "@/app/super-admin/laporan/_services"
-import type { LaporanResponse } from "@/app/super-admin/laporan/_types"
+import { getLaporan } from "@/app/super-admin/laporan/services"
+import type { LaporanResponse } from "@/app/super-admin/laporan/types"
 
 type ReportStatus = "semua" | "menunggu" | "revisi" | "terverifikasi"
 

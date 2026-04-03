@@ -13,9 +13,9 @@ import KomentarModal from "./modals/KomentarModal"
 import {
   getDistribusi,
   deleteDistribusi,
-} from "../_services"
+} from "../services"
 
-import type { DistribusiResponse } from "../_types"
+import type { DistribusiResponse } from "../types"
 
 const HybridLoader = () => {
   const [progress, setProgress] = React.useState(0)

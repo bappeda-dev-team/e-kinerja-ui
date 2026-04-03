@@ -1,4 +1,4 @@
-// app/admin/profile/_types.ts
+// app/super-admin/profile/types.ts
 
 export interface ProfileRole {
   id: string

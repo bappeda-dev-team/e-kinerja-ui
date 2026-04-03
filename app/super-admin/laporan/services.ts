@@ -1,7 +1,7 @@
-// app/super-admin/laporan/_services.ts
+// app/super-admin/laporan/services.ts
 
 import { fetchApi } from "@/lib/fetcher"
-import { APIResponse, LaporanRequest, LaporanResponse } from "./_types"
+import { APIResponse, LaporanRequest, LaporanResponse } from "./types"
 
 export const getLaporan = async () => {
   return fetchApi<APIResponse<LaporanResponse[]>>("/laporan", {

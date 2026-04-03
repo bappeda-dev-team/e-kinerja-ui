@@ -1,8 +1,8 @@
-// app/admin/profile/_services.ts
+// app/admin/profile/services.ts
 
 import { fetchApi } from "@/lib/fetcher"
 import { APIResponse } from "@/types/api"
-import { ProfileResponse } from "./_types"
+import { ProfileResponse } from "./types"
 
 export const getProfileById = async (id: string) => {
   return fetchApi<APIResponse<ProfileResponse>>(`/users/${id}`, { method: "GET" })

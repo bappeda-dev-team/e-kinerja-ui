@@ -2,7 +2,7 @@
 
 import { useState } from "react"
 import { Avatar, AvatarFallback } from "@/components/ui/avatar"
-import type { DashboardDistribusi } from "../_types"
+import type { DashboardDistribusi } from "../types"
 
 const PREVIEW_COUNT = 5
 

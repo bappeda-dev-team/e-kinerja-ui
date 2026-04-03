@@ -8,9 +8,9 @@ import { toast } from "sonner"
 import { Table2, LayoutGrid } from "lucide-react"
 import VerifikasiBoard from "./VerifikasiBoard"
 import VerifikasiModal from "./modals/VerifikasiModal"
-import { getVerifikasi, updateVerifikasi, getPemda } from "../_services" // ✅ Tambah getPemda
-import { getLaporan } from "@/app/super-admin/laporan/_services"
-import type { VerifikasiRequest } from "../_types"
+import { getVerifikasi, updateVerifikasi, getPemda } from "../services" // ✅ Tambah getPemda
+import { getLaporan } from "@/app/super-admin/laporan/services"
+import type { VerifikasiRequest } from "../types"
 
 const HybridLoader = () => {
   const [progress, setProgress] = React.useState(0)

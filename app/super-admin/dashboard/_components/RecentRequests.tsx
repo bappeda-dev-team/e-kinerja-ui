@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import { ChevronFirst, ChevronLast, ChevronLeft, ChevronRight, TableIcon } from "lucide-react";
 import Link from "next/link";
-import type { DashboardPermintaanItem } from "../_types";
+import type { DashboardPermintaanItem } from "../types";
 
 const PAGE_SIZE = 10;
 
