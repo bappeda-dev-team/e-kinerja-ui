@@ -179,7 +179,7 @@ export function Header({ title, session }: HeaderProps) {
               className="text-red-600"
               onClick={() => {
                 deleteCookie("auth", { path: "/" })
-                signOut({ callbackUrl: "/" })
+                signOut({ callbackUrl: "/login" })
               }}
             >
               <LogOut className="mr-2 h-4 w-4" />
