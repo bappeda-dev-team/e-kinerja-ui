@@ -33,6 +33,7 @@ import { APIResponse } from "@/types/api"
 import { signOut } from "next-auth/react"
 import { deleteCookie } from "cookies-next"
 import { getRolePrefix } from "@/lib/roles"
+import { invalidateClientSessionCache } from "@/lib/fetcher"
 
 interface HeaderProps {
   title: string
@@ -179,6 +180,7 @@ export function Header({ title, session }: HeaderProps) {
             <DropdownMenuItem
               className="text-red-600"
               onClick={() => {
+                invalidateClientSessionCache()
                 deleteCookie("auth", { path: "/" })
                 signOut({ callbackUrl: "/login" })
               }}

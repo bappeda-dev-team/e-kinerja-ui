@@ -4,7 +4,6 @@
 import { fetchApi } from "@/lib/fetcher";
 import { APIResponse } from "@/types/api";
 import { PermintaanRequest, PermintaanResponse } from "./types";
-import { getSession } from "next-auth/react";
 
 // Mendapatkan data Master Pemda untuk ambil Logo
 export const getMasterPemda = async () => {
@@ -34,20 +33,17 @@ export const deletePermintaan = async (id: string) => {
 };
 
 export const uploadPermintaanAttachment = async (id: string, files: File[]) => {
-  const session = await getSession();
-  const token = (session as any)?.accessToken;
-  if (!token) throw new Error("Sesi habis. Silakan login kembali.");
-
   const formData = new FormData();
   files.forEach((file) => formData.append("files", file));
 
-  const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/permintaan/${id}/lampiran`, {
+  const response = await fetchApi<APIResponse<any>>(`/permintaan/${id}/lampiran`, {
     method: "PATCH",
-    headers: { "Authorization": `Bearer ${token}` },
     body: formData,
   });
 
-  const resData = await response.json().catch(() => ({}));
-  if (!response.ok) throw new Error(resData.message || "Gagal mengunggah lampiran.");
-  return resData;
+  if (response.status < 200 || response.status >= 300) {
+    throw new Error(response.data?.message || "Gagal mengunggah lampiran.");
+  }
+
+  return response.data;
 };

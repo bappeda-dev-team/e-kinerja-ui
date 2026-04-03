@@ -7,6 +7,56 @@ import { getServerSession } from "next-auth";
 import { redirect } from "next/navigation";
 import { authOptions } from "@/app/api/auth/[...nextauth]/route";
 
+const SESSION_TTL = 60 * 1000;
+
+let cachedClientSession: any = null;
+let cachedClientSessionExpiresAt = 0;
+let hasCachedClientSession = false;
+let inFlightClientSessionPromise: Promise<any> | null = null;
+
+function setClientSessionCache(session: any) {
+  cachedClientSession = session;
+  cachedClientSessionExpiresAt = Date.now() + SESSION_TTL;
+  hasCachedClientSession = true;
+}
+
+export function primeClientSessionCache(session: any) {
+  if (typeof window === "undefined") return;
+  setClientSessionCache(session);
+}
+
+export function invalidateClientSessionCache() {
+  cachedClientSession = null;
+  cachedClientSessionExpiresAt = 0;
+  hasCachedClientSession = false;
+  inFlightClientSessionPromise = null;
+}
+
+async function getCachedClientSession() {
+  const now = Date.now();
+
+  if (hasCachedClientSession && now < cachedClientSessionExpiresAt) {
+    return cachedClientSession;
+  }
+
+  if (!inFlightClientSessionPromise) {
+    inFlightClientSessionPromise = getSession()
+      .then((session) => {
+        setClientSessionCache(session);
+        return session;
+      })
+      .catch((error) => {
+        invalidateClientSessionCache();
+        throw error;
+      })
+      .finally(() => {
+        inFlightClientSessionPromise = null;
+      });
+  }
+
+  return inFlightClientSessionPromise;
+}
+
 interface ReqApi {
   type?: "auth" | "withoutAuth";
   url: string;
@@ -71,7 +121,7 @@ export async function fetchApi<T = any>(
         const session: any = await getServerSession(authOptions);
         authToken = session?.accessToken ?? null;
       } else {
-        const session: any = await getSession();
+        const session: any = await getCachedClientSession();
         authToken = session?.accessToken ?? null;
       }
 
@@ -104,6 +154,7 @@ export async function fetchApi<T = any>(
     });
 
     if (response.status === 403) {
+      invalidateClientSessionCache();
       if (typeof window === "undefined") redirect("/unauthorized");
       else window.location.href = "/unauthorized";
     }

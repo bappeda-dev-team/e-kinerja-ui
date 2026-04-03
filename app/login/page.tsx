@@ -6,9 +6,9 @@ import { useState } from "react"
 import { useForm } from "react-hook-form"
 import { TbEye, TbEyeClosed } from "react-icons/tb"
 import { signIn, getSession } from "next-auth/react"
-import { setCookie } from "cookies-next"
 import { toast } from "sonner"
 import Image from "next/image" // Import komponen Image
+import { invalidateClientSessionCache, primeClientSessionCache } from "@/lib/fetcher"
 
 interface FormValues {
   username: string
@@ -33,9 +33,11 @@ const onSubmit = async () => {
     })
 
     if (result?.error) {
+      invalidateClientSessionCache()
       toast.error("Username atau password salah!")
     } else {
       const session = await getSession()
+      primeClientSessionCache(session)
       const roleId = (session?.user as any)?.role_id as string | undefined
 
       const ROLE_HOME: Record<string, string> = {
