@@ -2,12 +2,14 @@
 export interface NamedEntity {
     id: string;
     name: string;
+    logo?: string;
 }
 
 export interface UserRef {
     id: string;
     username: string;
     full_name: string;
+    profile_picture?: string;
 }
 
 // ─── Permintaan ───────────────────────────────────────────
@@ -48,12 +50,26 @@ export interface DistribusiAdmin {
     id: string;
     username: string;
     full_name: string;
+    profile_picture?: string;
+}
+
+export interface DistribusiPelaksana {
+    id: string;
+    username: string;
+    full_name: string;
+    profile_picture?: string;
 }
 
 export interface DistribusiResponse {
     id: string;
     permintaan?: DistribusiPermintaan;
     admin?: DistribusiAdmin;
+    pelaksana?: DistribusiPelaksana[];
+    verifikasi?: {
+        id: string;
+        komentar?: string;
+        status_verified?: string;
+    };
     komentar?: string;
     created_at?: string;
     updated_at?: string;

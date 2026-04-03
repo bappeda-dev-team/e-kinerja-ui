@@ -1,5 +1,5 @@
 import LaporanKinerjaClient from "./_components/LaporanKinerjaClient"
 
 export default function Page() {
-  return <LaporanKinerjaClient />
+  return <LaporanKinerjaClient mode="rekap-only" />
 }

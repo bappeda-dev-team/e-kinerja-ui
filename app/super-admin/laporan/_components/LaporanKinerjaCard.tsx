@@ -15,6 +15,11 @@ function formatDate(iso?: string) {
   return iso ? new Date(iso).toLocaleDateString("id-ID", { day: "numeric", month: "short", year: "numeric" }) : "-"
 }
 
+function entityLabel(value?: string | { name: string }) {
+  if (!value) return "-"
+  return typeof value === "string" ? value : value.name
+}
+
 export default function LaporanKinerjaCard({ item, onEdit, onDelete, onSubmitVerifikasi, isSubmitting }: Props) {
   const programmerName = item.programmer?.full_name ?? "Programmer"
   const initials = programmerName.slice(0, 2).toUpperCase()
@@ -28,8 +33,8 @@ export default function LaporanKinerjaCard({ item, onEdit, onDelete, onSubmitVer
             {item.logo_pemda ? <img src={item.logo_pemda} className="w-full h-full object-contain p-1.5" /> : <span className="text-2xl">🏛️</span>}
           </div>
           <div>
-            <p className="text-sm font-bold text-[#202224] leading-tight">{item.permintaan?.pemda ?? "-"}</p>
-            <p className="text-xs text-blue-500 font-semibold">{item.permintaan?.aplikasi ?? "E-Kinerja"}</p>
+            <p className="text-sm font-bold text-[#202224] leading-tight">{entityLabel(item.permintaan?.pemda)}</p>
+            <p className="text-xs text-blue-500 font-semibold">{entityLabel(item.permintaan?.aplikasi) || "E-Kinerja"}</p>
           </div>
         </div>
         <DropdownMenu>

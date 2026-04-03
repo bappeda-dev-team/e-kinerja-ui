@@ -16,6 +16,11 @@ function formatDate(iso?: string) {
   return iso ? new Date(iso).toLocaleDateString("id-ID", { day: "numeric", month: "short", year: "numeric" }) : "-"
 }
 
+function entityLabel(value?: string | { name: string }) {
+  if (!value) return "-"
+  return typeof value === "string" ? value : value.name
+}
+
 const STATUS_MAP: Record<string, { label: string; className: string }> = {
   hijau: { label: "Terverifikasi", className: "bg-[#00B69B]/15 text-[#00B69B]" },
   putih: { label: "Menunggu", className: "bg-gray-100 text-gray-500" },
@@ -52,10 +57,10 @@ export default function LaporanKinerjaGrid({ data, loading, showTable, onEdit, o
                       <div className="w-7 h-7 rounded bg-white border flex items-center justify-center overflow-hidden shrink-0">
                         {item.logo_pemda ? <img src={item.logo_pemda} className="w-full h-full object-contain p-0.5" /> : <span>🏛️</span>}
                       </div>
-                      <span className="font-semibold">{item.permintaan?.pemda ?? "-"}</span>
+                      <span className="font-semibold">{entityLabel(item.permintaan?.pemda)}</span>
                     </div>
                   </td>
-                  <td className="px-5 py-3">{item.permintaan?.aplikasi ?? "-"}</td>
+                  <td className="px-5 py-3">{entityLabel(item.permintaan?.aplikasi)}</td>
                   <td className="px-5 py-3 max-w-[200px] truncate">{item.laporan_progress}</td>
                   <td className="px-5 py-3 text-red-500 font-bold">{formatDate(item.permintaan?.tanggal_deadline)}</td>
                   <td className="px-5 py-3">

@@ -26,7 +26,6 @@ import {
 } from "@/components/ui/avatar"
 
 import { Settings, LogOut, User, Bell, ChevronDown } from "lucide-react"
-import { SidebarTrigger } from "@/components/ui/sidebar"
 import { fetchApi } from "@/lib/fetcher"
 import { APIResponse } from "@/types/api"
 import { signOut } from "next-auth/react"
@@ -65,8 +64,9 @@ export function Header({ title, session }: HeaderProps) {
 
   useEffect(() => { setMounted(true) }, [])
 
+  const userId = (session?.user as any)?.user_id ?? (session?.user as any)?.id
+
   useEffect(() => {
-    const userId = (session?.user as any)?.user_id ?? (session?.user as any)?.id
     if (!userId) return
 
     const fetchProfile = async () => {
@@ -77,7 +77,7 @@ export function Header({ title, session }: HeaderProps) {
     }
 
     fetchProfile()
-  }, [session])
+  }, [userId])
 
   const displayName = profile?.full_name ?? ""
   const roleLabel = profile?.role?.description ?? ""
@@ -92,7 +92,6 @@ export function Header({ title, session }: HeaderProps) {
 
       {/* LEFT */}
       <div className="flex items-center gap-3">
-        <SidebarTrigger />
         <h1 className="text-lg font-semibold tracking-tight">
           {title}
         </h1>

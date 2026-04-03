@@ -21,6 +21,7 @@ import {
   SidebarMenuSubItem,
   SidebarMenuSubButton,
   SidebarRail,
+  SidebarTrigger,
 } from "@/components/ui/sidebar"
 
 import {
@@ -59,14 +60,18 @@ export function AppSidebar({ session }: { session: Session | null }) {
 
       {/* HEADER */}
       <SidebarHeader className="flex flex-col items-center justify-center py-6 px-0">
-        <img
-          src="/logo-e-kinerja.png"
-          alt="E-Kinerja Logo"
-          className="w-8 h-8 object-contain group-data-[state=expanded]:w-16 group-data-[state=expanded]:h-16 transition-all duration-200"
-        />
-        <span className="mt-2 text-lg font-bold text-center hidden group-data-[state=expanded]:block">
-          E-Kinerja
-        </span>
+        {/* Collapsed: hanya trigger */}
+        <SidebarTrigger className="group-data-[state=expanded]:hidden" />
+        {/* Expanded: logo + trigger di kanan atas */}
+        <div className="hidden group-data-[state=expanded]:flex flex-col items-center w-full relative">
+          <SidebarTrigger className="absolute top-0 right-2" />
+          <img
+            src="/logo-e-kinerja.png"
+            alt="E-Kinerja Logo"
+            className="w-16 h-16 object-contain"
+          />
+          <span className="mt-2 text-lg font-bold text-center">E-Kinerja</span>
+        </div>
       </SidebarHeader>
 
       <SidebarContent>

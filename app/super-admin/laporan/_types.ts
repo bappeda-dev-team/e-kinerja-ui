@@ -11,8 +11,16 @@ export interface LaporanRequest {
 
 export interface LaporanPermintaan {
   id: string
-  pemda: string
-  aplikasi: string
+  pemda: {
+    id: string
+    name: string
+    logo?: string
+  } | string
+  aplikasi: {
+    id: string
+    name: string
+    logo?: string
+  } | string
   menu: string
   kondisi_awal?: string
   kondisi_diharapkan?: string
@@ -25,6 +33,7 @@ export interface LaporanProgrammer {
   id: string
   username: string
   full_name: string
+  profile_picture?: string
 }
 
 export interface LaporanResponse {

@@ -10,7 +10,18 @@ import { Button } from "@/components/ui/button"
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import { Badge } from "@/components/ui/badge"
-import type { PermintaanItem, UserItem } from "../DistribusiClient"
+
+interface PermintaanItem {
+  id: string
+  nama_pemda: string
+  aplikasi: string
+  menu: string
+}
+
+interface UserItem {
+  id: string
+  full_name: string
+}
 
 interface Props {
   item: PermintaanItem

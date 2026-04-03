@@ -9,7 +9,12 @@ import {
 import { Button } from "@/components/ui/button"
 import { Label } from "@/components/ui/label"
 import { Badge } from "@/components/ui/badge"
-import type { DistribusiItem, UserItem } from "../DistribusiClient"
+import type { DistribusiItem } from "../DistribusiClient"
+
+interface UserItem {
+  id: string
+  full_name: string
+}
 
 interface Props {
   item: DistribusiItem

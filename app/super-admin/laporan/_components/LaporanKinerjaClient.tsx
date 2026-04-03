@@ -10,7 +10,7 @@ import LaporanKinerjaGrid from "./LaporanKinerjaGrid"
 import AddLaporanKinerja from "./modals/AddLaporanKinerja"
 import EditLaporanKinerja from "./modals/EditLaporanKinerja"
 
-import { getLaporan, createLaporan, updateLaporan, deleteLaporan, getPemda } from "../_services"
+import { getLaporan, createLaporan, updateLaporan, deleteLaporan } from "../_services"
 import { createVerifikasi } from "@/app/super-admin/verifikasi/_services"
 import { LaporanKinerjaItem } from "../_types"
 import { getPermintaan } from "@/app/super-admin/permintaan/_services"
@@ -49,6 +49,7 @@ const HybridLoader = () => {
 }
 
 type Tab = "semua" | "rekap"
+type Mode = "full" | "rekap-only"
 
 const MONTHS = [
   "Januari", "Februari", "Maret", "April", "Mei", "Juni",
@@ -60,6 +61,11 @@ const STATUS_CFG: Record<string, { label: string; dot: string; badge: string }> 
   putih:  { label: "Menunggu",      dot: "bg-[#FFA756]", badge: "bg-[#FFA756]/10 text-[#FFA756]" },
   merah:  { label: "Ditolak",       dot: "bg-[#FD5454]", badge: "bg-[#FD5454]/10 text-[#FD5454]" },
   kuning: { label: "Revisi",        dot: "bg-[#FFA756]", badge: "bg-[#FFA756]/10 text-[#FFA756]" },
+}
+
+function entityLabel(value?: string | { name: string }) {
+  if (!value) return "-"
+  return typeof value === "string" ? value : value.name
 }
 
 function RekapPerUser({ data }: { data: LaporanKinerjaItem[] }) {
@@ -199,10 +205,10 @@ function RekapPerUser({ data }: { data: LaporanKinerjaItem[] }) {
                                       ? <img src={item.logo_pemda} className="w-full h-full object-contain p-0.5" />
                                       : <span className="text-xs">🏛️</span>}
                                   </div>
-                                  <span className="font-semibold text-[#202224] text-xs">{item.permintaan?.pemda ?? "-"}</span>
+                                  <span className="font-semibold text-[#202224] text-xs">{entityLabel(item.permintaan?.pemda)}</span>
                                 </div>
                               </td>
-                              <td className="px-5 py-3 text-xs text-[#797A7C]">{item.permintaan?.aplikasi ?? "-"}</td>
+                              <td className="px-5 py-3 text-xs text-[#797A7C]">{entityLabel(item.permintaan?.aplikasi)}</td>
                               <td className="px-5 py-3 text-xs text-[#797A7C] max-w-[140px] truncate">{item.permintaan?.menu ?? "-"}</td>
                               <td className="px-5 py-3 text-xs text-[#202224]/70 max-w-[180px] truncate">{item.laporan_progress}</td>
                               <td className="px-5 py-3 text-xs font-semibold text-red-500">{deadline}</td>
@@ -228,14 +234,18 @@ function RekapPerUser({ data }: { data: LaporanKinerjaItem[] }) {
   )
 }
 
-export default function LaporanKinerjaClient() {
+interface Props {
+  mode?: Mode
+}
+
+export default function LaporanKinerjaClient({ mode = "full" }: Props) {
   const [data, setData] = useState<LaporanKinerjaItem[]>([])
   const [loading, setLoading] = useState(true)
   const [submittingId, setSubmittingId] = useState<string | null>(null)
   const [showAdd, setShowAdd] = useState(false)
   const [editItem, setEditItem] = useState<LaporanKinerjaItem | null>(null)
   const [showTable, setShowTable] = useState(false)
-  const [tab, setTab] = useState<Tab>("semua")
+  const [tab, setTab] = useState<Tab>(mode === "rekap-only" ? "rekap" : "semua")
 
   const [permintaanList, setPermintaanList] = useState<{ id: string; pemda: string; menu: string }[]>([])
   const [masterPegawai, setMasterPegawai] = useState<{ id: string; nama_pegawai: string; jabatan: string }[]>([])
@@ -243,12 +253,11 @@ export default function LaporanKinerjaClient() {
   const fetchData = async () => {
     try {
       setLoading(true)
-      const [resLaporan, resPemda] = await Promise.all([getLaporan(), getPemda()])
+      const resLaporan = await getLaporan()
       
       if (resLaporan.status !== 200) throw new Error(resLaporan.data?.message || "Gagal memuat data")
 
       const rawData = resLaporan.data?.data || []
-      const masterPemda = resPemda.data?.data || []
 
       const mapped: LaporanKinerjaItem[] = rawData.map((item: any) => {
         const pemda   = item.permintaan?.pemda
@@ -256,7 +265,6 @@ export default function LaporanKinerjaClient() {
         const pemdaName   = typeof pemda   === "object" ? pemda?.name   : pemda
         const aplikasiName = typeof aplikasi === "object" ? aplikasi?.name : aplikasi
         const pemdaLogo   = typeof pemda   === "object" ? pemda?.logo   : undefined
-        const pemdaDetail = masterPemda.find((p: any) => p.name === pemdaName)
         return {
           id: item.id,
           laporan_progress: item.laporan_progress,
@@ -268,7 +276,8 @@ export default function LaporanKinerjaClient() {
           programmer: item.programmer,
           status: item.status,
           created_at: item.created_at,
-          logo_pemda: pemdaLogo || pemdaDetail?.logo || ""
+          updated_at: item.updated_at,
+          logo_pemda: pemdaLogo || ""
         }
       })
       setData(mapped)
@@ -280,6 +289,7 @@ export default function LaporanKinerjaClient() {
   }
 
   const fetchDropdownData = async () => {
+    if (mode === "rekap-only") return
     try {
       const [permRes, userRes] = await Promise.all([getPermintaan(), getUsers()])
       if (permRes.status === 200) {
@@ -295,7 +305,10 @@ export default function LaporanKinerjaClient() {
     } catch {}
   }
 
-  useEffect(() => { fetchData(); fetchDropdownData(); }, [])
+  useEffect(() => {
+    fetchData()
+    fetchDropdownData()
+  }, [mode])
 
   const handleAdd = async (item: LaporanKinerjaItem) => {
     const res = await createLaporan({ laporan_progress: item.laporan_progress, permintaan_id: item.permintaan.id })
@@ -334,7 +347,7 @@ export default function LaporanKinerjaClient() {
       <div className="flex items-center justify-between">
         <h1 className="text-3xl font-bold text-[#202224]">Laporan Kinerja</h1>
         <div className="flex items-center gap-3">
-          {tab === "semua" && !loading && (
+          {mode === "full" && tab === "semua" && !loading && (
             <button
               onClick={() => setShowTable((prev) => !prev)}
               className={`flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-semibold transition ${showTable ? "bg-blue-600 text-white" : "bg-white border"}`}
@@ -343,33 +356,35 @@ export default function LaporanKinerjaClient() {
               {showTable ? "Lihat Grid" : "Lihat Tabel"}
             </button>
           )}
-          {tab === "semua" && (
+          {mode === "full" && tab === "semua" && (
             <Button onClick={() => setShowAdd(true)} className="font-bold">+ Tambah Laporan</Button>
           )}
         </div>
       </div>
 
       {/* Tabs */}
-      <div className="flex gap-1 border-b border-gray-200">
-        <button
-          onClick={() => setTab("semua")}
-          className={`flex items-center gap-2 px-4 py-2.5 text-sm font-semibold border-b-2 transition-colors ${
-            tab === "semua" ? "border-blue-600 text-blue-600" : "border-transparent text-[#202224]/50 hover:text-[#202224]"
-          }`}
-        >
-          <Table2 className="size-4" />
-          Semua Laporan
-        </button>
-        <button
-          onClick={() => setTab("rekap")}
-          className={`flex items-center gap-2 px-4 py-2.5 text-sm font-semibold border-b-2 transition-colors ${
-            tab === "rekap" ? "border-blue-600 text-blue-600" : "border-transparent text-[#202224]/50 hover:text-[#202224]"
-          }`}
-        >
-          <Users className="size-4" />
-          Rekap Per User
-        </button>
-      </div>
+      {mode === "full" ? (
+        <div className="flex gap-1 border-b border-gray-200">
+          <button
+            onClick={() => setTab("semua")}
+            className={`flex items-center gap-2 px-4 py-2.5 text-sm font-semibold border-b-2 transition-colors ${
+              tab === "semua" ? "border-blue-600 text-blue-600" : "border-transparent text-[#202224]/50 hover:text-[#202224]"
+            }`}
+          >
+            <Table2 className="size-4" />
+            Semua Laporan
+          </button>
+          <button
+            onClick={() => setTab("rekap")}
+            className={`flex items-center gap-2 px-4 py-2.5 text-sm font-semibold border-b-2 transition-colors ${
+              tab === "rekap" ? "border-blue-600 text-blue-600" : "border-transparent text-[#202224]/50 hover:text-[#202224]"
+            }`}
+          >
+            <Users className="size-4" />
+            Rekap Per User
+          </button>
+        </div>
+      ) : null}
 
       {/* Content */}
       {loading ? (
@@ -387,8 +402,12 @@ export default function LaporanKinerjaClient() {
         <RekapPerUser data={data} />
       )}
 
-      <AddLaporanKinerja open={showAdd} onClose={() => setShowAdd(false)} onSave={handleAdd} permintaanList={permintaanList} masterPegawai={masterPegawai} />
-      <EditLaporanKinerja open={!!editItem} data={editItem} onClose={() => setEditItem(null)} onSave={handleEdit} permintaanList={permintaanList} masterPegawai={masterPegawai} />
+      {mode === "full" ? (
+        <>
+          <AddLaporanKinerja open={showAdd} onClose={() => setShowAdd(false)} onSave={handleAdd} permintaanList={permintaanList} masterPegawai={masterPegawai} />
+          <EditLaporanKinerja open={!!editItem} data={editItem} onClose={() => setEditItem(null)} onSave={handleEdit} permintaanList={permintaanList} masterPegawai={masterPegawai} />
+        </>
+      ) : null}
     </div>
   )
 }

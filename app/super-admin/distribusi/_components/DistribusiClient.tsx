@@ -3,22 +3,17 @@
 import * as React from "react"
 import { useEffect, useState } from "react"
 import { toast } from "sonner"
-import { Table2 } from "lucide-react"
+import { LayoutGrid, Table2 } from "lucide-react"
 
 import DistribusiBoard from "./DistribusiBoard"
-import AssignDistribusiModal from "./modals/AssignDistribusiModal"
-import EditPelaksanaModal from "./modals/EditPelaksanaModal"
 import KomentarModal from "./modals/KomentarModal"
 
 import {
-  getPermintaan, getDistribusi, getPelaksana,
-  createDistribusi, createPelaksana,
-  deleteDistribusi, deletePelaksana, getUsers, getPemda,
+  getDistribusi,
+  deleteDistribusi,
 } from "../_services"
-import { getVerifikasi } from "@/app/super-admin/verifikasi/_services"
-import { getLaporan } from "@/app/super-admin/laporan/_services"
 
-import type { DistribusiResponse, PelaksanaResponse, PermintaanResponse } from "../_types"
+import type { DistribusiResponse } from "../_types"
 
 const HybridLoader = () => {
   const [progress, setProgress] = React.useState(0)
@@ -50,18 +45,6 @@ const HybridLoader = () => {
   )
 }
 
-export interface PermintaanItem {
-  id: string
-  nama_pemda: string
-  logo_pemda?: string
-  aplikasi: string
-  menu: string
-  awal: string
-  target: string
-  deadline: string
-  lampiran: string[]
-}
-
 export interface DistribusiItem {
   id: string
   nama_pemda: string
@@ -71,7 +54,7 @@ export interface DistribusiItem {
   admin: string
   programmer: { id: string; nama: string; pelaksana_id: string }[]
   deadline: string
-  status: "didistribusikan" | "selesai"
+  status: "didistribusikan" | "pending" | "revision" | "approved"
   jumlah_komentar?: number
   komentar?: string
   hasil?: string
@@ -80,88 +63,42 @@ export interface DistribusiItem {
   lampiran: string[]
 }
 
-export interface UserItem {
-  id: string
-  full_name: string
-  username: string
+function mapDistribusiStatus(item: DistribusiResponse): DistribusiItem["status"] {
+  const verificationStatus = item.verifikasi?.status_verified?.toLowerCase()
+
+  if (verificationStatus === "approved") return "approved"
+  if (verificationStatus === "revision") return "revision"
+  if (verificationStatus === "pending") return "pending"
+
+  return "didistribusikan"
 }
 
 export default function DistribusiClient() {
-  const [permintaan, setPermintaan] = useState<PermintaanItem[]>([])
   const [distribusi, setDistribusi] = useState<DistribusiItem[]>([])
-  const [users, setUsers] = useState<UserItem[]>([])
   const [loading, setLoading] = useState(true)
-  const [showTable, setShowTable] = useState(false)
-  const [assignItem, setAssignItem] = useState<PermintaanItem | null>(null)
-  const [editItem, setEditItem] = useState<DistribusiItem | null>(null)
+  const [viewMode, setViewMode] = useState<"table" | "card">("table")
   const [selectedKomentar, setSelectedKomentar] = useState<string | null>(null)
 
   const fetchAll = async () => {
     try {
       setLoading(true)
-      const [
-        permintaanRes, 
-        distribusiRes, 
-        pelaksanaRes, 
-        usersRes, 
-        verifikasiRes, 
-        laporanRes,
-        pemdaRes
-      ] = await Promise.all([
-        getPermintaan(), 
-        getDistribusi(), 
-        getPelaksana(), 
-        getUsers(),
-        getVerifikasi(), 
-        getLaporan(),
-        getPemda()
-      ])
-
-      const pelaksanaList: PelaksanaResponse[] = pelaksanaRes.data?.data ?? []
-      const verifikasiList = verifikasiRes.data?.data ?? []
-      const laporanList = laporanRes.data?.data ?? []
-      const masterPemda = pemdaRes.data?.data ?? []
-
-      const laporanToPermintaan = new Map(
-        laporanList.map((l: any) => [l.id, l.permintaan?.id])
-      )
-
-      const approvedPermintaanIds = new Set(
-        verifikasiList
-          .filter((v: any) => v.status_verified === "approved")
-          .map((v: any) => laporanToPermintaan.get(v.laporan?.id))
-          .filter(Boolean)
-      )
-
-      const allUsers = usersRes.data?.data ?? []
-      const programmerUsers = allUsers
-        .filter((u: any) => u.is_active)
-        .map((u: any) => ({ id: u.id, full_name: u.full_name, username: u.username }))
-      setUsers(programmerUsers)
+      const distribusiRes = await getDistribusi()
 
       const mappedDistribusi: DistribusiItem[] = (distribusiRes.data?.data ?? []).map((item: DistribusiResponse) => {
-        const pelaksanaForThis = pelaksanaList.filter((p: any) =>
-          (p.distribusi?.id ?? p.distribusi_id) === item.id
-        )
-        const programmerList = pelaksanaForThis.map((p: any) => ({
-          id: p.programmer?.id ?? "",
-          nama: p.programmer?.full_name ?? p.programmer?.username ?? "Programmer",
-          pelaksana_id: p.id ?? "",
+        const programmerList = (item.pelaksana ?? []).map((pelaksana) => ({
+          id: pelaksana.id ?? "",
+          nama: pelaksana.full_name ?? pelaksana.username ?? "Programmer",
+          pelaksana_id: pelaksana.id ?? "",
         }))
-
-        const permintaanId = item.permintaan?.id
-        const isApproved = approvedPermintaanIds.has(permintaanId)
         
         const namaPemda = typeof item.permintaan?.pemda === "object"
-            ? item.permintaan.pemda.name
-            : item.permintaan?.pemda ?? "-";
-        
-        const pemdaDetail = masterPemda.find((p: any) => p.name === namaPemda);
+          ? item.permintaan.pemda.name
+          : item.permintaan?.pemda ?? "-"
 
         return {
           id: item.id,
           nama_pemda: namaPemda,
-          logo_pemda: pemdaDetail?.logo || "",
+          logo_pemda: typeof item.permintaan?.pemda === "object" ? item.permintaan.pemda.logo ?? "" : "",
           aplikasi: typeof item.permintaan?.aplikasi === "object"
             ? item.permintaan.aplikasi.name
             : item.permintaan?.aplikasi ?? "-",
@@ -169,36 +106,14 @@ export default function DistribusiClient() {
           deadline: item.permintaan?.tanggal_deadline ?? "",
           admin: item.admin?.full_name ?? "-",
           programmer: programmerList,
-          status: isApproved ? "selesai" : "didistribusikan",
+          status: mapDistribusiStatus(item),
           jumlah_komentar: item.komentar ? 1 : 0,
           komentar: item.komentar ?? "",
           lampiran: item.permintaan?.lampiran ?? [],
         }
       })
 
-      const distribusiPermintaanIds = new Set(
-        (distribusiRes.data?.data ?? []).map((d: any) => d.permintaan?.id).filter(Boolean)
-      )
-
-      const mappedPermintaan: PermintaanItem[] = (permintaanRes.data?.data ?? [])
-        .filter((p: PermintaanResponse) => !distribusiPermintaanIds.has(p.id))
-        .map((p: PermintaanResponse) => {
-          const pemdaDetail = masterPemda.find((pem: any) => pem.name === p.pemda?.name);
-          return {
-            id: p.id,
-            nama_pemda: p.pemda?.name ?? "-",
-            logo_pemda: pemdaDetail?.logo || "",
-            aplikasi: p.aplikasi?.name ?? "-",
-            menu: p.menu ?? "-",
-            awal: p.kondisi_awal ?? "-",
-            target: p.kondisi_diharapkan ?? "-",
-            deadline: p.tanggal_deadline ?? "",
-            lampiran: p.lampiran ?? [],
-          }
-        })
-
       setDistribusi(mappedDistribusi)
-      setPermintaan(mappedPermintaan)
     } catch {
       toast.error("Gagal mengambil data")
     } finally {
@@ -207,23 +122,6 @@ export default function DistribusiClient() {
   }
 
   useEffect(() => { fetchAll() }, [])
-
-  const handleSaveAssign = async (val: { programmer_ids: string[]; komentar: string }) => {
-    if (!assignItem) return
-    try {
-      const distribusiRes = await createDistribusi({ permintaan_id: assignItem.id, komentar: val.komentar })
-      const newDistribusi = distribusiRes.data?.data
-      if (!newDistribusi?.id) throw new Error("Gagal membuat distribusi")
-      await Promise.all(val.programmer_ids.map((programmer_id) =>
-        createPelaksana({ distribusi_id: newDistribusi.id, programmer_id })
-      ))
-      toast.success("Pekerjaan berhasil didistribusikan")
-      setAssignItem(null)
-      await fetchAll()
-    } catch {
-      toast.error("Gagal mendistribusikan pekerjaan")
-    }
-  }
 
   const handleDelete = async (id: string) => {
     try {
@@ -235,28 +133,8 @@ export default function DistribusiClient() {
     }
   }
 
-  const handleAddPelaksana = async (distribusi_id: string, programmer_id: string) => {
-    try {
-      await createPelaksana({ distribusi_id, programmer_id })
-      await fetchAll()
-      toast.success("Programmer berhasil ditambahkan")
-    } catch {
-      toast.error("Gagal menambahkan programmer")
-    }
-  }
-
-  const handleDeletePelaksana = async (pelaksana_id: string, distribusi_id: string) => {
-    try {
-      await deletePelaksana(pelaksana_id)
-      await fetchAll()
-      toast.success("Programmer berhasil dihapus")
-    } catch {
-      toast.error("Gagal menghapus programmer")
-    }
-  }
-
   const handleSelesai = (id: string) => {
-    setDistribusi((prev) => prev.map((item) => item.id === id ? { ...item, status: "selesai" } : item))
+    setDistribusi((prev) => prev.map((item) => item.id === id ? { ...item, status: "approved" } : item))
     toast.success("Pekerjaan ditandai selesai")
   }
 
@@ -265,49 +143,46 @@ export default function DistribusiClient() {
       <div className="flex items-center justify-between mb-4">
         <h2 className="text-3xl font-bold text-[#202224]">Distribusi Pekerjaan</h2>
         {!loading && (
-          <button
-            onClick={() => setShowTable((prev) => !prev)}
-            className={`flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-semibold transition active:scale-95 ${
-              showTable
-                ? "bg-blue-600 text-white"
-                : "bg-white text-[#202224] border border-gray-200 hover:border-blue-300 hover:text-blue-600"
-            }`}
-          >
-            <Table2 className="size-4" />
-            {showTable ? "Lihat Board" : "Lihat Semua (Tabel)"}
-          </button>
+          <div className="relative inline-flex rounded-[18px] bg-[#EDEFF5] p-1.5 shadow-inner">
+            <div
+              aria-hidden="true"
+              className="absolute top-1.5 bottom-1.5 w-[calc(50%-0.1875rem)] rounded-[14px] bg-white shadow-[0_4px_18px_rgba(0,0,0,0.08)] transition-transform duration-300 ease-out"
+              style={{
+                width: "calc((100% - 0.75rem) / 2)",
+                transform: `translateX(${viewMode === "table" ? "0%" : "100%"})`,
+              }}
+            />
+            <button
+              type="button"
+              onClick={() => setViewMode("table")}
+              className={`relative z-10 inline-flex items-center gap-2 rounded-[14px] px-4 py-2 text-sm font-semibold transition-colors ${
+                viewMode === "table" ? "text-[#202224]" : "text-[#202224]/65"
+              }`}
+            >
+              <Table2 className="size-4" />
+              Table
+            </button>
+            <button
+              type="button"
+              onClick={() => setViewMode("card")}
+              className={`relative z-10 inline-flex items-center gap-2 rounded-[14px] px-4 py-2 text-sm font-semibold transition-colors ${
+                viewMode === "card" ? "text-[#202224]" : "text-[#202224]/65"
+              }`}
+            >
+              <LayoutGrid className="size-4" />
+              Card View
+            </button>
+          </div>
         )}
       </div>
 
       {loading ? <HybridLoader /> : (
         <DistribusiBoard
-          permintaan={permintaan}
           distribusi={distribusi}
-          showTable={showTable}
-          onAssign={setAssignItem}
+          showTable={viewMode === "table"}
           onSelesai={handleSelesai}
           onDelete={handleDelete}
-          onEditPelaksana={setEditItem}
           onShowKomentar={setSelectedKomentar}
-        />
-      )}
-
-      {assignItem && (
-        <AssignDistribusiModal
-          item={assignItem}
-          users={users}
-          onClose={() => setAssignItem(null)}
-          onSave={handleSaveAssign}
-        />
-      )}
-
-      {editItem && (
-        <EditPelaksanaModal
-          item={editItem}
-          users={users}
-          onClose={() => setEditItem(null)}
-          onAddPelaksana={handleAddPelaksana}
-          onDeletePelaksana={handleDeletePelaksana}
         />
       )}
 
