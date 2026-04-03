@@ -1,3 +1,5 @@
+// app/super-admin/data-master/master-user/_services.ts
+
 import { fetchApi } from "@/lib/fetcher"
 import { APIResponse } from "@/types/api"
 import { UserRequest, UserResponse } from "./_types"

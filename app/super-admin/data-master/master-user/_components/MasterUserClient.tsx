@@ -1,3 +1,5 @@
+// app/super-admin/data-master/master-user/_components/MasterUserClient.tsx
+
 'use client'
 
 import { useEffect, useState } from "react"

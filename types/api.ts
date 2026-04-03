@@ -1,3 +1,5 @@
+// types/api.ts
+
 export interface APIResponse<T = any> {
     code?: number;
     data?: T;

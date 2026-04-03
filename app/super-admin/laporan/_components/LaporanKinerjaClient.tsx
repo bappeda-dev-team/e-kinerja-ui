@@ -1,3 +1,5 @@
+// app/super-admin/laporan/_components/LaporanKinerjaClient.tsx
+
 "use client"
 
 import * as React from "react"

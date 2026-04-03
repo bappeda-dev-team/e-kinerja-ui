@@ -1,3 +1,5 @@
+// app/super-admin/data-master/master-user/_types.ts
+
 export interface UserRole {
   id: string
   name: string

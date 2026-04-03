@@ -1,3 +1,5 @@
+// app/super-admin/dashboard/_components/RecentActivity.tsx
+
 import { useState } from "react"
 import { Avatar, AvatarFallback } from "@/components/ui/avatar"
 import type { DashboardDistribusi } from "../_types"

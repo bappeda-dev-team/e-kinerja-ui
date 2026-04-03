@@ -1,3 +1,5 @@
+// app/super-admin/verifikasi/_components/modals/VerifikasiModal.tsx
+
 "use client"
 
 import { useState } from "react"

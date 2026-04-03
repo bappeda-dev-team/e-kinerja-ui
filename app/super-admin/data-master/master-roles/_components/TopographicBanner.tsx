@@ -1,3 +1,5 @@
+// app/super-admin/data-master/master-roles/_components/TopographicBanner.tsx
+
 interface Props {
   color: string
 }

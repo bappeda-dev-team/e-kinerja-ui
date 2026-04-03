@@ -1,3 +1,5 @@
+// app/super-admin/distribusi/_components/DistribusiBoard.tsx
+
 "use client"
 
 import type { DistribusiItem } from "./DistribusiClient"

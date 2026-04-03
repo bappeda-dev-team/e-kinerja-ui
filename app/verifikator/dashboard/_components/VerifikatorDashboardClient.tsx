@@ -1,3 +1,5 @@
+// app/verifikator/dashboard/_components/VerifikatorDashboardClient.tsx
+
 "use client"
 
 import { Fragment, useEffect, useMemo, useState } from "react"

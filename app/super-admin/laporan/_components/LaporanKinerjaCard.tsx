@@ -1,3 +1,5 @@
+// app/super-admin/laporan/_components/LaporanKinerjaCard.tsx
+
 "use client"
 
 import { MoreVertical, SendHorizonal, Download, Paperclip } from "lucide-react"

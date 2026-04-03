@@ -1,3 +1,5 @@
+// data/dummy-distribusi.ts
+
 import { dummyPermintaan } from "./dummy-permintaan"
 
 export const dummyDistribusi = [

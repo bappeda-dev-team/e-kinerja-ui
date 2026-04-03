@@ -1,3 +1,5 @@
+// app/super-admin/permintaan/_components/PermintaanTable.tsx
+
 "use client"
 
 import * as React from "react"

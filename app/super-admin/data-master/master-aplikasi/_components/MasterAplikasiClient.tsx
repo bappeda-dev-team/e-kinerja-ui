@@ -1,3 +1,5 @@
+// app/super-admin/data-master/master-aplikasi/_components/MasterAplikasiClient.tsx
+
 'use client'
 
 import * as React from "react"

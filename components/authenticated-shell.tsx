@@ -1,3 +1,5 @@
+// components/authenticated-shell.tsx
+
 "use client"
 
 import dynamic from "next/dynamic"

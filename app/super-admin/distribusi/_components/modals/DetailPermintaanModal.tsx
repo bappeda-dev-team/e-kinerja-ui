@@ -1,3 +1,5 @@
+// app/super-admin/distribusi/_components/modals/DetailPermintaanModal.tsx
+
 "use client"
 
 import {

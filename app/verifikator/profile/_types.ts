@@ -1,3 +1,5 @@
+// app/verifikator/profile/_types.ts
+
 export interface ProfileRole {
   id: string
   name: string

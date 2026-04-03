@@ -1,3 +1,5 @@
+// app/super-admin/verifikasi/_components/VerifikasiCard.tsx
+
 "use client"
 
 import { MoreVertical } from "lucide-react"

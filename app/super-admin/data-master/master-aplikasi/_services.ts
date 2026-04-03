@@ -1,3 +1,5 @@
+// app/super-admin/data-master/master-aplikasi/_services.ts
+
 import { fetchApi } from "@/lib/fetcher";
 import { APIResponse } from "@/types/api";
 import { CreateMasterAplikasiRequest, MasterAplikasi } from "./_types";

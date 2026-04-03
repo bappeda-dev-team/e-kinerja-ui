@@ -1,3 +1,5 @@
+// app/super-admin/permintaan/_components/modals/EditPermintaan.tsx
+
 "use client"
 
 import AddPermintaan from "./AddPermintaan"

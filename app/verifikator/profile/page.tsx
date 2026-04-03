@@ -1,3 +1,5 @@
+// app/verifikator/profile/page.tsx
+
 import ProfileClient from "./_components/ProfileClient"
 
 export default function Page() {

@@ -1,3 +1,5 @@
+// app/super-admin/settings/_components/SettingsClient.tsx
+
 "use client"
 
 import { useState } from "react"

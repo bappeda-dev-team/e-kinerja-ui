@@ -1,3 +1,5 @@
+// app/programmer/profile/_components/ProfileClient.tsx
+
 "use client"
 
 import { useEffect, useRef, useState } from "react"

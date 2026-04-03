@@ -1,3 +1,5 @@
+// app/layout.tsx
+
 import type { Metadata } from "next"
 import { Nunito_Sans, JetBrains_Mono } from "next/font/google" // Ganti Inter ke Nunito_Sans
 import { Toaster } from "sonner"

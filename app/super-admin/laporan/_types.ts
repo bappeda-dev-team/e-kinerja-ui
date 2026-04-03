@@ -1,3 +1,5 @@
+// app/super-admin/laporan/_types.ts
+
 export interface APIResponse<T> {
   status: number
   message: string

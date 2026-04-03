@@ -1,3 +1,5 @@
+// app/programmer/profile/_types.ts
+
 export interface ProfileRole {
   id: string
   name: string

@@ -1,3 +1,5 @@
+// app/super-admin/dashboard/_components/DashboardClient.tsx
+
 "use client"
 
 import { useEffect, useState } from "react"

@@ -1,3 +1,5 @@
+// app/super-admin/distribusi/_components/modals/KomentarModal.tsx
+
 "use client"
 
 import { useState } from "react"

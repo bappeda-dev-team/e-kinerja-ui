@@ -1,3 +1,5 @@
+// lib/roles.ts
+
 export type RoleName = "super_admin" | "admin" | "programmer" | "level2"
 
 export const ROLE_ID_MAP: Record<string, RoleName> = {

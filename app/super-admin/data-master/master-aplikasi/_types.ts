@@ -1,3 +1,5 @@
+// app/super-admin/data-master/master-aplikasi/_types.ts
+
 export interface CreateMasterAplikasiRequest {
     name: string
 }

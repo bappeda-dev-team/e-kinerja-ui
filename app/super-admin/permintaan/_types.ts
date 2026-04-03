@@ -1,3 +1,5 @@
+// app/super-admin/permintaan/_types.ts
+
 export interface PermintaanPemda {
   id: string
   name: string

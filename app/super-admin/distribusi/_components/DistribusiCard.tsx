@@ -1,3 +1,5 @@
+// app/super-admin/distribusi/_components/DistribusiCard.tsx
+
 "use client"
 
 import { MoreVertical, MessageSquare, Users } from "lucide-react"

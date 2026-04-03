@@ -1,3 +1,5 @@
+// app/super-admin/distribusi/_components/DistribusiTable.tsx
+
 "use client"
 
 import { Fragment, useMemo, useState } from "react"

@@ -1,3 +1,5 @@
+// app/super-admin/verifikasi/_components/VerifikasiClient.tsx
+
 "use client"
 
 import * as React from "react"

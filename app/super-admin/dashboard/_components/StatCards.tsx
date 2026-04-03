@@ -1,3 +1,5 @@
+// app/super-admin/dashboard/_components/StatCards.tsx
+
 import Link from "next/link"
 import { ClipboardList, Share2, FileText, TrendingUp } from "lucide-react"
 

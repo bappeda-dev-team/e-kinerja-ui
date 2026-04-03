@@ -1,3 +1,5 @@
+// app/super-admin/dashboard/_types.ts
+
 export interface DashboardPemda {
   id: string
   name: string

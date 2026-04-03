@@ -1,3 +1,5 @@
+// app/super-admin/data-master/master-user/_components/MasterUserTable.tsx
+
 "use client"
 
 import * as React from "react"

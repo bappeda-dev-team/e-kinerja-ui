@@ -1,3 +1,5 @@
+// app/super-admin/dashboard/_services.ts
+
 import { fetchApi } from "@/lib/fetcher"
 import { APIResponse } from "@/types/api"
 import type { DashboardResponse } from "./_types"

@@ -1,3 +1,5 @@
+// app/super-admin/verifikasi/_services.ts
+
 import { fetchApi } from "@/lib/fetcher";
 import { APIResponse } from "@/types/api";
 import { VerifikasiRequest, VerifikasiResponse } from "./_types";

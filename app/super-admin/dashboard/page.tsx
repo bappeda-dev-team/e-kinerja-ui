@@ -1,3 +1,5 @@
+// app/super-admin/dashboard/page.tsx
+
 import { getServerSession } from "next-auth"
 import { authOptions } from "@/app/api/auth/[...nextauth]/route"
 import DashboardClient from "./_components/DashboardClient"

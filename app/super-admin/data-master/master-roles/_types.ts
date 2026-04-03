@@ -1,3 +1,5 @@
+// app/super-admin/data-master/master-roles/_types.ts
+
 export interface Roles {
     id?: string;
     name?: string;
