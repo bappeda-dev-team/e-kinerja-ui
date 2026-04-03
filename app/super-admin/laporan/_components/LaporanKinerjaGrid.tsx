@@ -41,7 +41,7 @@ export default function LaporanKinerjaGrid({ data, loading, showTable, onEdit, o
           <table className="w-full text-sm">
             <thead>
               <tr className="bg-[#F1F4F9] text-[#202224] font-bold text-left">
-                <th className="px-5 py-3 w-8">No</th>
+                <th className="px-5 py-3 w-8">No.</th>
                 <th className="px-5 py-3">Pemda</th>
                 <th className="px-5 py-3">Aplikasi</th>
                 <th className="px-5 py-3">Progress</th>

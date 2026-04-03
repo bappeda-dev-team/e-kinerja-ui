@@ -123,15 +123,15 @@ function LampiranSection({ lampiran }: { lampiran: string[] }) {
 
 function PermintaanCard({ item, onEdit, onDelete }: { item: PermintaanResponse; onEdit: any; onDelete: any }) {
   return (
-    <div className="bg-white rounded-2xl shadow-[6px_6px_54px_rgba(0,0,0,0.05)] p-4 space-y-3 border border-gray-50">
+    <div className="space-y-3 rounded-2xl border border-gray-50 bg-white p-4 shadow-[6px_6px_54px_rgba(0,0,0,0.05)] sm:p-5">
       <div className="flex items-start gap-3">
         <PemdaAvatar nama={item.pemda?.name} logo={item.pemda?.logo} />
         <div className="flex-1 min-w-0">
-          <p className="font-bold text-sm text-[#202224] leading-snug">{item.pemda?.name}</p>
-          <p className="text-xs text-[#797A7C] mt-0.5">
-            <span className="font-semibold">{item.aplikasi?.name}</span>
+          <p className="line-clamp-2 font-bold text-sm leading-snug text-[#202224] sm:text-[15px]">{item.pemda?.name}</p>
+          <p className="mt-0.5 break-words text-xs leading-5 text-[#797A7C] sm:text-[13px]">
+            <span className="font-semibold break-all">{item.aplikasi?.name}</span>
             <span className="mx-1">·</span>
-            {item.menu}
+            <span className="break-words">{item.menu}</span>
           </p>
         </div>
         <DropdownMenu>
@@ -153,14 +153,14 @@ function PermintaanCard({ item, onEdit, onDelete }: { item: PermintaanResponse; 
       
       <div className="border-t border-black/5" />
       
-      <div className="space-y-2">
-        <div className="flex items-start gap-2">
+      <div className="space-y-2.5">
+        <div className="flex items-start gap-2.5">
           <InlineBadge label="Awal" color="orange" />
-          <p className="text-xs text-[#797A7C] leading-relaxed">{item.kondisi_awal}</p>
+          <p className="min-w-0 flex-1 break-words text-xs leading-6 text-[#797A7C] sm:text-sm">{item.kondisi_awal}</p>
         </div>
-        <div className="flex items-start gap-2">
+        <div className="flex items-start gap-2.5">
           <InlineBadge label="Target" color="green" />
-          <p className="text-xs text-[#797A7C] leading-relaxed">{item.kondisi_diharapkan}</p>
+          <p className="min-w-0 flex-1 break-words text-xs leading-6 text-[#797A7C] sm:text-sm">{item.kondisi_diharapkan}</p>
         </div>
       </div>
 
@@ -171,7 +171,7 @@ function PermintaanCard({ item, onEdit, onDelete }: { item: PermintaanResponse; 
         </>
       )}
 
-      <p className="text-xs font-bold text-red-500">
+      <p className="text-sm font-bold text-red-500">
         Deadline: <span className="font-normal">{formatTgl(item.tanggal_deadline || "")}</span>
       </p>
     </div>
@@ -240,7 +240,7 @@ export default function PermintaanTable({ data, showTable, onEdit, onDelete }: P
   }
 
   return (
-    <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+    <div className="grid grid-cols-1 gap-4 sm:gap-5 xl:grid-cols-3">
       {data.map((item) => (
         <PermintaanCard key={item.id} item={item} onEdit={onEdit} onDelete={setDeleteId} />
       ))}

@@ -7,14 +7,12 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "
 import { Button } from "@/components/ui/button"
 import { Textarea } from "@/components/ui/textarea"
 import { Label } from "@/components/ui/label"
-import { Input } from "@/components/ui/input"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import type { VerifikasiItem } from "../VerifikasiClient"
 
 export default function VerifikasiModal({ data, onClose, onSave }: { data: VerifikasiItem, onClose: () => void, onSave: (i: VerifikasiItem) => void }) {
   const [komentar, setKomentar] = useState(data.komentar || "")
   const [status, setStatus] = useState(data.status)
-  const [deadline, setDeadline] = useState(data.deadline || "")
 
   return (
     <Dialog open onOpenChange={onClose}>
@@ -22,8 +20,8 @@ export default function VerifikasiModal({ data, onClose, onSave }: { data: Verif
         <DialogHeader><DialogTitle>Verifikasi Laporan</DialogTitle></DialogHeader>
         <div className="space-y-4 py-2">
           <div className="bg-gray-50 p-3 rounded text-xs">
-            <p className="font-bold">{data.nama_pemda}</p>
-            <p>{data.aplikasi} • {data.menu}</p>
+            <p className="font-bold">{data.programmer}</p>
+            <p>{data.laporan_label} • {data.verifikator || "Belum ada verifikator"}</p>
           </div>
           <div className="space-y-1">
             <Label>Status</Label>
@@ -40,16 +38,10 @@ export default function VerifikasiModal({ data, onClose, onSave }: { data: Verif
             <Label>Komentar</Label>
             <Textarea value={komentar} onChange={(e) => setKomentar(e.target.value)} placeholder="Input hasil cek..." rows={3} />
           </div>
-          {status === "revisi" && (
-            <div className="space-y-1">
-              <Label>Deadline</Label>
-              <Input type="date" value={deadline} onChange={(e) => setDeadline(e.target.value)} />
-            </div>
-          )}
         </div>
         <DialogFooter>
           <Button variant="outline" onClick={onClose}>Batal</Button>
-          <Button onClick={() => onSave({ ...data, komentar, status, deadline })}>Simpan</Button>
+          <Button onClick={() => onSave({ ...data, komentar, status })}>Simpan</Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>

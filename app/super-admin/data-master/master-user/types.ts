@@ -25,3 +25,11 @@ export interface UserRequest {
   profile_picture?: string
   is_active?: boolean
 }
+
+export interface RegisterUserRequest {
+  role_id: string
+  username: string
+  full_name: string
+  password: string
+  file?: File | null
+}

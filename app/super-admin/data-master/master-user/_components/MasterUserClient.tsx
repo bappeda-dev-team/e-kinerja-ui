@@ -11,7 +11,23 @@ import AddMasterUser from "./modals/AddMasterUser"
 import EditMasterUser from "./modals/EditMasterUser"
 
 import { getUsers, deleteUser, createUser, updateUser } from "../services"
-import type { UserResponse, UserRequest } from "../types"
+import type { RegisterUserRequest, UserResponse, UserRequest } from "../types"
+
+function getErrorMessage(payload: any, fallback: string) {
+  const fieldErrors = payload?.errors
+
+  if (fieldErrors && typeof fieldErrors === "object") {
+    const firstError = Object.values(fieldErrors)
+      .flat()
+      .find((value) => typeof value === "string")
+
+    if (typeof firstError === "string" && firstError.trim()) {
+      return firstError
+    }
+  }
+
+  return payload?.message || fallback
+}
 
 export default function MasterUserClient() {
   const [data, setData] = useState<UserResponse[]>([])
@@ -52,7 +68,7 @@ export default function MasterUserClient() {
     }
   }
 
-  const handleAdd = async (val: UserRequest) => {
+  const handleAdd = async (val: RegisterUserRequest) => {
     try {
       const res = await createUser(val)
       if (res.status === 200 || res.status === 201) {
@@ -60,7 +76,7 @@ export default function MasterUserClient() {
         setShowAdd(false)
         loadData()
       } else {
-        toast.error(res.data?.message || "Gagal menambah user")
+        toast.error(getErrorMessage(res.data, "Gagal menambah user"))
       }
     } catch (err: any) {
       toast.error(err.message || "Gagal menambah user")
@@ -104,13 +120,13 @@ export default function MasterUserClient() {
             </button>
           )}
 
-          {/* <button
+          <button
             onClick={() => setShowAdd(true)}
             className="inline-flex items-center gap-2 bg-primary hover:bg-primary/90 text-primary-foreground px-4 py-2 rounded-md font-bold text-sm transition"
           >
             <Plus className="size-4" />
             Tambah User
-          </button> */}
+          </button>
         </div>
       </div>
 

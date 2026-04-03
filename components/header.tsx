@@ -91,11 +91,11 @@ export function Header({ title, session }: HeaderProps) {
     .toUpperCase() || "U"
 
   return (
-    <header className="flex h-16 items-center justify-between border-b bg-background px-6">
+    <header className="flex h-16 items-center justify-between border-b bg-background px-3 sm:px-6">
 
       {/* LEFT */}
-      <div className="flex items-center gap-3">
-        <h1 className="text-lg font-semibold tracking-tight">
+      <div className="flex min-w-0 items-center gap-3">
+        <h1 className="truncate text-sm font-semibold tracking-tight sm:text-lg">
           {title}
         </h1>
       </div>

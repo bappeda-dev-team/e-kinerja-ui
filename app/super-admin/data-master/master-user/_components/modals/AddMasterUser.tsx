@@ -2,7 +2,7 @@
 
 'use client'
 
-import { useState } from "react"
+import { useEffect, useMemo, useState } from "react"
 import { toast } from "sonner"
 
 import {
@@ -25,34 +25,69 @@ import {
   SelectValue,
 } from "@/components/ui/select"
 
-import type { UserRequest } from "../../types"
+import { getRoles } from "@/app/super-admin/data-master/master-roles/services"
+import type { Roles } from "@/app/super-admin/data-master/master-roles/types"
+import type { RegisterUserRequest } from "../../types"
 
 interface Props {
   open: boolean
   onOpenChange: (open: boolean) => void
-  onSubmit: (data: UserRequest) => void
+  onSubmit: (data: RegisterUserRequest) => void
 }
 
-const roles = [
-  { value: "super_admin", label: "Super Admin" },
-  { value: "admin", label: "Admin" },
-  { value: "programmer", label: "Programmer - Level 1" },
-  { value: "verifikator", label: "Verifikator - Level 2" },
-]
+function normalizeRoleLabel(role: Roles) {
+  return role.description || role.name || "Tanpa Nama Role"
+}
 
 export default function AddMasterUser({
   open,
   onOpenChange,
   onSubmit,
 }: Props) {
-
   const [username, setUsername] = useState("")
   const [fullName, setFullName] = useState("")
   const [password, setPassword] = useState("")
   const [roleId, setRoleId] = useState("")
+  const [file, setFile] = useState<File | null>(null)
+  const [roles, setRoles] = useState<Roles[]>([])
+  const [loadingRoles, setLoadingRoles] = useState(false)
+
+  useEffect(() => {
+    if (!open) return
+
+    const loadRoles = async () => {
+      try {
+        setLoadingRoles(true)
+        const res = await getRoles()
+        if (res.status === 200) {
+          setRoles(res.data?.data ?? [])
+        } else {
+          toast.error(res.data?.message || "Gagal memuat role")
+        }
+      } catch (error: any) {
+        toast.error(error.message || "Gagal memuat role")
+      } finally {
+        setLoadingRoles(false)
+      }
+    }
+
+    loadRoles()
+  }, [open])
+
+  const selectedRole = useMemo(
+    () => roles.find((role) => role.id === roleId),
+    [roleId, roles]
+  )
+
+  const resetForm = () => {
+    setUsername("")
+    setFullName("")
+    setPassword("")
+    setRoleId("")
+    setFile(null)
+  }
 
   const handleSubmit = () => {
-
     if (!username || !fullName || !password || !roleId) {
       toast.error("Semua field wajib diisi!")
       return
@@ -63,35 +98,50 @@ export default function AddMasterUser({
       full_name: fullName,
       password,
       role_id: roleId,
+      file,
     })
 
-    setUsername("")
-    setFullName("")
-    setPassword("")
-    setRoleId("")
-
+    resetForm()
     onOpenChange(false)
   }
 
   return (
-
-    <Dialog open={open} onOpenChange={onOpenChange}>
-
-      <DialogContent>
-
+    <Dialog
+      open={open}
+      onOpenChange={(nextOpen) => {
+        if (!nextOpen) resetForm()
+        onOpenChange(nextOpen)
+      }}
+    >
+      <DialogContent className="sm:max-w-[560px]">
         <DialogHeader>
           <DialogTitle>Tambah User</DialogTitle>
         </DialogHeader>
 
         <div className="space-y-6">
-
-          {/* USERNAME */}
           <div>
+            <Label className="text-xs font-semibold uppercase">Role</Label>
+            <div className="mt-2">
+              <Select value={roleId} onValueChange={setRoleId}>
+                <SelectTrigger>
+                  <SelectValue placeholder={loadingRoles ? "Memuat role..." : "Pilih role user"} />
+                </SelectTrigger>
+                <SelectContent>
+                  {roles.map((role) => (
+                    <SelectItem key={role.id} value={role.id!}>
+                      {normalizeRoleLabel(role)}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <p className="mt-1 text-xs text-muted-foreground">
+              *Gunakan role ID dari master role. {selectedRole ? `Role terpilih: ${normalizeRoleLabel(selectedRole)} (${selectedRole.id})` : "Role user harus dipilih"}
+            </p>
+          </div>
 
-            <Label className="uppercase text-xs font-semibold">
-              Username :
-            </Label>
-
+          <div>
+            <Label className="text-xs font-semibold uppercase">Username</Label>
             <div className="mt-2">
               <Input
                 placeholder="masukkan username"
@@ -99,20 +149,11 @@ export default function AddMasterUser({
                 onChange={(e) => setUsername(e.target.value)}
               />
             </div>
-
-            <p className="text-xs text-muted-foreground mt-1">
-              *Username harus terisi
-            </p>
-
+            <p className="mt-1 text-xs text-muted-foreground">*Username harus terisi</p>
           </div>
 
-          {/* FULL NAME */}
           <div>
-
-            <Label className="uppercase text-xs font-semibold">
-              Full Name :
-            </Label>
-
+            <Label className="text-xs font-semibold uppercase">Full Name</Label>
             <div className="mt-2">
               <Input
                 placeholder="masukkan nama lengkap"
@@ -120,20 +161,11 @@ export default function AddMasterUser({
                 onChange={(e) => setFullName(e.target.value)}
               />
             </div>
-
-            <p className="text-xs text-muted-foreground mt-1">
-              *Nama lengkap harus terisi
-            </p>
-
+            <p className="mt-1 text-xs text-muted-foreground">*Nama lengkap harus terisi</p>
           </div>
 
-          {/* PASSWORD */}
           <div>
-
-            <Label className="uppercase text-xs font-semibold">
-              Password :
-            </Label>
-
+            <Label className="text-xs font-semibold uppercase">Password</Label>
             <div className="mt-2">
               <Input
                 type="password"
@@ -142,73 +174,32 @@ export default function AddMasterUser({
                 onChange={(e) => setPassword(e.target.value)}
               />
             </div>
-
-            <p className="text-xs text-muted-foreground mt-1">
-              *Password harus terisi
-            </p>
-
+            <p className="mt-1 text-xs text-muted-foreground">*Password harus terisi</p>
           </div>
 
-          {/* ROLE */}
           <div>
-
-            <Label className="uppercase text-xs font-semibold">
-              Role :
-            </Label>
-
+            <Label className="text-xs font-semibold uppercase">File</Label>
             <div className="mt-2">
-
-              <Select
-                value={roleId}
-                onValueChange={(value) => setRoleId(value)}
-              >
-
-                <SelectTrigger>
-                  <SelectValue placeholder="pilih role user" />
-                </SelectTrigger>
-
-                <SelectContent>
-
-                  {roles.map(role => (
-                    <SelectItem
-                      key={role.value}
-                      value={role.value}
-                    >
-                      {role.label}
-                    </SelectItem>
-                  ))}
-
-                </SelectContent>
-
-              </Select>
-
+              <Input
+                type="file"
+                onChange={(e) => setFile(e.target.files?.[0] ?? null)}
+              />
             </div>
-
-            <p className="text-xs text-muted-foreground mt-1">
-              *Role user harus dipilih
+            <p className="mt-1 text-xs text-muted-foreground">
+              {file ? `File terpilih: ${file.name}` : "Opsional. Upload foto profil jika ada."}
             </p>
-
           </div>
-
         </div>
 
         <DialogFooter>
-
-          <Button
-            variant="outline"
-            onClick={() => onOpenChange(false)}
-          >
+          <Button variant="outline" onClick={() => onOpenChange(false)}>
             Batal
           </Button>
-
           <Button onClick={handleSubmit}>
             Simpan
           </Button>
-
         </DialogFooter>
-
       </DialogContent>
-
     </Dialog>
   )
 }

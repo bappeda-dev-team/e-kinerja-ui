@@ -182,7 +182,7 @@ function RekapPerUser({ data }: { data: LaporanKinerjaItem[] }) {
                     <table className="w-full text-sm">
                       <thead>
                         <tr className="bg-[#F8F9FC] text-[#202224]/50 text-xs font-semibold">
-                          <th className="px-5 py-2.5 text-left w-8">#</th>
+                          <th className="px-5 py-2.5 text-left w-8">No.</th>
                           <th className="px-5 py-2.5 text-left">Pemda</th>
                           <th className="px-5 py-2.5 text-left">Aplikasi</th>
                           <th className="px-5 py-2.5 text-left">Menu</th>

@@ -2,194 +2,183 @@
 
 "use client"
 
-import { useState } from "react"
-import { MoreVertical, ArrowLeft } from "lucide-react"
-import VerifikasiCard from "./VerifikasiCard"
+import { Fragment, useMemo, useState } from "react"
+import { LayoutGrid, MoreVertical, Table2 } from "lucide-react"
+
+import {
+  Pagination,
+  PaginationContent,
+  PaginationEllipsis,
+  PaginationItem,
+  PaginationLink,
+  PaginationNext,
+  PaginationPrevious,
+} from "@/components/ui/pagination"
+
 import type { VerifikasiItem } from "./VerifikasiClient"
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
+import { VerifikasiCard, VerifikasiPermintaanCard, VerifikasiSelesaiCard } from "./VerifikasiCard"
+import { VerifikasiTable } from "./VerifikasiTable"
 
 interface Props {
   data: VerifikasiItem[]
-  showTable: boolean
   onVerify: (item: VerifikasiItem) => void
 }
 
-const COLUMNS: { key: VerifikasiItem["status"]; label: string; color: string; bg: string }[] = [
-  { key: "menunggu", label: "Menunggu", color: "text-[#123F84]", bg: "bg-[#E4EBFA]" },
-  { key: "revisi", label: "Revisi", color: "text-[#E14C8E]", bg: "bg-[#FDEDF5]" },
-  { key: "terverifikasi", label: "Terverifikasi", color: "text-[#00B69B]", bg: "bg-[#CCF0EB]" },
-]
+export default function VerifikasiBoard({ data, onVerify }: Props) {
+  const [activeView, setActiveView] = useState<"table" | "permintaan" | "distribusi" | "selesai">("permintaan")
+  const [currentPage, setCurrentPage] = useState(1)
+  const cardPerPage = 9
 
-type ViewAll = "menunggu" | "revisi" | "terverifikasi" | null
+  const didistribusikan = data.filter((item) => item.status === "menunggu" || item.status === "revisi")
+  const selesai = data.filter((item) => item.status === "terverifikasi")
 
-function formatTgl(d?: string) {
-  if (!d) return "-"
-  return new Date(d).toLocaleDateString("id-ID", { day: "numeric", month: "short", year: "numeric" })
-}
+  const tabs = [
+    { key: "table" as const, label: "Lihat Semua (Tabel)", count: data.length, icon: Table2, activeClass: "border-[#D6D9E2] bg-white text-[#202224]" },
+    { key: "permintaan" as const, label: "Permintaan", count: data.length, activeClass: "border-[#8EB9F7] bg-[#BFDDFD] text-[#2359A8]" },
+    { key: "distribusi" as const, label: "Didistribusikan", count: didistribusikan.length, activeClass: "border-[#F3C1D8] bg-[#FDE7F2] text-[#D14C87]" },
+    { key: "selesai" as const, label: "Selesai", count: selesai.length, activeClass: "border-[#BFE9E2] bg-[#DDF7F1] text-[#00A58E]" },
+  ]
 
-// ✅ Tabel gabungan semua status dengan Logo
-function TableView({ data, onVerify }: { data: VerifikasiItem[]; onVerify: (item: VerifikasiItem) => void }) {
-  const statusBadge = (status: VerifikasiItem["status"]) => {
-    if (status === "menunggu") return <span className="px-2 py-0.5 rounded-full text-xs font-semibold bg-[#E4EBFA] text-[#123F84]">Menunggu</span>
-    if (status === "revisi") return <span className="px-2 py-0.5 rounded-full text-xs font-semibold bg-[#FDEDF5] text-[#E14C8E]">Revisi</span>
-    return <span className="px-2 py-0.5 rounded-full text-xs font-semibold bg-[#CCF0EB] text-[#00B69B]">Terverifikasi</span>
-  }
+  const activeItems = useMemo(() => {
+    if (activeView === "distribusi") return didistribusikan
+    if (activeView === "selesai") return selesai
+    return data
+  }, [activeView, data, didistribusikan, selesai])
+
+  const totalPages = Math.max(1, Math.ceil(activeItems.length / cardPerPage))
+  const paginatedItems = useMemo(() => {
+    const startIndex = (currentPage - 1) * cardPerPage
+    return activeItems.slice(startIndex, startIndex + cardPerPage)
+  }, [activeItems, currentPage])
+
+  const visiblePages = useMemo(() => {
+    if (totalPages <= 5) {
+      return Array.from({ length: totalPages }, (_, index) => index + 1)
+    }
+
+    if (currentPage <= 3) return [1, 2, 3, 4, totalPages]
+    if (currentPage >= totalPages - 2) return [1, totalPages - 3, totalPages - 2, totalPages - 1, totalPages]
+    return [1, currentPage - 1, currentPage, currentPage + 1, totalPages]
+  }, [currentPage, totalPages])
 
   return (
-    <div className="bg-white rounded-2xl shadow-[6px_6px_54px_rgba(0,0,0,0.05)] overflow-hidden">
-      <div className="px-4 py-3 border-b border-gray-100 flex items-center gap-2">
-        <span className="text-sm font-bold text-[#202224]">Semua Verifikasi</span>
-        <span className="px-2 py-0.5 rounded-full text-xs font-bold bg-gray-100 text-[#202224]/60">{data.length}</span>
+    <div className="space-y-6">
+      <div className="flex flex-wrap gap-4">
+        {tabs.map((tab) => {
+          const isActive = activeView === tab.key
+          const Icon = tab.icon ?? LayoutGrid
+
+          return (
+            <button
+              key={tab.key}
+              type="button"
+              onClick={() => {
+                setActiveView(tab.key)
+                setCurrentPage(1)
+              }}
+              className={`inline-flex items-center gap-3 rounded-[18px] border px-5 py-3 text-sm font-bold shadow-[0_4px_18px_rgba(0,0,0,0.08)] transition ${
+                isActive ? tab.activeClass : "border-[#D6D9E2] bg-[#EDEFF5] text-[#202224]"
+              }`}
+            >
+              <Icon className="size-5" />
+              <span>{tab.key === "table" ? tab.label : `${tab.label} (${tab.count})`}</span>
+              <MoreVertical className="size-4 text-[#6D6F73]" />
+            </button>
+          )
+        })}
       </div>
-      <div className="overflow-x-auto">
-        <table className="w-full text-sm">
-          <thead>
-            <tr className="border-b border-gray-100 bg-gray-50/50">
-              <th className="text-left px-4 py-3 text-xs font-semibold text-[#202224]/50 w-8">#</th>
-              <th className="text-left px-4 py-3 text-xs font-semibold text-[#202224]/50">Status</th>
-              <th className="text-left px-4 py-3 text-xs font-semibold text-[#202224]/50">Pemda</th>
-              <th className="text-left px-4 py-3 text-xs font-semibold text-[#202224]/50">Aplikasi</th>
-              <th className="text-left px-4 py-3 text-xs font-semibold text-[#202224]/50">Menu</th>
-              <th className="text-left px-4 py-3 text-xs font-semibold text-[#202224]/50">Progress</th>
-              <th className="text-left px-4 py-3 text-xs font-semibold text-[#202224]/50">Verifikator</th>
-              <th className="text-left px-4 py-3 text-xs font-semibold text-[#202224]/50">Diajukan</th>
-              <th className="px-4 py-3 w-8"></th>
-            </tr>
-          </thead>
-          <tbody>
-            {data.length === 0 ? (
-              <tr>
-                <td colSpan={9} className="text-center py-12 text-sm text-[#202224]/40">Belum ada data.</td>
-              </tr>
-            ) : data.map((item, i) => (
-              <tr key={item.id} className="border-b border-gray-50 hover:bg-gray-50/50 transition">
-                <td className="px-4 py-3 text-xs text-[#202224]/40">{i + 1}</td>
-                <td className="px-4 py-3">{statusBadge(item.status)}</td>
-                <td className="px-4 py-3">
-                  <div className="flex items-center gap-2">
-                    {/* ✅ Logo Pemda di Tabel */}
-                    <div className="w-7 h-7 rounded-lg bg-white border border-gray-100 flex items-center justify-center shrink-0 overflow-hidden">
-                      {item.logo_pemda ? (
-                        <img src={item.logo_pemda} className="w-full h-full object-contain p-0.5" alt="logo" />
-                      ) : (
-                        <span className="text-[10px] font-bold text-[#00B69B]">
-                          {item.nama_pemda?.slice(0, 2).toUpperCase()}
-                        </span>
-                      )}
-                    </div>
-                    <span className="font-semibold text-xs text-[#202224] whitespace-nowrap">{item.nama_pemda}</span>
-                  </div>
-                </td>
-                <td className="px-4 py-3 text-xs text-[#797A7C] whitespace-nowrap">{item.aplikasi}</td>
-                <td className="px-4 py-3 text-xs text-[#797A7C]">{item.menu}</td>
-                <td className="px-4 py-3 text-xs text-blue-600 italic max-w-[160px] truncate">
-                  {item.progres_deskripsi ? `"${item.progres_deskripsi}"` : "-"}
-                </td>
-                <td className="px-4 py-3 text-xs text-[#797A7C] whitespace-nowrap">{item.verifikator || "-"}</td>
-                <td className="px-4 py-3 text-xs text-[#797A7C] whitespace-nowrap">{formatTgl(item.tanggal_diajukan)}</td>
-                <td className="px-4 py-3">
-                  <button
-                    onClick={() => onVerify(item)}
-                    className="px-3 py-1.5 bg-blue-50 hover:bg-blue-100 text-blue-600 text-xs font-semibold rounded-lg transition whitespace-nowrap"
-                  >
-                    Proses
-                  </button>
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
-    </div>
-  )
-}
 
-export default function VerifikasiBoard({ data, showTable, onVerify }: Props) {
-  const [viewAll, setViewAll] = useState<ViewAll>(null)
-
-  // ✅ View Tabel
-  if (showTable) {
-    return <TableView data={data} onVerify={onVerify} />
-  }
-
-  // ✅ View Detail Kategori
-  if (viewAll) {
-    const col = COLUMNS.find((c) => c.key === viewAll)!
-    const items = data.filter((d) => d.status === viewAll)
-
-    return (
-      <div className="space-y-4">
-        <div className="flex items-center gap-3">
-          <button
-            onClick={() => setViewAll(null)}
-            className="flex items-center gap-2 text-sm font-semibold text-[#202224]/60 hover:text-[#202224] transition"
-          >
-            <ArrowLeft className="size-4" />
-            Kembali
-          </button>
-          <div className="flex items-center gap-2">
-            <div className={`${col.bg} w-6 h-6 rounded-full flex items-center justify-center`}>
-              <span className={`${col.color} text-xs font-bold`}>{items.length}</span>
+      {activeView === "table" ? (
+        <VerifikasiTable data={data} onVerify={onVerify} />
+      ) : (
+        <>
+          {paginatedItems.length === 0 ? (
+            <div className="rounded-[22px] border border-dashed border-[#D6D9E2] bg-white px-6 py-16 text-center text-sm text-[#202224]/50 shadow-[6px_6px_54px_rgba(0,0,0,0.05)]">
+              Belum ada data pada tab ini.
             </div>
-            <span className="text-lg font-bold text-[#202224]">{col.label}</span>
-          </div>
-        </div>
+          ) : (
+            <div className="grid grid-cols-1 gap-5 lg:grid-cols-2 xl:grid-cols-3">
+              {paginatedItems.map((item) => {
+                if (activeView === "permintaan") {
+                  return <VerifikasiPermintaanCard key={item.id} item={item} onVerify={onVerify} />
+                }
 
-        {items.length === 0 ? (
-          <div className="text-center py-16 text-sm text-[#202224]/40 bg-white rounded-2xl shadow-[6px_6px_54px_rgba(0,0,0,0.05)]">
-            Kosong
-          </div>
-        ) : (
-          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-            {items.map((item) => (
-              <VerifikasiCard key={item.id} item={item} onVerify={onVerify} />
-            ))}
-          </div>
-        )}
-      </div>
-    )
-  }
+                if (activeView === "selesai") {
+                  return <VerifikasiSelesaiCard key={item.id} item={item} onVerify={onVerify} />
+                }
 
-  // ✅ View Board Standar
-  return (
-    <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-      {COLUMNS.map((col) => {
-        const items = data.filter((d) => d.status === col.key)
-        return (
-          <div key={col.key} className="space-y-6">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-3">
-                <div className={`${col.bg} w-7 h-7 rounded-full flex items-center justify-center`}>
-                  <span className={`${col.color} text-xs font-bold`}>{items.length}</span>
-                </div>
-                <h3 className="text-xl font-bold text-black">{col.label}</h3>
+                return <VerifikasiCard key={item.id} item={item} onVerify={onVerify} />
+              })}
+            </div>
+          )}
+
+          <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+            <div className="flex items-center gap-3 text-[15px] text-[#202224]">
+              <span>Jumlah per halaman</span>
+              <div className="inline-flex items-center rounded-md bg-white px-4 py-2 font-semibold shadow-[0_4px_18px_rgba(0,0,0,0.06)]">
+                {cardPerPage}
               </div>
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <button className="p-1 hover:bg-gray-100 rounded-full transition">
-                    <MoreVertical className="size-4 text-gray-400" />
-                  </button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent align="end" className="w-32">
-                  <DropdownMenuItem onClick={() => setViewAll(col.key)}>
-                    Lihat Semua
-                  </DropdownMenuItem>
-                </DropdownMenuContent>
-              </DropdownMenu>
             </div>
 
-            <div className="space-y-4 min-h-[400px]">
-              {items.length === 0 ? (
-                <div className="h-24 border-2 border-dashed border-gray-100 rounded-xl flex items-center justify-center text-gray-300 text-sm italic">
-                  Kosong
-                </div>
-              ) : (
-                items.map((item) => <VerifikasiCard key={item.id} item={item} onVerify={onVerify} />)
-              )}
-            </div>
+            <p className="text-[15px] text-[#202224]/80">
+              {activeItems.length === 0 ? "0-0" : `${(currentPage - 1) * cardPerPage + 1}-${Math.min(currentPage * cardPerPage, activeItems.length)}`} dari {activeItems.length}
+            </p>
+
+            <Pagination className="mx-0 w-auto justify-start md:justify-end">
+              <PaginationContent>
+                <PaginationItem>
+                  <PaginationPrevious
+                    href="#"
+                    onClick={(event) => {
+                      event.preventDefault()
+                      if (currentPage > 1) setCurrentPage(currentPage - 1)
+                    }}
+                    className={currentPage === 1 ? "pointer-events-none opacity-50" : ""}
+                  />
+                </PaginationItem>
+
+                {visiblePages.map((page, index) => {
+                  const previousPage = visiblePages[index - 1]
+                  const showEllipsis = previousPage && page - previousPage > 1
+
+                  return (
+                    <Fragment key={page}>
+                      {showEllipsis ? (
+                        <PaginationItem>
+                          <PaginationEllipsis />
+                        </PaginationItem>
+                      ) : null}
+                      <PaginationItem>
+                        <PaginationLink
+                          href="#"
+                          isActive={currentPage === page}
+                          onClick={(event) => {
+                            event.preventDefault()
+                            setCurrentPage(page)
+                          }}
+                        >
+                          {page}
+                        </PaginationLink>
+                      </PaginationItem>
+                    </Fragment>
+                  )
+                })}
+
+                <PaginationItem>
+                  <PaginationNext
+                    href="#"
+                    onClick={(event) => {
+                      event.preventDefault()
+                      if (currentPage < totalPages) setCurrentPage(currentPage + 1)
+                    }}
+                    className={currentPage === totalPages ? "pointer-events-none opacity-50" : ""}
+                  />
+                </PaginationItem>
+              </PaginationContent>
+            </Pagination>
           </div>
-        )
-      })}
+        </>
+      )}
     </div>
   )
 }

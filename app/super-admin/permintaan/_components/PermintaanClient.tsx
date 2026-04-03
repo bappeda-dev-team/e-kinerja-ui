@@ -144,15 +144,16 @@ export default function PermintaanClient() {
   }
 
   return (
-    // ✅ BG-WHITE & PX-8/PY-8: Agar putih bersih dan margin lega
-    <div className="space-y-6 px-4">
-      <div className="flex items-center justify-between mb-4">
-        <h2 className="text-3xl font-bold font-nunito text-[#202224]">Permintaan Klien</h2>
-        <div className="flex items-center gap-3">
+    <div className="space-y-6 px-3 sm:px-4">
+      <div className="mb-4 flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+        <h2 className="font-nunito text-[2.1rem] leading-tight font-bold text-[#202224] sm:text-3xl">
+          Permintaan Klien
+        </h2>
+        <div className="flex w-full flex-col gap-3 sm:flex-row sm:flex-wrap lg:w-auto lg:justify-end">
           {/* ✅ Tombol Switch View persis seperti di Distribusi */}
           <button
             onClick={() => setShowTable(!showTable)}
-            className={`flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-semibold transition active:scale-95 ${
+            className={`inline-flex w-full items-center justify-center gap-2 rounded-xl px-4 py-3 text-sm font-semibold transition active:scale-95 sm:w-auto sm:px-5 sm:py-2.5 ${
               showTable 
                 ? "bg-[#4880FF] text-white shadow-md shadow-blue-200" 
                 : "bg-white text-[#202224] border border-gray-200 hover:border-[#4880FF] hover:text-[#4880FF]"
@@ -164,7 +165,7 @@ export default function PermintaanClient() {
 
           <button 
             onClick={() => setShowAdd(true)} 
-            className="inline-flex items-center gap-2 bg-[#4880FF] hover:bg-blue-600 text-white px-6 py-2.5 rounded-xl font-bold text-sm transition shadow-[0_4px_14px_0_rgba(72,128,255,0.39)] active:scale-95"
+            className="inline-flex w-full items-center justify-center gap-2 rounded-xl bg-[#4880FF] px-5 py-3 text-sm font-bold text-white shadow-[0_4px_14px_0_rgba(72,128,255,0.39)] transition hover:bg-blue-600 active:scale-95 sm:w-auto sm:px-6 sm:py-2.5"
           >
             <Plus className="size-4" /> Tambah Permintaan
           </button>
