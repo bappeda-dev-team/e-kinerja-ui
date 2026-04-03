@@ -1,6 +1,6 @@
 // app/programmer/laporan/page.tsx
 
-import LaporanKinerjaClient from "@/app/super-admin/laporan/_components/LaporanKinerjaClient"
+import LaporanKinerjaClient from "./_components/LaporanKinerjaClient"
 
 export default function ProgrammerLaporanPage() {
   return <LaporanKinerjaClient mode="full" />
