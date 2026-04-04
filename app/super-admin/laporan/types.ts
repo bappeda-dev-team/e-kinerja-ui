@@ -9,6 +9,7 @@ export interface APIResponse<T> {
 export interface LaporanRequest {
   laporan_progress: string
   permintaan_id: string
+  status?: string
 }
 
 export interface LaporanPermintaan {
@@ -44,6 +45,11 @@ export interface LaporanResponse {
   programmer: LaporanProgrammer
   laporan_progress: string
   status?: string
+  verifikasi?: {
+    id: string
+    komentar?: string | null
+    status_verified?: string
+  } | null
   created_at?: string
   updated_at?: string
 }
@@ -54,6 +60,11 @@ export interface LaporanKinerjaItem {
   permintaan: LaporanPermintaan
   programmer: LaporanProgrammer
   status?: string
+  verifikasi?: {
+    id: string
+    komentar?: string | null
+    status_verified?: string
+  } | null
   created_at?: string
   logo_pemda?: string // ✅ Tambahkan ini
 }

@@ -334,12 +334,12 @@ export default function ProgrammerDashboardClient() {
             ) : (
               <div className="space-y-5">
                 <div className="grid gap-5 md:grid-cols-2 xl:grid-cols-3">
-                  {paginatedItems.map((item) => {
+                  {paginatedItems.map((item, index) => {
                     const progressValue = getProgressValue(item.statusLabel)
                     const progressColor = getProgressColor(item.statusLabel)
 
                     return (
-                      <div key={item.id} className="rounded-lg border border-[#EEF0F5] bg-white p-4 shadow-[0px_2px_8px_rgba(0,0,0,0.06)]">
+                      <div key={`${item.id}-${item.updatedAt}-${index}`} className="rounded-lg border border-[#EEF0F5] bg-white p-4 shadow-[0px_2px_8px_rgba(0,0,0,0.06)]">
                         <div className="mb-3 flex items-start justify-between gap-2">
                           <div className="flex min-w-0 items-center gap-2">
                             <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-[#F5F6FA] text-xs font-bold text-[#202224]">
@@ -470,8 +470,8 @@ export default function ProgrammerDashboardClient() {
             <EmptyState label="Belum ada aktivitas laporan." />
           ) : (
             <div className="space-y-4">
-              {latestActivity.map((item) => (
-                <div key={item.id} className="flex items-start gap-3 rounded-2xl border border-[#F0F1F5] p-4">
+              {latestActivity.map((item, index) => (
+                <div key={`${item.id}-${item.updatedAt}-activity-${index}`} className="flex items-start gap-3 rounded-2xl border border-[#F0F1F5] p-4">
                   <div className="mt-0.5 flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-[#F5F6FA]">
                     <MessageSquareText className="h-5 w-5 text-[#202224]/70" />
                   </div>

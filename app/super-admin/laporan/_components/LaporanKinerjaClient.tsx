@@ -282,7 +282,8 @@ export default function LaporanKinerjaClient({ mode = "full" }: Props) {
           logo_pemda: pemdaLogo || ""
         }
       })
-      setData(mapped)
+      const unique = Array.from(new Map(mapped.map((m) => [m.id, m])).values())
+      setData(unique)
     } catch (err: any) {
       toast.error(err.message || "Terjadi kesalahan sistem")
     } finally {

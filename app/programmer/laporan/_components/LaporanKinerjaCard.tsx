@@ -7,10 +7,11 @@ import { Avatar, AvatarFallback } from "@/components/ui/avatar"
 import { Button } from "@/components/ui/button"
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
 import type { LaporanKinerjaItem } from "../types"
+import { getProgressBadgeClass, mapStatusToProgress } from "../utils"
 
 interface Props {
   item: LaporanKinerjaItem; onEdit: (item: LaporanKinerjaItem) => void; onDelete: (id: string) => void
-  onSubmitVerifikasi: (item: LaporanKinerjaItem) => void; isSubmitting?: boolean
+  onSubmitVerifikasi: (item: LaporanKinerjaItem) => void; isSubmitting?: boolean; isAlreadySubmitted?: boolean
 }
 
 function formatDate(iso?: string) {
@@ -22,21 +23,24 @@ function entityLabel(value?: string | { name: string }) {
   return typeof value === "string" ? value : value.name
 }
 
-export default function LaporanKinerjaCard({ item, onEdit, onDelete, onSubmitVerifikasi, isSubmitting }: Props) {
+export default function LaporanKinerjaCard({ item, onEdit, onDelete, onSubmitVerifikasi, isSubmitting, isAlreadySubmitted }: Props) {
   const programmerName = item.programmer?.full_name ?? "Programmer"
   const initials = programmerName.slice(0, 2).toUpperCase()
   const lampiran = item.permintaan?.lampiran ?? []
+  const isVerifikasiDisabled = Boolean(isSubmitting || item.status === "hijau" || isAlreadySubmitted)
+  const progressValue = mapStatusToProgress(item.status)
+  const progressBadgeClass = getProgressBadgeClass(progressValue)
 
   return (
-    <div className="rounded-2xl bg-white p-5 shadow-sm flex flex-col gap-3 border border-gray-50">
-      <div className="flex items-start justify-between">
-        <div className="flex items-center gap-3">
-          <div className="h-12 w-12 rounded-lg bg-white border flex items-center justify-center shrink-0 overflow-hidden">
+    <div className="flex flex-col gap-3 rounded-2xl border border-gray-50 bg-white p-4 shadow-sm sm:p-5">
+      <div className="flex items-start justify-between gap-3">
+        <div className="flex min-w-0 items-center gap-3">
+          <div className="flex h-12 w-12 shrink-0 items-center justify-center overflow-hidden rounded-lg border bg-white">
             {item.logo_pemda ? <img src={item.logo_pemda} className="w-full h-full object-contain p-1.5" /> : <span className="text-2xl">🏛️</span>}
           </div>
-          <div>
-            <p className="text-sm font-bold text-[#202224] leading-tight">{entityLabel(item.permintaan?.pemda)}</p>
-            <p className="text-xs text-blue-500 font-semibold">{entityLabel(item.permintaan?.aplikasi) || "E-Kinerja"}</p>
+          <div className="min-w-0">
+            <p className="line-clamp-2 text-base font-bold leading-tight text-[#202224] sm:text-sm">{entityLabel(item.permintaan?.pemda)}</p>
+            <p className="line-clamp-2 break-words text-sm font-semibold text-blue-500 sm:text-xs">{entityLabel(item.permintaan?.aplikasi) || "E-Kinerja"}</p>
           </div>
         </div>
         <DropdownMenu>
@@ -48,12 +52,12 @@ export default function LaporanKinerjaCard({ item, onEdit, onDelete, onSubmitVer
         </DropdownMenu>
       </div>
 
-      <div className="border-t pt-3 flex items-center gap-3">
-        <span className="px-2 py-0.5 bg-yellow-100 text-yellow-600 text-[10px] font-bold rounded-full">75%</span>
-        <p className="text-sm text-gray-600 line-clamp-2">{item.laporan_progress}</p>
+      <div className="flex items-start gap-3 border-t pt-3">
+        <span className={`inline-flex shrink-0 rounded-full px-3 py-1 text-xs font-bold ${progressBadgeClass}`}>{progressValue}%</span>
+        <p className="line-clamp-3 text-base leading-7 text-gray-600 sm:text-sm sm:leading-6">{item.laporan_progress}</p>
       </div>
 
-      <p className="text-[11px] font-bold text-red-500">Deadline: {formatDate(item.permintaan?.tanggal_deadline)}</p>
+      <p className="text-sm font-bold text-red-500">Deadline: {formatDate(item.permintaan?.tanggal_deadline)}</p>
 
       {lampiran.length > 0 && (
         <div className="flex flex-wrap gap-1.5 pt-1">
@@ -65,17 +69,17 @@ export default function LaporanKinerjaCard({ item, onEdit, onDelete, onSubmitVer
         </div>
       )}
 
-      <div className="border-t pt-3 flex items-center justify-between">
-        <div className="text-[10px] text-gray-400">Dibuat: {formatDate(item.created_at)}</div>
-        <div className="flex items-center gap-2">
+      <div className="flex flex-col gap-3 border-t pt-3 sm:flex-row sm:items-center sm:justify-between">
+        <div className="text-xs text-gray-400">Dibuat: {formatDate(item.created_at)}</div>
+        <div className="flex min-w-0 items-center gap-2">
           <Avatar className="h-7 w-7"><AvatarFallback className="bg-pink-100 text-pink-600 text-[10px]">{initials}</AvatarFallback></Avatar>
-          <span className="text-[11px] font-semibold text-gray-600">{programmerName}</span>
+          <span className="truncate text-xs font-semibold text-gray-600">{programmerName}</span>
         </div>
       </div>
 
-      <Button size="sm" className="w-full mt-2" disabled={isSubmitting || item.status === "hijau"} onClick={() => onSubmitVerifikasi(item)}>
+      <Button size="sm" className="mt-2 w-full py-5 text-sm" disabled={isVerifikasiDisabled} onClick={() => onSubmitVerifikasi(item)}>
         <SendHorizonal className="h-4 w-4 mr-2" />
-        {isSubmitting ? "Mengajukan..." : item.status === "hijau" ? "Terverifikasi" : "Ajukan Verifikasi"}
+        {isSubmitting ? "Mengajukan..." : isAlreadySubmitted ? "Sudah Diajukan" : item.status === "hijau" ? "Terverifikasi" : "Ajukan Verifikasi"}
       </Button>
     </div>
   )

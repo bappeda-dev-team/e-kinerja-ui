@@ -7,6 +7,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { X, ChevronDown } from "lucide-react"
 import { toast } from "sonner"
 import type { LaporanKinerjaItem } from "../../types"
+import { mapProgressToStatus, mapStatusToProgress } from "../../utils"
 
 interface Props {
   open: boolean
@@ -34,15 +35,13 @@ export default function AddLaporanKinerja({
   masterPegawai,
 }: Props) {
   const [permintaanId, setPermintaanId] = useState("")
-  const [selectedProgrammer, setSelectedProgrammer] = useState<string[]>([])
   const [progress, setProgress] = useState("")
   const [statusProgress, setStatusProgress] = useState<number | null>(null)
   const [permintaanOpen, setPermintaanOpen] = useState(false)
-  const [programmerOpen, setProgrammerOpen] = useState(false)
   const [loading, setLoading] = useState(false)
 
-  const programmerOptions = useMemo(
-    () => masterPegawai.filter((p) => p.jabatan.toLowerCase().includes("programmer")),
+  const activeProgrammer = useMemo(
+    () => masterPegawai.find((p) => p.jabatan.toLowerCase().includes("programmer")) ?? masterPegawai[0],
     [masterPegawai]
   )
 
@@ -50,39 +49,23 @@ export default function AddLaporanKinerja({
     if (initialData && open) {
       setPermintaanId(initialData.permintaan.id)
       setProgress(initialData.laporan_progress)
-      setSelectedProgrammer(initialData.programmer?.id ? [initialData.programmer.id] : [])
-      const foundProgress = PROGRESS_OPTIONS.find(opt => initialData.laporan_progress.includes(opt.label))
-      setStatusProgress(foundProgress ? foundProgress.value : null)
+      setStatusProgress(mapStatusToProgress(initialData.status))
     } else if (open) {
       setPermintaanId("")
       setProgress("")
-      setSelectedProgrammer([])
       setStatusProgress(null)
     }
     setPermintaanOpen(false)
-    setProgrammerOpen(false)
-  }, [initialData, open])
-
-  const handleAddProgrammer = (id: string) => {
-    if (!selectedProgrammer.includes(id)) {
-      setSelectedProgrammer((prev) => [...prev, id])
-    }
-    setProgrammerOpen(false)
-  }
-
-  const handleRemoveProgrammer = (id: string) => {
-    setSelectedProgrammer((prev) => prev.filter((p) => p !== id))
-  }
+  }, [initialData, open, masterPegawai])
 
   const handleSubmit = async () => {
     if (!permintaanId) { toast.error("Permintaan harus terisi"); return }
-    if (selectedProgrammer.length === 0) { toast.error("Programmer harus terisi"); return }
     if (!progress.trim()) { toast.error("Jelaskan progres pekerjaan yang sudah dilakukan"); return }
     if (statusProgress === null) { toast.error("Pilih persentase progres penyelesaian pekerjaan"); return }
+    if (!activeProgrammer?.id) { toast.error("Data programmer aktif tidak ditemukan"); return }
 
     const now = new Date().toISOString()
     const selectedPermintaan = permintaanList.find((p) => p.id === permintaanId)
-    const selectedProgrammerData = masterPegawai.find((p) => p.id === selectedProgrammer[0])
 
     const newItem: LaporanKinerjaItem = {
       id: initialData?.id ?? crypto.randomUUID(),
@@ -93,11 +76,12 @@ export default function AddLaporanKinerja({
         menu: selectedPermintaan?.menu ?? "",
       },
       programmer: {
-        id: selectedProgrammer[0] ?? "",
-        username: selectedProgrammerData?.nama_pegawai ?? "",
-        full_name: selectedProgrammerData?.nama_pegawai ?? "",
+        id: activeProgrammer.id ?? "",
+        username: activeProgrammer.nama_pegawai ?? "",
+        full_name: activeProgrammer.nama_pegawai ?? "",
       },
       laporan_progress: progress,
+      status: mapProgressToStatus(statusProgress),
       created_at: initialData?.created_at ?? now,
     }
 
@@ -117,7 +101,7 @@ export default function AddLaporanKinerja({
 
   return (
     <Dialog open={open} onOpenChange={onClose}>
-      <DialogContent className="sm:max-w-lg p-0 overflow-hidden rounded-[24px] border-none shadow-2xl">
+      <DialogContent className="sm:max-w-lg p-0 overflow-hidden rounded-[24px] border-none shadow-2xl [&>button]:hidden">
         <DialogHeader className="px-8 pt-8 pb-5 flex flex-row items-center justify-between">
           <DialogTitle className="text-[24px] font-bold text-[#202224]" style={ff}>
             {initialData ? "Edit Laporan Kinerja" : "Tambah Laporan Kinerja"}
@@ -136,7 +120,7 @@ export default function AddLaporanKinerja({
             <div className="relative">
               <button
                 type="button"
-                onClick={() => { setPermintaanOpen(!permintaanOpen); setProgrammerOpen(false) }}
+                onClick={() => { setPermintaanOpen(!permintaanOpen) }}
                 className="w-full flex items-center justify-between px-4 py-3 bg-[#F5F6FA] border border-[#D5D5D5] rounded-xl text-[14px] text-left transition focus:border-[#4880FF]"
                 style={ff}
               >
@@ -165,58 +149,6 @@ export default function AddLaporanKinerja({
               )}
             </div>
             {!permintaanId && <p className="text-[12px] text-red-500 font-medium" style={ff}>*Permintaan harus terisi</p>}
-          </div>
-
-          {/* Programmer */}
-          <div className="space-y-2">
-            <label className="text-[15px] font-bold text-[#202224]" style={ff}>
-              Programmer<span className="text-red-500">*</span>
-            </label>
-            <div className="relative">
-              <button
-                type="button"
-                onClick={() => { setProgrammerOpen(!programmerOpen); setPermintaanOpen(false) }}
-                className="w-full flex items-center justify-between px-4 py-3 bg-[#F5F6FA] border border-[#D5D5D5] rounded-xl text-[14px] text-left transition focus:border-[#4880FF]"
-                style={ff}
-              >
-                <span className="text-[#ABABAB]">
-                  Pilih satu atau lebih programmer yang mengerjakan tugas ini
-                </span>
-                <ChevronDown className={`w-5 h-5 text-[#606060] transition-transform ${programmerOpen ? 'rotate-180' : ''}`} />
-              </button>
-
-              {programmerOpen && (
-                <div className="absolute z-50 w-full mt-2 bg-white border border-[#D5D5D5] rounded-xl shadow-xl max-h-52 overflow-y-auto">
-                  {programmerOptions.map((p) => (
-                    <button
-                      key={p.id}
-                      type="button"
-                      onClick={() => handleAddProgrammer(p.id)}
-                      className="w-full text-left px-5 py-3 text-[14px] text-[#202224] hover:bg-[#F5F6FA] transition border-b last:border-none border-gray-100"
-                      style={ff}
-                    >
-                      {p.nama_pegawai}
-                    </button>
-                  ))}
-                </div>
-              )}
-            </div>
-
-            <div className="min-h-[48px] p-3 bg-white border border-[#D5D5D5] rounded-xl flex flex-wrap gap-2">
-              {selectedProgrammer.length === 0 ? (
-                <span className="text-[14px] text-[#ABABAB] italic px-2">Tidak ada programmer</span>
-              ) : (
-                selectedProgrammer.map((id) => {
-                  const p = masterPegawai.find((x) => x.id === id)
-                  return (
-                    <span key={id} className="inline-flex items-center gap-2 px-3 py-1.5 bg-[#F1F4F9] border border-[#D5D5D5] rounded-full text-[12px] font-bold text-[#202224]" style={ff}>
-                      {p?.nama_pegawai}
-                      <button type="button" onClick={() => handleRemoveProgrammer(id)} className="text-gray-400 hover:text-red-500"><X className="w-3 h-3" /></button>
-                    </span>
-                  )
-                })
-              )}
-            </div>
           </div>
 
           {/* Progress */}

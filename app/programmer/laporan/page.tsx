@@ -3,5 +3,5 @@
 import LaporanKinerjaClient from "./_components/LaporanKinerjaClient"
 
 export default function ProgrammerLaporanPage() {
-  return <LaporanKinerjaClient mode="full" />
+  return <LaporanKinerjaClient />
 }
