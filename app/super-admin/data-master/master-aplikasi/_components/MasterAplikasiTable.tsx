@@ -3,6 +3,7 @@
 'use client'
 
 import * as React from "react"
+import { toast } from "sonner"
 import { MoreHorizontal, Pencil, Trash2, AppWindow } from "lucide-react"
 import {
   DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger,
@@ -29,12 +30,20 @@ function formatTanggal(dateStr: string) {
   return new Date(dateStr).toLocaleDateString("id-ID", { day: "numeric", month: "short", year: "numeric" })
 }
 
-const PAGE_SIZE_OPTIONS = [12, 24, 48]
+const PAGE_SIZE_OPTIONS = [7, 14, 21]
 
 export default function MasterAplikasiTable({ data, showTable, onEdit, onDelete }: Props) {
-  const [pageSize, setPageSize] = React.useState(12)
+  const [pageSize, setPageSize] = React.useState(7)
   const [pageIndex, setPageIndex] = React.useState(0)
   const [deleteId, setDeleteId] = React.useState<string | null>(null)
+
+  const handleOpenLink = (link?: string) => {
+    if (link) {
+      window.open(link.startsWith('http') ? link : `https://${link}`, '_blank')
+    } else {
+      toast.error("Link belum ditambahkan", { icon: "🔗" })
+    }
+  }
 
   const totalPages = Math.max(1, Math.ceil(data.length / pageSize))
   const paginatedData = React.useMemo(() => {
@@ -50,33 +59,36 @@ export default function MasterAplikasiTable({ data, showTable, onEdit, onDelete 
 
       {/* ✅ Table view */}
       {showTable ? (
-        <div className="bg-white rounded-2xl shadow-[6px_6px_54px_rgba(0,0,0,0.05)] overflow-hidden">
-          <div className="px-4 py-3 border-b border-gray-100 flex items-center gap-2">
+        <div className="bg-white rounded-2xl border border-gray-200 shadow-[6px_6px_54px_rgba(0,0,0,0.05)] overflow-hidden">
+          <div className="px-4 py-3 border-b border-gray-200 flex items-center gap-2">
             <span className="text-sm font-bold text-[#202224]">Semua Aplikasi</span>
             <span className="px-2 py-0.5 rounded-full text-xs font-bold bg-gray-100 text-[#202224]/60">{data.length}</span>
           </div>
           <div className="overflow-x-auto">
             <table className="w-full text-sm">
               <thead>
-                <tr className="border-b border-gray-100 bg-gray-50/50">
-                  <th className="text-left px-4 py-3 text-xs font-semibold text-[#202224]/50 w-8">#</th>
-                  <th className="text-left px-4 py-3 text-xs font-semibold text-[#202224]/50">Logo</th>
-                  <th className="text-left px-4 py-3 text-xs font-semibold text-[#202224]/50">Nama Aplikasi</th>
-                  <th className="text-left px-4 py-3 text-xs font-semibold text-[#202224]/50">Dibuat</th>
-                  <th className="text-left px-4 py-3 text-xs font-semibold text-[#202224]/50">Diperbarui</th>
-                  <th className="px-4 py-3 text-xs font-semibold text-[#202224]/50 text-right">Aksi</th>
+                <tr className="bg-gray-50 border-b border-gray-200 text-gray-500 text-xs uppercase font-semibold text-left">
+                  <th className="px-4 py-3 w-8">No.</th>
+                  <th className="px-4 py-3">Logo</th>
+                  <th className="px-4 py-3">Nama Aplikasi</th>
+                  <th className="px-4 py-3">Dibuat</th>
+                  <th className="px-4 py-3">Diperbarui</th>
+                  <th className="px-4 py-3 text-center">Aksi</th>
                 </tr>
               </thead>
               <tbody>
-                {data.length === 0 ? (
+                {paginatedData.length === 0 ? (
                   <tr>
                     <td colSpan={6} className="text-center py-12 text-sm text-[#202224]/40">Belum ada data.</td>
                   </tr>
-                ) : data.map((item, i) => (
-                  <tr key={item.id} className="border-b border-gray-50 hover:bg-gray-50/50 transition">
-                    <td className="px-4 py-3 text-xs text-[#202224]/40">{i + 1}</td>
+                ) : paginatedData.map((item, i) => (
+                  <tr 
+                    key={item.id} 
+                    onClick={() => handleOpenLink(item.link)}
+                    className="border-b border-gray-200 hover:bg-gray-50 transition-colors cursor-pointer"
+                  >
+                    <td className="px-4 py-3 text-xs text-[#202224]/50 font-medium">{start + i}</td>
                     <td className="px-4 py-3">
-                      {/* Logo Container Table: BG White + Border + Padding */}
                       <div className="w-10 h-10 rounded-full overflow-hidden bg-white border border-gray-200 flex items-center justify-center shrink-0 p-1.5 shadow-sm">
                         {item.logo ? (
                           <img src={item.logo} alt={item.nama_aplikasi} className="w-full h-full object-contain" />
@@ -91,7 +103,7 @@ export default function MasterAplikasiTable({ data, showTable, onEdit, onDelete 
                     <td className="px-4 py-3 text-xs text-[#797A7C]">{formatTanggal(item.created_at)}</td>
                     <td className="px-4 py-3 text-xs text-[#797A7C]">{formatTanggal(item.updated_at)}</td>
                     <td className="px-4 py-3">
-                      <div className="flex items-center justify-end gap-2">
+                      <div className="flex items-center justify-center gap-2" onClick={(e) => e.stopPropagation()}>
                         <button
                           onClick={() => onEdit(item.id)}
                           className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-gray-200 text-xs font-semibold text-[#767676] hover:bg-gray-50 transition active:scale-95"
@@ -118,8 +130,12 @@ export default function MasterAplikasiTable({ data, showTable, onEdit, onDelete 
         /* ✅ Card grid view */
         <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
           {paginatedData.map((item) => (
-            <div key={item.id} className="bg-white rounded-xl border border-gray-100 shadow-sm p-5 flex flex-col items-center text-center relative hover:shadow-md transition-shadow">
-              <div className="absolute top-3 right-3">
+            <div 
+              key={item.id} 
+              onClick={() => handleOpenLink(item.link)}
+              className="bg-white rounded-xl border border-gray-100 shadow-sm p-5 flex flex-col items-center text-center relative hover:shadow-md transition-shadow cursor-pointer"
+            >
+              <div className="absolute top-3 right-3" onClick={(e) => e.stopPropagation()}>
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
                     <button className="p-1 rounded hover:bg-gray-100 transition">
@@ -155,8 +171,8 @@ export default function MasterAplikasiTable({ data, showTable, onEdit, onDelete 
         </div>
       )}
 
-      {/* Pagination — hanya tampil di card view */}
-      {!showTable && (
+      {/* Pagination dipindahkan ke bawah dan berlaku untuk kedua tampilan */}
+      {data.length > 0 && (
         <div className="flex items-center justify-between text-sm text-[#313131] mt-4">
           <div className="flex items-center gap-2">
             <span className="text-xs text-gray-500">Jumlah per halaman</span>

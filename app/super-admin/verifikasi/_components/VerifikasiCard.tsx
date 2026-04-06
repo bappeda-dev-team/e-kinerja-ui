@@ -2,7 +2,7 @@
 
 "use client"
 
-import { MoreVertical } from "lucide-react"
+import { MoreVertical, User } from "lucide-react"
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
 import type { VerifikasiItem } from "./VerifikasiClient"
 
@@ -12,37 +12,38 @@ function formatTanggal(value?: string) {
 }
 
 function getStatusMeta(status: VerifikasiItem["status"]) {
-  if (status === "terverifikasi") {
-    return {
-      label: "Terverifikasi",
-      badgeClass: "bg-[#CCF0EB] text-[#00B69B]",
-    }
-  }
-
-  if (status === "revisi") {
-    return {
-      label: "Revisi",
-      badgeClass: "bg-[#FFE1E1] text-[#FD5454]",
-    }
-  }
-
-  return {
-    label: "Menunggu",
-    badgeClass: "bg-[#D9E8FF] text-[#2F6FED]",
-  }
+  if (status === "terverifikasi") return { label: "Terverifikasi", badgeClass: "bg-[#CCF0EB] text-[#00B69B]" }
+  if (status === "revisi") return { label: "Revisi", badgeClass: "bg-[#FFE1E1] text-[#FD5454]" }
+  return { label: "Menunggu", badgeClass: "bg-[#D9E8FF] text-[#2F6FED]" }
 }
 
-function InitialAvatar({ label }: { label: string }) {
-  const initials = label
-    .split(" ")
-    .filter(Boolean)
-    .slice(0, 2)
-    .map((part) => part[0]?.toUpperCase())
-    .join("") || "VL"
-
+function Avatar({ src, label }: { src?: string; label: string }) {
+  const initials = label.split(" ").filter(Boolean).slice(0, 2).map((p) => p[0]?.toUpperCase()).join("") || "VL"
+  if (src) {
+    return (
+      <div className="flex h-[54px] w-[54px] shrink-0 items-center justify-center rounded-[14px] overflow-hidden bg-gray-100">
+        <img src={src} alt={label} className="w-full h-full object-cover" />
+      </div>
+    )
+  }
   return (
-    <div className="flex h-[54px] w-[54px] shrink-0 items-center justify-center rounded-[14px] bg-linear-to-br from-[#58D5C9] to-[#4E7CF3] text-sm font-bold text-white">
+    <div className="flex h-[54px] w-[54px] shrink-0 items-center justify-center rounded-[14px] bg-gradient-to-br from-[#58D5C9] to-[#4E7CF3] text-sm font-bold text-white">
       {initials}
+    </div>
+  )
+}
+
+function OrgLogo({ src, name }: { src?: string; name: string }) {
+  if (src) {
+    return (
+      <div className="w-9 h-9 rounded-full overflow-hidden bg-white border border-gray-100 flex items-center justify-center shrink-0 p-1 shadow-sm">
+        <img src={src} alt={name} className="w-full h-full object-contain" />
+      </div>
+    )
+  }
+  return (
+    <div className="w-9 h-9 rounded-full bg-gray-100 flex items-center justify-center shrink-0">
+      <User className="size-4 text-gray-400" />
     </div>
   )
 }
@@ -66,13 +67,12 @@ export function VerifikasiPermintaanCard({ item, onVerify }: { item: VerifikasiI
   return (
     <div className="rounded-[22px] border border-[#F0F1F5] bg-white p-6 shadow-[6px_6px_54px_rgba(0,0,0,0.05)]">
       <div className="flex items-start gap-4">
-        <InitialAvatar label={item.programmer} />
+        <OrgLogo src={item.pemda_logo} name={item.pemda_name} />
         <div className="min-w-0 flex-1">
-          <p className="truncate text-[15px] font-bold text-[#202224]">{item.programmer}</p>
-          <p className="mt-1 truncate text-sm text-[#7B7D7F]">
-            <span className="font-semibold">{item.laporan_label}</span>
-            <span className="mx-1.5">·</span>
-            {item.verifikator || "Belum ada verifikator"}
+          <p className="truncate text-[15px] font-bold text-[#202224]">{item.pemda_name}</p>
+          <p className="mt-0.5 truncate text-sm text-[#7B7D7F]">
+            <span className="font-semibold">{item.aplikasi_name || "-"}</span>
+            {item.menu && <><span className="mx-1.5">·</span>{item.menu}</>}
           </p>
         </div>
         <CardMenu onVerify={() => onVerify(item)} />
@@ -82,13 +82,24 @@ export function VerifikasiPermintaanCard({ item, onVerify }: { item: VerifikasiI
 
       <div className="space-y-2.5">
         <div className="flex items-start gap-3">
-          <span className="inline-flex rounded-md bg-[#FFE9DA] px-4 py-1 text-xs font-medium text-[#FF8A38]">
+          <span className="inline-flex shrink-0 rounded-md bg-[#EAF1FF] px-3 py-1 text-xs font-medium text-[#2F6FED]">
+            Programmer
+          </span>
+          <div className="flex items-center gap-2 min-w-0">
+            {item.programmer_avatar && (
+              <img src={item.programmer_avatar} alt={item.programmer} className="w-5 h-5 rounded-full object-cover shrink-0" />
+            )}
+            <p className="truncate text-sm text-[#7B7D7F]">{item.programmer}</p>
+          </div>
+        </div>
+        <div className="flex items-start gap-3">
+          <span className="inline-flex shrink-0 rounded-md bg-[#FFE9DA] px-3.5 py-1 text-xs font-medium text-[#FF8A38]">
             Progress
           </span>
           <p className="line-clamp-2 text-sm leading-6 text-[#7B7D7F]">{item.progres_deskripsi || "Belum ada progress laporan."}</p>
         </div>
         <div className="flex items-start gap-3">
-          <span className="inline-flex rounded-md bg-[#CFF4EF] px-3.5 py-1 text-xs font-medium text-[#00B69B]">
+          <span className="inline-flex shrink-0 rounded-md bg-[#CFF4EF] px-3.5 py-1 text-xs font-medium text-[#00B69B]">
             Catatan
           </span>
           <p className="line-clamp-2 text-sm leading-6 text-[#7B7D7F]">{item.komentar || "Belum ada komentar verifikasi."}</p>
@@ -97,9 +108,16 @@ export function VerifikasiPermintaanCard({ item, onVerify }: { item: VerifikasiI
 
       <div className="my-4 border-t border-[#D9D9D9]" />
 
-      <p className="text-[15px] font-semibold text-[#FF4D4F]">
-        Diajukan: <span className="font-medium">{formatTanggal(item.tanggal_diajukan)}</span>
-      </p>
+      <div className="flex items-center justify-between text-sm">
+        <p className="font-semibold text-[#FF4D4F]">
+          Diajukan: <span className="font-medium">{formatTanggal(item.tanggal_diajukan)}</span>
+        </p>
+        {item.tanggal_deadline && (
+          <p className="text-xs text-[#7B7D7F]">
+            Deadline: <span className="font-semibold">{formatTanggal(item.tanggal_deadline)}</span>
+          </p>
+        )}
+      </div>
     </div>
   )
 }
@@ -110,13 +128,12 @@ export function VerifikasiCard({ item, onVerify }: { item: VerifikasiItem; onVer
   return (
     <div className="rounded-2xl border border-gray-50 bg-white p-4 shadow-[6px_6px_54px_rgba(0,0,0,0.05)]">
       <div className="flex items-start gap-3">
-        <InitialAvatar label={item.programmer} />
+        <Avatar src={item.programmer_avatar} label={item.programmer} />
         <div className="min-w-0 flex-1">
           <p className="text-sm font-bold leading-snug text-[#202224]">{item.programmer}</p>
-          <p className="mt-0.5 text-xs text-[#797A7C]">
-            <span className="font-semibold">{item.laporan_label}</span>
-            <span className="mx-1">·</span>
-            {item.verifikator || "Belum ada verifikator"}
+          <p className="mt-0.5 text-xs text-[#797A7C] truncate">
+            <span className="font-semibold">{item.pemda_name}</span>
+            {item.aplikasi_name && <><span className="mx-1">·</span>{item.aplikasi_name}</>}
           </p>
         </div>
         <CardMenu onVerify={() => onVerify(item)} />
@@ -172,13 +189,12 @@ export function VerifikasiSelesaiCard({ item, onVerify }: { item: VerifikasiItem
   return (
     <div className="rounded-2xl border border-gray-50 bg-white p-4 shadow-[6px_6px_54px_rgba(0,0,0,0.05)]">
       <div className="flex items-start gap-3">
-        <InitialAvatar label={item.programmer} />
+        <Avatar src={item.programmer_avatar} label={item.programmer} />
         <div className="min-w-0 flex-1">
           <p className="text-sm font-bold leading-snug text-[#202224]">{item.programmer}</p>
-          <p className="mt-0.5 text-xs text-[#797A7C]">
-            <span className="font-semibold">{item.laporan_label}</span>
-            <span className="mx-1">·</span>
-            {item.verifikator || "Belum ada verifikator"}
+          <p className="mt-0.5 text-xs text-[#797A7C] truncate">
+            <span className="font-semibold">{item.pemda_name}</span>
+            {item.aplikasi_name && <><span className="mx-1">·</span>{item.aplikasi_name}</>}
           </p>
         </div>
         <CardMenu onVerify={() => onVerify(item)} />
@@ -195,6 +211,19 @@ export function VerifikasiSelesaiCard({ item, onVerify }: { item: VerifikasiItem
             {statusMeta.label}
           </span>
         </div>
+        {item.verifikator && (
+          <div className="flex items-center gap-2">
+            <span className="inline-flex rounded-md bg-[#EAF1FF] px-2.5 py-1 text-[11px] font-semibold text-[#2F6FED]">
+              Verifikator
+            </span>
+            <div className="flex items-center gap-1.5 min-w-0">
+              {item.verifikator_avatar && (
+                <img src={item.verifikator_avatar} alt={item.verifikator} className="w-4 h-4 rounded-full object-cover shrink-0" />
+              )}
+              <p className="text-xs text-[#797A7C] truncate">{item.verifikator}</p>
+            </div>
+          </div>
+        )}
         <div className="flex items-start gap-2">
           <span className="inline-flex rounded-md bg-[#FFF1E8] px-2.5 py-1 text-[11px] font-semibold text-[#FF8A38]">
             Komentar

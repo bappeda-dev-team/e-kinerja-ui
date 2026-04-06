@@ -20,7 +20,7 @@ export function AuthenticatedShell({ children, session }: Props) {
       <div className="flex min-h-screen w-full">
         <AppSidebar session={session} />
         <SidebarInset className="flex flex-1 flex-col">
-          <Header title="Aplikasi Penunjang Kinerja" session={session} />
+          <Header title="" session={session} />
           <main className="flex-1 p-6">
             {children}
           </main>

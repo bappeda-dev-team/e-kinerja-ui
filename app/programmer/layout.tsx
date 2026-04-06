@@ -2,9 +2,9 @@
 
 import { getServerSession } from "next-auth"
 import { authOptions } from "@/app/api/auth/[...nextauth]/route"
-import { AuthenticatedShell } from "@/components/authenticated-shell"
+import { ProgrammerShell } from "@/components/programmer-shell"
 
 export default async function ProgrammerLayout({ children }: { children: React.ReactNode }) {
   const session = await getServerSession(authOptions)
-  return <AuthenticatedShell session={session}>{children}</AuthenticatedShell>
+  return <ProgrammerShell session={session}>{children}</ProgrammerShell>
 }

@@ -54,7 +54,7 @@ export default function PermintaanClient() {
   const [data, setData] = useState<PermintaanResponse[]>([])
   const [loading, setLoading] = useState(true)
   const [actionLoading, setActionLoading] = useState(false)
-  const [showTable, setShowTable] = useState(false) // ✅ State untuk switch view
+  const [showTable, setShowTable] = useState(true) // ✅ State untuk switch view
   const [showAdd, setShowAdd] = useState(false)
   const [editItem, setEditItem] = useState<PermintaanResponse | null>(null)
 
@@ -154,9 +154,9 @@ export default function PermintaanClient() {
           <button
             onClick={() => setShowTable(!showTable)}
             className={`inline-flex w-full items-center justify-center gap-2 rounded-xl px-4 py-3 text-sm font-semibold transition active:scale-95 sm:w-auto sm:px-5 sm:py-2.5 ${
-              showTable 
-                ? "bg-[#4880FF] text-white shadow-md shadow-blue-200" 
-                : "bg-white text-[#202224] border border-gray-200 hover:border-[#4880FF] hover:text-[#4880FF]"
+              showTable
+                ? "bg-white text-[#202224] border border-gray-200 hover:border-[#4880FF] hover:text-[#4880FF]"
+                : "bg-[#4880FF] text-white shadow-md shadow-blue-200"
             }`}
           >
             <Table2 className="size-4" />

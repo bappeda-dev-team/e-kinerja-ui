@@ -30,14 +30,9 @@ export default function LaporanKinerjaCard({ item, onEdit, onDelete, onSubmitVer
   return (
     <div className="rounded-2xl bg-white p-5 shadow-sm flex flex-col gap-3 border border-gray-50">
       <div className="flex items-start justify-between">
-        <div className="flex items-center gap-3">
-          <div className="h-12 w-12 rounded-lg bg-white border flex items-center justify-center shrink-0 overflow-hidden">
-            {item.logo_pemda ? <img src={item.logo_pemda} className="w-full h-full object-contain p-1.5" /> : <span className="text-2xl">🏛️</span>}
-          </div>
-          <div>
-            <p className="text-sm font-bold text-[#202224] leading-tight">{entityLabel(item.permintaan?.pemda)}</p>
-            <p className="text-xs text-blue-500 font-semibold">{entityLabel(item.permintaan?.aplikasi) || "E-Kinerja"}</p>
-          </div>
+        <div className="flex flex-col">
+          <p className="text-sm font-bold text-[#202224] leading-tight">{entityLabel(item.permintaan?.pemda)}</p>
+          <p className="text-xs text-blue-500 font-semibold">{entityLabel(item.permintaan?.aplikasi) || "E-Kinerja"}</p>
         </div>
         <DropdownMenu>
           <DropdownMenuTrigger asChild><button className="p-1 hover:bg-gray-100 rounded"><MoreVertical className="h-4 w-4 text-gray-400" /></button></DropdownMenuTrigger>

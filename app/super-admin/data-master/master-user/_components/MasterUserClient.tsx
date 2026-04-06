@@ -32,7 +32,7 @@ function getErrorMessage(payload: any, fallback: string) {
 export default function MasterUserClient() {
   const [data, setData] = useState<UserResponse[]>([])
   const [loading, setLoading] = useState(true)
-  const [showTable, setShowTable] = useState(false)
+  const [showTable, setShowTable] = useState(true)
   const [showAdd, setShowAdd] = useState(false)
   const [editId, setEditId] = useState<string | null>(null)
 
@@ -105,18 +105,17 @@ export default function MasterUserClient() {
         <h1 className="text-3xl font-bold text-[#202224]">Master User</h1>
 
         <div className="flex items-center gap-2">
-          {/* ✅ Toggle Card/Table */}
+          {/* Toggle Card/Table */}
           {!loading && (
             <button
               onClick={() => setShowTable(prev => !prev)}
-              className={`flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-semibold transition active:scale-95 ${
-                showTable
-                  ? "bg-blue-600 text-white"
-                  : "bg-white text-[#202224] border border-gray-200 hover:border-blue-300 hover:text-blue-600"
-              }`}
+              className={`flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-semibold transition active:scale-95 ${showTable
+                ? "bg-white text-[#202224] border border-gray-200 hover:border-blue-300 hover:text-blue-600"
+                : "bg-blue-600 text-white"
+                }`}
             >
               {showTable ? <LayoutGrid className="size-4" /> : <Table2 className="size-4" />}
-              {showTable ? "Lihat Card" : "Lihat Tabel"}
+              {showTable ? "Lihat Grid" : "Lihat Tabel"}
             </button>
           )}
 

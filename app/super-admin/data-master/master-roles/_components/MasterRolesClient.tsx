@@ -15,10 +15,10 @@ const PRESET_COLORS = ["#00B69B", "#FCBE2D", "#FD5454", "#8280FF", "#4880FF"]
 
 function roleColor(name: string) {
   const r = name.toLowerCase()
-  if (r.includes("super"))       return "#FCBE2D"
-  if (r.includes("programmer"))  return "#8280FF"
+  if (r.includes("super")) return "#FCBE2D"
+  if (r.includes("programmer")) return "#8280FF"
   if (r.includes("verifikator")) return "#FD5454"
-  if (r.includes("admin"))       return "#00B69B"
+  if (r.includes("admin")) return "#00B69B"
   return "#4880FF"
 }
 
@@ -35,10 +35,10 @@ interface AddModalProps {
 }
 
 function AddModal({ onClose, onSaved }: AddModalProps) {
-  const [name, setName]               = useState("")
+  const [name, setName] = useState("")
   const [description, setDescription] = useState("")
-  const [color, setColor]             = useState(PRESET_COLORS[0])
-  const [saving, setSaving]           = useState(false)
+  const [color, setColor] = useState(PRESET_COLORS[0])
+  const [saving, setSaving] = useState(false)
 
   const handleSubmit = async () => {
     if (!name.trim() || !description.trim()) {
@@ -151,10 +151,10 @@ interface EditModalProps {
 }
 
 function EditModal({ role, onClose, onSaved }: EditModalProps) {
-  const [name, setName]               = useState(role.name ?? "")
+  const [name, setName] = useState(role.name ?? "")
   const [description, setDescription] = useState(role.description ?? "")
-  const [color, setColor]             = useState(roleColor(role.name ?? ""))
-  const [saving, setSaving]           = useState(false)
+  const [color, setColor] = useState(roleColor(role.name ?? ""))
+  const [saving, setSaving] = useState(false)
 
   const handleSubmit = async () => {
     if (!name.trim() || !description.trim()) {
@@ -313,10 +313,10 @@ function DeleteModal({ role, onClose, onSaved }: DeleteModalProps) {
 // ─── Main client ──────────────────────────────────────────────────────────────
 
 export default function MasterRolesClient() {
-  const [data, setData]       = useState<Roles[]>([])
+  const [data, setData] = useState<Roles[]>([])
   const [loading, setLoading] = useState(true)
   const [showAdd, setShowAdd] = useState(false)
-  const [editRole, setEditRole]     = useState<Roles | null>(null)
+  const [editRole, setEditRole] = useState<Roles | null>(null)
   const [deleteRoleItem, setDeleteRoleItem] = useState<Roles | null>(null)
 
   const fetchData = async () => {
@@ -349,8 +349,8 @@ export default function MasterRolesClient() {
       </div>
 
       {/* Table */}
-      <div className="rounded-2xl bg-white shadow-[6px_6px_54px_rgba(0,0,0,0.05)] overflow-hidden">
-        <div className="px-5 py-4 border-b border-gray-100 flex items-center gap-2">
+      <div className="rounded-2xl border border-gray-200 bg-white shadow-[6px_6px_54px_rgba(0,0,0,0.05)] overflow-hidden">
+        <div className="px-5 py-4 border-b border-gray-200 flex items-center gap-2">
           <span className="text-sm font-bold text-[#202224]">Semua Role</span>
           <span className="px-2 py-0.5 rounded-full text-xs font-bold bg-gray-100 text-[#202224]/60">
             {loading ? "…" : data.length}
@@ -367,19 +367,19 @@ export default function MasterRolesClient() {
         ) : (
           <table className="w-full text-sm">
             <thead>
-              <tr className="border-b border-gray-100 bg-gray-50/50">
-                <th className="text-left px-5 py-3 text-xs font-semibold text-[#202224]/50 w-8">#</th>
-                <th className="text-left px-5 py-3 text-xs font-semibold text-[#202224]/50">Role</th>
-                <th className="text-left px-5 py-3 text-xs font-semibold text-[#202224]/50">Deskripsi</th>
-                <th className="text-left px-5 py-3 text-xs font-semibold text-[#202224]/50">Dibuat</th>
-                <th className="text-left px-5 py-3 text-xs font-semibold text-[#202224]/50">Diperbarui</th>
-                <th className="px-5 py-3 text-xs font-semibold text-[#202224]/50 text-right">Aksi</th>
+              <tr className="bg-gray-50 border-b border-gray-200 text-gray-500 text-xs uppercase font-semibold text-left">
+                <th className="px-5 py-3 w-8">No.</th>
+                <th className="px-5 py-3">Role</th>
+                <th className="px-5 py-3">Deskripsi</th>
+                <th className="px-5 py-3">Dibuat</th>
+                <th className="px-5 py-3">Diperbarui</th>
+                <th className="px-5 py-3 text-center">Aksi</th>
               </tr>
             </thead>
             <tbody>
               {data.map((item, i) => (
-                <tr key={item.id} className="border-b border-gray-50 last:border-0 hover:bg-gray-50/50 transition-colors">
-                  <td className="px-5 py-3 text-xs text-[#202224]/40">{i + 1}</td>
+                <tr key={item.id} className="border-b border-gray-200 last:border-0 hover:bg-gray-50 transition-colors">
+                  <td className="px-5 py-3 text-xs text-[#202224]/50 font-medium">{i + 1}</td>
                   <td className="px-5 py-3">
                     <div className="flex items-center gap-2">
                       <div className="w-3 h-3 rounded-full shrink-0" style={{ backgroundColor: roleColor(item.name ?? "") }} />
@@ -392,7 +392,7 @@ export default function MasterRolesClient() {
                   <td className="px-5 py-3 text-[#797A7C]">{formatDate(item.created_at)}</td>
                   <td className="px-5 py-3 text-[#797A7C]">{formatDate(item.updated_at)}</td>
                   <td className="px-5 py-3">
-                    <div className="flex items-center justify-end gap-2">
+                    <div className="flex items-center justify-center gap-2">
                       <button
                         onClick={() => setEditRole(item)}
                         className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-gray-200 text-xs font-semibold text-[#767676] hover:bg-gray-50 transition active:scale-95"

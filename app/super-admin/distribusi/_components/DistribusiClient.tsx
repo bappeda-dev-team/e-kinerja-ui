@@ -5,12 +5,15 @@
 import * as React from "react"
 import { useEffect, useState } from "react"
 import { toast } from "sonner"
+import { Plus } from "lucide-react"
 
 import DistribusiBoard from "./DistribusiBoard"
 import KomentarModal from "./modals/KomentarModal"
+import AddDistribusiModal from "./modals/AddDistribusiModal"
 
 import {
   getDistribusi,
+  createDistribusi,
   deleteDistribusi,
 } from "../services"
 
@@ -79,6 +82,8 @@ function mapDistribusiStatus(item: DistribusiResponse): DistribusiItem["status"]
 export default function DistribusiClient() {
   const [distribusi, setDistribusi] = useState<DistribusiItem[]>([])
   const [loading, setLoading] = useState(true)
+  const [showAdd, setShowAdd] = useState(false)
+  const [submitLoading, setSubmitLoading] = useState(false)
   const [selectedKomentar, setSelectedKomentar] = useState<string | null>(null)
 
   const fetchAll = async () => {
@@ -137,15 +142,43 @@ export default function DistribusiClient() {
     }
   }
 
+  const handleAdd = async (val: { permintaan_id: string; komentar?: string }) => {
+    try {
+      setSubmitLoading(true)
+      const res = await createDistribusi(val)
+      if (res.status === 200 || res.status === 201) {
+        toast.success("Distribusi pekerjaan berhasil dibuat")
+        setShowAdd(false)
+        fetchAll()
+      } else {
+        throw new Error("Gagal menyimpan distribusi")
+      }
+    } catch (err: any) {
+      toast.error(err.message || "Gagal menyimpan distribusi")
+    } finally {
+      setSubmitLoading(false)
+    }
+  }
+
   const handleSelesai = (id: string) => {
     setDistribusi((prev) => prev.map((item) => item.id === id ? { ...item, status: "approved" } : item))
     toast.success("Pekerjaan ditandai selesai")
   }
 
   return (
-    <div className="space-y-6 px-4">
-      <div className="mb-4">
-        <h2 className="text-3xl font-bold text-[#202224]">Distribusi Pekerjaan</h2>
+    <div className="space-y-6 px-3 sm:px-4">
+      <div className="mb-4 flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+        <h2 className="font-nunito text-[2.1rem] leading-tight font-bold text-[#202224] sm:text-3xl">
+          Distribusi Pekerjaan
+        </h2>
+        <div className="flex w-full flex-col gap-3 sm:flex-row sm:flex-wrap lg:w-auto lg:justify-end">
+          <button 
+            onClick={() => setShowAdd(true)} 
+            className="inline-flex w-full items-center justify-center gap-2 rounded-xl bg-[#4880FF] px-5 py-3 text-sm font-bold text-white shadow-[0_4px_14px_0_rgba(72,128,255,0.39)] transition hover:bg-blue-600 active:scale-95 sm:w-auto sm:px-6 sm:py-2.5"
+          >
+            <Plus className="size-4" /> Tambah Distribusi
+          </button>
+        </div>
       </div>
 
       {loading ? <HybridLoader /> : (
@@ -161,6 +194,14 @@ export default function DistribusiClient() {
         <KomentarModal
           komentar={selectedKomentar}
           onClose={() => setSelectedKomentar(null)}
+        />
+      )}
+
+      {showAdd && (
+        <AddDistribusiModal
+          onClose={() => setShowAdd(false)}
+          onSave={handleAdd}
+          loading={submitLoading}
         />
       )}
     </div>

@@ -50,7 +50,7 @@ const HybridLoader = () => {
 interface Props {
   data: UserResponse[]
   loading?: boolean
-  showTable?: boolean // ✅
+  showTable?: boolean
   onEdit: (id: string) => void
   onDelete: (id: string) => void
 }
@@ -78,22 +78,22 @@ export default function MasterUserTable({ data, loading, showTable, onEdit, onDe
 
       {/* ✅ Table view */}
       {showTable ? (
-        <div className="bg-white rounded-2xl shadow-[6px_6px_54px_rgba(0,0,0,0.05)] overflow-hidden">
-          <div className="px-4 py-3 border-b border-gray-100 flex items-center gap-2">
+        <div className="bg-white rounded-2xl border border-gray-200 shadow-[6px_6px_54px_rgba(0,0,0,0.05)] overflow-hidden">
+          <div className="px-4 py-3 border-b border-gray-200 flex items-center gap-2">
             <span className="text-sm font-bold text-[#202224]">Semua User</span>
             <span className="px-2 py-0.5 rounded-full text-xs font-bold bg-gray-100 text-[#202224]/60">{data.length}</span>
           </div>
           <div className="overflow-x-auto">
             <table className="w-full text-sm">
               <thead>
-                <tr className="border-b border-gray-100 bg-gray-50/50">
-                  <th className="text-left px-4 py-3 text-xs font-semibold text-[#202224]/50 w-8">#</th>
-                  <th className="text-left px-4 py-3 text-xs font-semibold text-[#202224]/50">Avatar</th>
-                  <th className="text-left px-4 py-3 text-xs font-semibold text-[#202224]/50">Nama</th>
-                  <th className="text-left px-4 py-3 text-xs font-semibold text-[#202224]/50">Username</th>
-                  <th className="text-left px-4 py-3 text-xs font-semibold text-[#202224]/50">Role</th>
-                  <th className="text-left px-4 py-3 text-xs font-semibold text-[#202224]/50">Status</th>
-                  <th className="px-4 py-3 text-xs font-semibold text-[#202224]/50 text-right">Aksi</th>
+                <tr className="bg-gray-50 border-b border-gray-200 text-gray-500 text-xs uppercase font-semibold text-left">
+                  <th className="px-4 py-3 w-8">No.</th>
+                  <th className="px-4 py-3">Avatar</th>
+                  <th className="px-4 py-3">Nama</th>
+                  <th className="px-4 py-3">Username</th>
+                  <th className="px-4 py-3">Role</th>
+                  <th className="px-4 py-3">Status</th>
+                  <th className="px-4 py-3 text-center">Aksi</th>
                 </tr>
               </thead>
               <tbody>
@@ -102,8 +102,8 @@ export default function MasterUserTable({ data, loading, showTable, onEdit, onDe
                     <td colSpan={7} className="text-center py-12 text-sm text-[#202224]/40">Belum ada data.</td>
                   </tr>
                 ) : data.map((item, i) => (
-                  <tr key={item.id} className="border-b border-gray-50 hover:bg-gray-50/50 transition">
-                    <td className="px-4 py-3 text-xs text-[#202224]/40">{i + 1}</td>
+                  <tr key={item.id} className="border-b border-gray-200 hover:bg-gray-50 transition-colors">
+                    <td className="px-4 py-3 text-xs text-[#202224]/50 font-medium">{i + 1}</td>
                     <td className="px-4 py-3">
                       <div className="w-9 h-9 rounded-full overflow-hidden bg-gray-100 flex items-center justify-center shrink-0">
                         {item.profile_picture ? (
@@ -119,16 +119,15 @@ export default function MasterUserTable({ data, loading, showTable, onEdit, onDe
                     <td className="px-4 py-3 text-xs text-[#797A7C]">{item.username}</td>
                     <td className="px-4 py-3 text-xs text-[#797A7C]">{item.role.description}</td>
                     <td className="px-4 py-3">
-                      <span className={`px-2 py-0.5 rounded-full text-xs font-semibold ${
-                        item.is_active
-                          ? "bg-green-100 text-green-600"
-                          : "bg-red-100 text-red-500"
-                      }`}>
+                      <span className={`px-2 py-0.5 rounded-full text-xs font-semibold ${item.is_active
+                        ? "bg-green-100 text-green-600"
+                        : "bg-red-100 text-red-500"
+                        }`}>
                         {item.is_active ? "Aktif" : "Nonaktif"}
                       </span>
                     </td>
                     <td className="px-4 py-3">
-                      <div className="flex items-center justify-end gap-2">
+                      <div className="flex items-center justify-center gap-2">
                         <button
                           onClick={() => onEdit(item.id)}
                           className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-gray-200 text-xs font-semibold text-[#767676] hover:bg-gray-50 transition active:scale-95"
@@ -187,9 +186,8 @@ export default function MasterUserTable({ data, loading, showTable, onEdit, onDe
               <p className="font-bold text-sm text-[#202224] leading-snug">{item.full_name}</p>
               <p className="text-xs text-[#202224]/60 mt-0.5">{item.role.description}</p>
               <p className="text-xs text-[#202224]/60 mt-0.5 break-all">@{item.username}</p>
-              <span className={`mt-2 px-2 py-0.5 rounded-full text-xs font-semibold ${
-                item.is_active ? "bg-green-100 text-green-600" : "bg-red-100 text-red-500"
-              }`}>
+              <span className={`mt-2 px-2 py-0.5 rounded-full text-xs font-semibold ${item.is_active ? "bg-green-100 text-green-600" : "bg-red-100 text-red-500"
+                }`}>
                 {item.is_active ? "Aktif" : "Nonaktif"}
               </span>
             </div>

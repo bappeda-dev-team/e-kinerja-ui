@@ -5,7 +5,7 @@
 import * as React from "react"
 import { useEffect, useState, useMemo } from "react"
 import { Button } from "@/components/ui/button"
-import { Table2, LayoutGrid, Users, ChevronDown, ChevronRight } from "lucide-react"
+import { Table2, LayoutGrid, Users, ChevronDown } from "lucide-react"
 import { toast } from "sonner"
 
 import LaporanKinerjaGrid from "./LaporanKinerjaGrid"
@@ -59,10 +59,10 @@ const MONTHS = [
 ]
 
 const STATUS_CFG: Record<string, { label: string; dot: string; badge: string }> = {
-  hijau:  { label: "Terverifikasi", dot: "bg-[#00B69B]", badge: "bg-[#00B69B]/10 text-[#00B69B]" },
-  putih:  { label: "Menunggu",      dot: "bg-[#FFA756]", badge: "bg-[#FFA756]/10 text-[#FFA756]" },
-  merah:  { label: "Ditolak",       dot: "bg-[#FD5454]", badge: "bg-[#FD5454]/10 text-[#FD5454]" },
-  kuning: { label: "Revisi",        dot: "bg-[#FFA756]", badge: "bg-[#FFA756]/10 text-[#FFA756]" },
+  hijau: { label: "Terverifikasi", dot: "bg-[#00B69B]", badge: "bg-[#00B69B]/10 text-[#00B69B]" },
+  putih: { label: "Menunggu", dot: "bg-orange-500", badge: "bg-orange-50 text-orange-700" },
+  merah: { label: "Ditolak", dot: "bg-red-600", badge: "bg-red-50 text-red-700" },
+  kuning: { label: "Revisi", dot: "bg-[#FFA756]", badge: "bg-[#FFA756]/10 text-[#FFA756]" },
 }
 
 function entityLabel(value?: string | { name: string }) {
@@ -73,7 +73,7 @@ function entityLabel(value?: string | { name: string }) {
 function RekapPerUser({ data }: { data: LaporanKinerjaItem[] }) {
   const now = new Date()
   const [month, setMonth] = useState(now.getMonth())
-  const [year, setYear]   = useState(now.getFullYear())
+  const [year, setYear] = useState(now.getFullYear())
   const [expanded, setExpanded] = useState<Record<string, boolean>>({})
 
   const years = useMemo(() => {
@@ -101,28 +101,42 @@ function RekapPerUser({ data }: { data: LaporanKinerjaItem[] }) {
     )
   }, [filtered])
 
+  const [monthOpen, setMonthOpen] = useState(false)
+  const [yearOpen, setYearOpen] = useState(false)
   const toggle = (id: string) => setExpanded((p) => ({ ...p, [id]: !p[id] }))
 
   return (
     <div className="space-y-4">
       {/* Filter bar */}
-      <div className="flex items-center gap-3 flex-wrap">
-        <select
-          value={month}
-          onChange={(e) => setMonth(Number(e.target.value))}
-          className="rounded-xl border border-gray-200 bg-white px-4 py-2 text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-blue-100"
-        >
-          {MONTHS.map((m, i) => <option key={i} value={i}>{m}</option>)}
-        </select>
-        <select
-          value={year}
-          onChange={(e) => setYear(Number(e.target.value))}
-          className="rounded-xl border border-gray-200 bg-white px-4 py-2 text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-blue-100"
-        >
-          {years.map((y) => <option key={y} value={y}>{y}</option>)}
-        </select>
-        <span className="text-sm text-[#202224]/50 font-medium">
-          {filtered.length} laporan · {groups.length} programmer
+      <div className="flex items-center justify-between gap-3 flex-wrap">
+        <div className="flex items-center gap-3">
+          <div className="relative">
+            <select
+              value={month}
+              onChange={(e) => setMonth(Number(e.target.value))}
+              onFocus={() => setMonthOpen(true)}
+              onBlur={() => setMonthOpen(false)}
+              className="appearance-none rounded-xl border border-gray-200 bg-white pl-4 pr-8 py-2 text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-blue-100 transition-all"
+            >
+              {MONTHS.map((m, i) => <option key={i} value={i}>{m}</option>)}
+            </select>
+            <ChevronDown className={`pointer-events-none absolute right-2.5 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400 transition-transform duration-200 ${monthOpen ? "rotate-180" : "rotate-0"}`} />
+          </div>
+          <div className="relative">
+            <select
+              value={year}
+              onChange={(e) => setYear(Number(e.target.value))}
+              onFocus={() => setYearOpen(true)}
+              onBlur={() => setYearOpen(false)}
+              className="appearance-none rounded-xl border border-gray-200 bg-white pl-4 pr-8 py-2 text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-blue-100 transition-all"
+            >
+              {years.map((y) => <option key={y} value={y}>{y}</option>)}
+            </select>
+            <ChevronDown className={`pointer-events-none absolute right-2.5 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400 transition-transform duration-200 ${yearOpen ? "rotate-180" : "rotate-0"}`} />
+          </div>
+        </div>
+        <span className="text-xs text-[#202224]/60 font-semibold bg-gray-100 px-3 py-1.5 rounded-full border border-gray-200/50">
+          {filtered.length} Laporan · {groups.length} Programmer
         </span>
       </div>
 
@@ -140,14 +154,14 @@ function RekapPerUser({ data }: { data: LaporanKinerjaItem[] }) {
             const selesai = items.filter((i) => i.status === "hijau").length
 
             return (
-              <div key={key} className="rounded-2xl bg-white shadow-[6px_6px_54px_rgba(0,0,0,0.05)] overflow-hidden">
+              <div key={key} className="rounded-2xl bg-white border border-gray-200 shadow-[6px_6px_54px_rgba(0,0,0,0.05)] overflow-hidden">
                 {/* User header row */}
                 <button
                   onClick={() => toggle(key)}
                   className="w-full flex items-center justify-between px-5 py-4 hover:bg-gray-50/60 transition-colors"
                 >
                   <div className="flex items-center gap-3">
-                    <div className="h-9 w-9 rounded-full bg-blue-100 text-blue-600 text-sm font-bold flex items-center justify-center shrink-0">
+                    <div className="h-9 w-9 rounded-full bg-blue-100 text-blue-800 text-sm font-semibold flex items-center justify-center shrink-0">
                       {initials}
                     </div>
                     <div className="text-left">
@@ -157,76 +171,70 @@ function RekapPerUser({ data }: { data: LaporanKinerjaItem[] }) {
                   </div>
                   <div className="flex items-center gap-4">
                     <div className="flex items-center gap-3 text-xs font-semibold text-[#202224]/60">
-                      <span className="flex items-center gap-1">
-                        <span className="w-2 h-2 rounded-full bg-[#00B69B] inline-block" />
+                      <span className="flex items-center gap-1.5">
+                        <span className="w-1.5 h-1.5 rounded-full bg-blue-500 inline-block" />
+                        {items.length} task
+                      </span>
+                      <span className="flex items-center gap-1.5">
+                        <span className="w-1.5 h-1.5 rounded-full bg-[#00B69B] inline-block" />
                         {selesai} selesai
                       </span>
-                      <span className="flex items-center gap-1">
-                        <span className="w-2 h-2 rounded-full bg-[#FFA756] inline-block" />
+                      <span className="flex items-center gap-1.5">
+                        <span className="w-1.5 h-1.5 rounded-full bg-[#FFA756] inline-block" />
                         {items.length - selesai} pending
                       </span>
                     </div>
-                    <span className="px-2.5 py-1 rounded-full bg-blue-50 text-blue-600 text-xs font-bold">
-                      {items.length} task
-                    </span>
-                    {isOpen
-                      ? <ChevronDown className="h-4 w-4 text-[#202224]/40" />
-                      : <ChevronRight className="h-4 w-4 text-[#202224]/40" />
-                    }
+                    <ChevronDown className={`h-4 w-4 text-[#202224]/40 transition-transform duration-300 ${isOpen ? "rotate-180" : "rotate-0"}`} />
                   </div>
                 </button>
 
                 {/* Task list */}
-                {isOpen && (
-                  <div className="border-t border-gray-100">
-                    <table className="w-full text-sm">
-                      <thead>
-                        <tr className="bg-[#F8F9FC] text-[#202224]/50 text-xs font-semibold">
-                          <th className="px-5 py-2.5 text-left w-8">No.</th>
-                          <th className="px-5 py-2.5 text-left">Pemda</th>
-                          <th className="px-5 py-2.5 text-left">Aplikasi</th>
-                          <th className="px-5 py-2.5 text-left">Menu</th>
-                          <th className="px-5 py-2.5 text-left">Progress</th>
-                          <th className="px-5 py-2.5 text-left">Deadline</th>
-                          <th className="px-5 py-2.5 text-left">Status</th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        {items.map((item, i) => {
-                          const s = STATUS_CFG[item.status?.toLowerCase() ?? ""] ?? STATUS_CFG.putih
-                          const deadline = item.permintaan?.tanggal_deadline
-                            ? new Date(item.permintaan.tanggal_deadline).toLocaleDateString("id-ID", { day: "numeric", month: "short", year: "numeric" })
-                            : "-"
-                          return (
-                            <tr key={item.id} className="border-t border-gray-50 hover:bg-gray-50/40 transition-colors">
-                              <td className="px-5 py-3 text-[#202224]/40 text-xs">{i + 1}</td>
-                              <td className="px-5 py-3">
-                                <div className="flex items-center gap-2">
-                                  <div className="w-6 h-6 rounded bg-white border flex items-center justify-center overflow-hidden shrink-0">
-                                    {item.logo_pemda
-                                      ? <img src={item.logo_pemda} className="w-full h-full object-contain p-0.5" />
-                                      : <span className="text-xs">🏛️</span>}
-                                  </div>
+                <div className={`grid transition-all duration-300 ease-in-out ${isOpen ? "grid-rows-[1fr]" : "grid-rows-[0fr]"}`}>
+                  <div className="overflow-hidden">
+                    <div className="border-t border-gray-200">
+                      <table className="w-full text-sm">
+                        <thead>
+                          <tr className="bg-gray-50 border-b border-gray-200 text-gray-500 text-xs uppercase font-semibold text-left">
+                            <th className="px-3 py-3 w-10 text-center">No.</th>
+                            <th className="px-4 py-3">Pemda</th>
+                            <th className="px-4 py-3">Aplikasi</th>
+                            <th className="px-4 py-3">Menu</th>
+                            <th className="px-4 py-3">Progress</th>
+                            <th className="px-4 py-3">Deadline</th>
+                            <th className="px-4 py-3">Status</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {items.map((item, i) => {
+                            const s = STATUS_CFG[item.status?.toLowerCase() ?? ""] ?? STATUS_CFG.putih
+                            const limitDate = item.permintaan?.tanggal_deadline ? new Date(item.permintaan.tanggal_deadline) : null;
+                            const deadline = limitDate ? limitDate.toLocaleDateString("id-ID", { day: "numeric", month: "short", year: "numeric" }) : "-";
+                            const isOverdue = limitDate && limitDate < new Date();
+                            const deadlineClass = isOverdue ? "text-red-600" : "text-[#202224]";
+                            return (
+                              <tr key={item.id} className="border-b border-gray-200 hover:bg-gray-50 transition-colors">
+                                <td className="px-3 py-4 text-center text-[#202224]/50 text-xs">{i + 1}</td>
+                                <td className="px-4 py-4">
                                   <span className="font-semibold text-[#202224] text-xs">{entityLabel(item.permintaan?.pemda)}</span>
-                                </div>
-                              </td>
-                              <td className="px-5 py-3 text-xs text-[#797A7C]">{entityLabel(item.permintaan?.aplikasi)}</td>
-                              <td className="px-5 py-3 text-xs text-[#797A7C] max-w-[140px] truncate">{item.permintaan?.menu ?? "-"}</td>
-                              <td className="px-5 py-3 text-xs text-[#202224]/70 max-w-[180px] truncate">{item.laporan_progress}</td>
-                              <td className="px-5 py-3 text-xs font-semibold text-red-500">{deadline}</td>
-                              <td className="px-5 py-3">
-                                <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-bold ${s.badge}`}>
-                                  <span className={`w-1.5 h-1.5 rounded-full ${s.dot}`} />
-                                  {s.label}
-                                </span>
-                              </td>
-                            </tr>
-                          )
-                        })}
-                      </tbody>
-                    </table>
+                                </td>
+                                <td className="px-4 py-4 text-xs text-[#797A7C]">{entityLabel(item.permintaan?.aplikasi)}</td>
+                                <td className="px-4 py-4 text-xs text-[#797A7C] max-w-[140px] truncate">{item.permintaan?.menu ?? "-"}</td>
+                                <td className="px-4 py-4 text-xs text-[#202224]/70 max-w-[180px] truncate">{item.laporan_progress}</td>
+                                <td className={`px-4 py-4 text-xs font-semibold ${deadlineClass}`}>{deadline}</td>
+                                <td className="px-4 py-4">
+                                  <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-bold ${s.badge}`}>
+                                    <span className={`w-1.5 h-1.5 rounded-full ${s.dot}`} />
+                                    {s.label}
+                                  </span>
+                                </td>
+                              </tr>
+                            )
+                          })}
+                        </tbody>
+                      </table>
+                    </div>
                   </div>
-                )}
+                </div>
               </div>
             )
           })}
@@ -256,17 +264,17 @@ export default function LaporanKinerjaClient({ mode = "full" }: Props) {
     try {
       setLoading(true)
       const resLaporan = await getLaporan()
-      
+
       if (resLaporan.status !== 200) throw new Error(resLaporan.data?.message || "Gagal memuat data")
 
       const rawData = resLaporan.data?.data || []
 
       const mapped: LaporanKinerjaItem[] = rawData.map((item: any) => {
-        const pemda   = item.permintaan?.pemda
+        const pemda = item.permintaan?.pemda
         const aplikasi = item.permintaan?.aplikasi
-        const pemdaName   = typeof pemda   === "object" ? pemda?.name   : pemda
+        const pemdaName = typeof pemda === "object" ? pemda?.name : pemda
         const aplikasiName = typeof aplikasi === "object" ? aplikasi?.name : aplikasi
-        const pemdaLogo   = typeof pemda   === "object" ? pemda?.logo   : undefined
+        const pemdaLogo = typeof pemda === "object" ? pemda?.logo : undefined
         return {
           id: item.id,
           laporan_progress: item.laporan_progress,
@@ -305,7 +313,7 @@ export default function LaporanKinerjaClient({ mode = "full" }: Props) {
           id: u.id, nama_pegawai: u.full_name, jabatan: "Programmer"
         })))
       }
-    } catch {}
+    } catch { }
   }
 
   useEffect(() => {
@@ -370,18 +378,16 @@ export default function LaporanKinerjaClient({ mode = "full" }: Props) {
         <div className="flex gap-1 border-b border-gray-200">
           <button
             onClick={() => setTab("semua")}
-            className={`flex items-center gap-2 px-4 py-2.5 text-sm font-semibold border-b-2 transition-colors ${
-              tab === "semua" ? "border-blue-600 text-blue-600" : "border-transparent text-[#202224]/50 hover:text-[#202224]"
-            }`}
+            className={`flex items-center gap-2 px-4 py-2.5 text-sm font-semibold border-b-2 transition-colors ${tab === "semua" ? "border-blue-600 text-blue-600" : "border-transparent text-[#202224]/50 hover:text-[#202224]"
+              }`}
           >
             <Table2 className="size-4" />
             Semua Laporan
           </button>
           <button
             onClick={() => setTab("rekap")}
-            className={`flex items-center gap-2 px-4 py-2.5 text-sm font-semibold border-b-2 transition-colors ${
-              tab === "rekap" ? "border-blue-600 text-blue-600" : "border-transparent text-[#202224]/50 hover:text-[#202224]"
-            }`}
+            className={`flex items-center gap-2 px-4 py-2.5 text-sm font-semibold border-b-2 transition-colors ${tab === "rekap" ? "border-blue-600 text-blue-600" : "border-transparent text-[#202224]/50 hover:text-[#202224]"
+              }`}
           >
             <Users className="size-4" />
             Rekap Per User

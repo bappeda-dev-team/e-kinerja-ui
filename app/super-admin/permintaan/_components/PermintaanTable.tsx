@@ -3,12 +3,21 @@
 "use client"
 
 import * as React from "react"
-import { useState } from "react"
+import { useState, useMemo, Fragment } from "react"
 import { MoreVertical, Pencil, Trash2, X, FileText, ChevronLeft, ChevronRight } from "lucide-react"
 import {
   DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogDescription } from "@/components/ui/alert-dialog"
+import {
+  Pagination,
+  PaginationContent,
+  PaginationEllipsis,
+  PaginationItem,
+  PaginationLink,
+  PaginationNext,
+  PaginationPrevious,
+} from "@/components/ui/pagination"
 import type { PermintaanResponse } from "../types"
 
 interface Props {
@@ -150,9 +159,9 @@ function PermintaanCard({ item, onEdit, onDelete }: { item: PermintaanResponse; 
           </DropdownMenuContent>
         </DropdownMenu>
       </div>
-      
+
       <div className="border-t border-black/5" />
-      
+
       <div className="space-y-2.5">
         <div className="flex items-start gap-2.5">
           <InlineBadge label="Awal" color="orange" />
@@ -180,26 +189,46 @@ function PermintaanCard({ item, onEdit, onDelete }: { item: PermintaanResponse; 
 
 export default function PermintaanTable({ data, showTable, onEdit, onDelete }: Props) {
   const [deleteId, setDeleteId] = useState<string | null>(null)
+  const [currentPage, setCurrentPage] = useState(1)
+  const rowsPerPage = 8
+
+  const totalPages = Math.max(1, Math.ceil(data.length / rowsPerPage))
+
+  const paginatedData = useMemo(() => {
+    const startIndex = (currentPage - 1) * rowsPerPage
+    return data.slice(startIndex, startIndex + rowsPerPage)
+  }, [data, currentPage])
+
+  const visiblePages = useMemo(() => {
+    if (totalPages <= 5) return Array.from({ length: totalPages }, (_, i) => i + 1)
+    if (currentPage <= 3) return [1, 2, 3, 4, totalPages]
+    if (currentPage >= totalPages - 2) return [1, totalPages - 3, totalPages - 2, totalPages - 1, totalPages]
+    return [1, currentPage - 1, currentPage, currentPage + 1, totalPages]
+  }, [currentPage, totalPages])
 
   if (showTable) {
     return (
-      <div className="bg-white rounded-2xl shadow-[6px_6px_54px_rgba(0,0,0,0.05)] overflow-hidden">
+      <div className="bg-white rounded-2xl border border-gray-200 shadow-[6px_6px_54px_rgba(0,0,0,0.05)] overflow-hidden">
         <div className="overflow-x-auto">
           <table className="w-full text-sm">
             <thead>
-              <tr className="border-b border-gray-100 bg-gray-50/50">
-                <th className="text-left px-4 py-3 text-xs font-semibold text-[#202224]/50 w-8">#</th>
-                <th className="text-left px-4 py-3 text-xs font-semibold text-[#202224]/50">Pemda</th>
-                <th className="text-left px-4 py-3 text-xs font-semibold text-[#202224]/50">Aplikasi</th>
-                <th className="text-left px-4 py-3 text-xs font-semibold text-[#202224]/50">Menu</th>
-                <th className="text-left px-4 py-3 text-xs font-semibold text-[#202224]/50">Deadline</th>
-                <th className="px-4 py-3 w-8"></th>
+              <tr className="bg-gray-50 border-b border-gray-200 hover:bg-gray-50">
+                <th className="text-left px-4 py-3 text-xs uppercase font-semibold text-gray-500 w-8">No.</th>
+                <th className="text-left px-4 py-3 text-xs uppercase font-semibold text-gray-500">Pemda</th>
+                <th className="text-left px-4 py-3 text-xs uppercase font-semibold text-gray-500">Aplikasi</th>
+                <th className="text-left px-4 py-3 text-xs uppercase font-semibold text-gray-500">Menu</th>
+                <th className="text-left px-4 py-3 text-xs uppercase font-semibold text-gray-500">Deadline</th>
+                <th className="text-right px-4 py-3 text-xs uppercase font-semibold text-gray-500 w-8">Aksi</th>
               </tr>
             </thead>
             <tbody>
-              {data.map((row, i) => (
-                <tr key={row.id} className="border-b border-gray-50 hover:bg-gray-50/50 transition">
-                  <td className="px-4 py-3 text-xs text-[#202224]/40">{i + 1}</td>
+              {paginatedData.length === 0 ? (
+                <tr>
+                  <td colSpan={6} className="text-center py-12 text-sm text-[#202224]/40">Belum ada permintaan.</td>
+                </tr>
+              ) : paginatedData.map((row, i) => (
+                <tr key={row.id} className="border-b border-gray-200 hover:bg-gray-50 transition-colors">
+                  <td className="px-4 py-3 text-xs text-[#202224]/40">{(currentPage - 1) * rowsPerPage + i + 1}</td>
                   <td className="px-4 py-3">
                     <div className="flex items-center gap-2">
                       {row.pemda?.logo ? (
@@ -235,15 +264,60 @@ export default function PermintaanTable({ data, showTable, onEdit, onDelete }: P
             </tbody>
           </table>
         </div>
+
+        <div className="flex flex-col gap-3 border-t border-gray-200 px-4 py-4 md:flex-row md:items-center md:justify-between">
+          <p className="text-sm text-[#202224]/60">
+            Menampilkan {data.length === 0 ? "0-0" : `${(currentPage - 1) * rowsPerPage + 1}-${Math.min(currentPage * rowsPerPage, data.length)}`} dari {data.length} data
+          </p>
+
+          <Pagination className="mx-0 w-auto justify-start md:justify-end">
+            <PaginationContent>
+              <PaginationItem>
+                <PaginationPrevious
+                  href="#"
+                  onClick={(e) => { e.preventDefault(); if (currentPage > 1) setCurrentPage(currentPage - 1) }}
+                  className={currentPage === 1 ? "pointer-events-none opacity-50" : ""}
+                />
+              </PaginationItem>
+              {visiblePages.map((page, index) => {
+                const prev = visiblePages[index - 1]
+                return (
+                  <Fragment key={page}>
+                    {prev && page - prev > 1 && <PaginationItem><PaginationEllipsis /></PaginationItem>}
+                    <PaginationItem>
+                      <PaginationLink href="#" isActive={currentPage === page}
+                        onClick={(e) => { e.preventDefault(); setCurrentPage(page) }}>
+                        {page}
+                      </PaginationLink>
+                    </PaginationItem>
+                  </Fragment>
+                )
+              })}
+              <PaginationItem>
+                <PaginationNext
+                  href="#"
+                  onClick={(e) => { e.preventDefault(); if (currentPage < totalPages) setCurrentPage(currentPage + 1) }}
+                  className={currentPage === totalPages ? "pointer-events-none opacity-50" : ""}
+                />
+              </PaginationItem>
+            </PaginationContent>
+          </Pagination>
+        </div>
       </div>
     )
   }
 
   return (
-    <div className="grid grid-cols-1 gap-4 sm:gap-5 xl:grid-cols-3">
-      {data.map((item) => (
-        <PermintaanCard key={item.id} item={item} onEdit={onEdit} onDelete={setDeleteId} />
-      ))}
+    <div className="space-y-6">
+      <div className="grid grid-cols-1 gap-4 sm:gap-5 xl:grid-cols-3">
+        {paginatedData.length === 0 ? (
+           <div className="col-span-full rounded-[22px] border border-dashed border-[#D6D9E2] bg-white px-6 py-16 text-center text-sm text-[#202224]/50">
+             Belum ada data permintaan.
+           </div>
+        ) : paginatedData.map((item) => (
+          <PermintaanCard key={item.id} item={item} onEdit={onEdit} onDelete={setDeleteId} />
+        ))}
+      </div>
       <AlertDialog open={!!deleteId} onOpenChange={(o) => !o && setDeleteId(null)}>
         <AlertDialogContent>
           <AlertDialogHeader>
@@ -252,10 +326,57 @@ export default function PermintaanTable({ data, showTable, onEdit, onDelete }: P
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel>Batal</AlertDialogCancel>
-            <AlertDialogAction className="bg-red-500 hover:bg-red-600" onClick={() => { if(deleteId) { onDelete(deleteId); setDeleteId(null); } }}>Hapus</AlertDialogAction>
+            <AlertDialogAction className="bg-red-500 hover:bg-red-600" onClick={() => { if (deleteId) { onDelete(deleteId); setDeleteId(null); } }}>Hapus</AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      {/* Pagination untuk Grid */}
+      <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+        <div className="flex items-center gap-3 text-[15px] text-[#202224]">
+          <span>Jumlah per halaman</span>
+          <div className="inline-flex items-center rounded-md bg-white px-4 py-2 font-semibold shadow-[0_4px_18px_rgba(0,0,0,0.06)] border border-gray-200">
+            {rowsPerPage}
+          </div>
+        </div>
+
+        <p className="text-[15px] text-[#202224]/80">
+          {data.length === 0 ? "0-0" : `${(currentPage - 1) * rowsPerPage + 1}-${Math.min(currentPage * rowsPerPage, data.length)}`} dari {data.length}
+        </p>
+
+        <Pagination className="mx-0 w-auto justify-start md:justify-end">
+          <PaginationContent>
+            <PaginationItem>
+              <PaginationPrevious
+                href="#"
+                onClick={(e) => { e.preventDefault(); if (currentPage > 1) setCurrentPage(currentPage - 1) }}
+                className={currentPage === 1 ? "pointer-events-none opacity-50" : ""}
+              />
+            </PaginationItem>
+            {visiblePages.map((page, index) => {
+              const prev = visiblePages[index - 1]
+              return (
+                <Fragment key={page}>
+                  {prev && page - prev > 1 && <PaginationItem><PaginationEllipsis /></PaginationItem>}
+                  <PaginationItem>
+                    <PaginationLink href="#" isActive={currentPage === page}
+                      onClick={(e) => { e.preventDefault(); setCurrentPage(page) }}>
+                      {page}
+                    </PaginationLink>
+                  </PaginationItem>
+                </Fragment>
+              )
+            })}
+            <PaginationItem>
+              <PaginationNext
+                href="#"
+                onClick={(e) => { e.preventDefault(); if (currentPage < totalPages) setCurrentPage(currentPage + 1) }}
+                className={currentPage === totalPages ? "pointer-events-none opacity-50" : ""}
+              />
+            </PaginationItem>
+          </PaginationContent>
+        </Pagination>
+      </div>
     </div>
   )
 }

@@ -43,15 +43,27 @@ const HybridLoader = () => {
 export interface VerifikasiItem {
   id: string
   id_laporan: string
-  laporan_label: string
+  // Permintaan
+  pemda_name: string
+  pemda_logo?: string
+  aplikasi_name?: string
+  aplikasi_logo?: string
+  menu?: string
+  tanggal_deadline?: string
+  // Laporan
+  progres_deskripsi?: string
+  laporan_status?: string
+  // Programmer
   programmer: string
+  programmer_avatar?: string
+  // Verifikator
   verifikator?: string
+  verifikator_avatar?: string
+  // Verifikasi
   komentar?: string
   status: "menunggu" | "revisi" | "terverifikasi"
   tanggal_diajukan: string
   tanggal_verifikasi?: string
-  progres_deskripsi?: string
-  laporan_status?: string
 }
 
 export default function VerifikasiClient() {
@@ -67,27 +79,41 @@ export default function VerifikasiClient() {
 
       const mapped: VerifikasiItem[] = rawData.map((item: any) => {
         const laporan = item.laporan || {}
+        const permintaan = item.permintaan || {}
+        const pemda = permintaan.pemda || {}
+        const aplikasi = permintaan.aplikasi || {}
+
         const programmer = laporan.programmer?.full_name || laporan.programmer?.username || "Belum ada programmer"
         const laporanId = laporan.id || item.id
 
         let uiStatus: "menunggu" | "revisi" | "terverifikasi" = "menunggu"
         if (item.status_verified === "approved") uiStatus = "terverifikasi"
-        else if (item.status_verified === "revision" || (item.status_verified === "pending" && item.komentar)) {
-          uiStatus = "revisi"
-        }
+        else if (item.status_verified === "revision") uiStatus = "revisi"
 
         return {
           id: item.id,
           id_laporan: laporanId,
-          laporan_label: `Laporan #${String(laporanId).slice(0, 8).toUpperCase()}`,
+          // Permintaan
+          pemda_name: pemda.name || "-",
+          pemda_logo: pemda.logo || "",
+          aplikasi_name: aplikasi.name || "",
+          aplikasi_logo: aplikasi.logo || "",
+          menu: permintaan.menu || "",
+          tanggal_deadline: permintaan.tanggal_deadline || "",
+          // Laporan
+          progres_deskripsi: laporan.laporan_progress || "",
+          laporan_status: laporan.status || "",
+          // Programmer
           programmer,
+          programmer_avatar: laporan.programmer?.profile_picture || "",
+          // Verifikator
           verifikator: item.verifikator?.full_name || "",
+          verifikator_avatar: item.verifikator?.profile_picture || "",
+          // Verifikasi
           komentar: item.komentar || "",
           status: uiStatus,
           tanggal_diajukan: item.created_at,
           tanggal_verifikasi: item.updated_at,
-          progres_deskripsi: laporan.laporan_progress || "",
-          laporan_status: laporan.status || "",
         }
       })
       setData(mapped)

@@ -51,6 +51,7 @@ export interface MasterAplikasiItem {
   id: string
   nama_aplikasi: string
   logo: string
+  link: string
   created_at: string
   updated_at: string
 }
@@ -58,7 +59,7 @@ export interface MasterAplikasiItem {
 export default function MasterAplikasiClient() {
   const [data, setData] = useState<MasterAplikasiItem[]>([])
   const [loading, setLoading] = useState(true)
-  const [showTable, setShowTable] = useState(false) // ✅
+  const [showTable, setShowTable] = useState(true) // ✅
   const [showAdd, setShowAdd] = useState(false)
   const [editId, setEditId] = useState<string | null>(null)
 
@@ -70,6 +71,7 @@ export default function MasterAplikasiClient() {
         id: item.id,
         nama_aplikasi: item.name,
         logo: item.logo ?? "",
+        link: item.link ?? "",
         created_at: item.created_at,
         updated_at: item.updated_at,
       }))
@@ -93,37 +95,37 @@ export default function MasterAplikasiClient() {
     }
   }
 
-  const handleAdd = async (newItem: { nama_aplikasi: string; logo?: File }) => {
-  try {
-    const res = await createMasterAplikasi({ name: newItem.nama_aplikasi })
-    if (res.status !== 200 && res.status !== 201) throw new Error(res.message || "Gagal membuat aplikasi")
-    const newId = res.data?.data?.id
-    if (newItem.logo && newId) {
-      await updateMasterAplikasiLogo(newId, newItem.logo) // ✅
-    }
-    toast.success("Aplikasi berhasil ditambahkan")
-    fetchData()
-  } catch (err: any) {
-    toast.error(err.message || "Gagal menambahkan aplikasi")
-  }
-}
-
- const handleEdit = async (updated: MasterAplikasiItem & { logoFile?: File }) => {
-  try {
-    await updateMasterAplikasi(updated.id, { name: updated.nama_aplikasi })
-    if (updated.logoFile) {
-      try {
-        await updateMasterAplikasiLogo(updated.id, updated.logoFile) // ✅
-      } catch {
-        toast.error("Nama berhasil diubah, namun gagal mengunggah logo.")
+  const handleAdd = async (newItem: { nama_aplikasi: string; link: string; logo?: File }) => {
+    try {
+      const res = await createMasterAplikasi({ name: newItem.nama_aplikasi, link: newItem.link })
+      if (res.status !== 200 && res.status !== 201) throw new Error(res.message || "Gagal membuat aplikasi")
+      const newId = res.data?.data?.id
+      if (newItem.logo && newId) {
+        await updateMasterAplikasiLogo(newId, newItem.logo) // ✅
       }
+      toast.success("Aplikasi berhasil ditambahkan")
+      fetchData()
+    } catch (err: any) {
+      toast.error(err.message || "Gagal menambahkan aplikasi")
     }
-    toast.success("Aplikasi berhasil diperbarui")
-    fetchData()
-  } catch (err: any) {
-    toast.error(err.message || "Gagal memperbarui aplikasi")
   }
-}
+
+  const handleEdit = async (updated: MasterAplikasiItem & { logoFile?: File }) => {
+    try {
+      await updateMasterAplikasi(updated.id, { name: updated.nama_aplikasi, link: updated.link })
+      if (updated.logoFile) {
+        try {
+          await updateMasterAplikasiLogo(updated.id, updated.logoFile) // 
+        } catch {
+          toast.error("Nama berhasil diubah, namun gagal mengunggah logo.")
+        }
+      }
+      toast.success("Aplikasi berhasil diperbarui")
+      fetchData()
+    } catch (err: any) {
+      toast.error(err.message || "Gagal memperbarui aplikasi")
+    }
+  }
 
   const selectedData = data.find(item => item.id === editId)
 
@@ -133,18 +135,17 @@ export default function MasterAplikasiClient() {
         <h1 className="text-3xl font-bold text-[#202224]">Master Aplikasi</h1>
 
         <div className="flex items-center gap-2">
-          {/* ✅ Toggle Card/Table */}
+          {/* Toggle Card/Table */}
           {!loading && (
             <button
               onClick={() => setShowTable(prev => !prev)}
-              className={`flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-semibold transition active:scale-95 ${
-                showTable
-                  ? "bg-blue-600 text-white"
-                  : "bg-white text-[#202224] border border-gray-200 hover:border-blue-300 hover:text-blue-600"
-              }`}
+              className={`flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-semibold transition active:scale-95 ${showTable
+                ? "bg-white text-[#202224] border border-gray-200 hover:border-blue-300 hover:text-blue-600"
+                : "bg-blue-600 text-white"
+                }`}
             >
               {showTable ? <LayoutGrid className="size-4" /> : <Table2 className="size-4" />}
-              {showTable ? "Lihat Card" : "Lihat Tabel"}
+              {showTable ? "Lihat Grid" : "Lihat Tabel"}
             </button>
           )}
 
@@ -163,7 +164,7 @@ export default function MasterAplikasiClient() {
       ) : (
         <MasterAplikasiTable
           data={data}
-          showTable={showTable} // ✅
+          showTable={showTable} // 
           onEdit={setEditId}
           onDelete={handleDelete}
         />

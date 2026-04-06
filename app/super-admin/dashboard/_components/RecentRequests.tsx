@@ -5,7 +5,7 @@ import { ChevronFirst, ChevronLast, ChevronLeft, ChevronRight, TableIcon } from 
 import Link from "next/link";
 import type { DashboardPermintaanItem } from "../types";
 
-const PAGE_SIZE = 10;
+const PAGE_SIZE = 5;
 
 interface Props {
   data: DashboardPermintaanItem[];
@@ -50,20 +50,20 @@ const HybridLoader = () => {
             strokeLinecap="round"
           />
         </svg>
-        
+
         {/* Ikon Jam Pasir di Tengah */}
         <div className="absolute flex flex-col items-center">
           <span className="text-blue-600 animate-bounce text-xl">⏳</span>
           <span className="text-[10px] font-bold text-blue-600">{progress}%</span>
         </div>
       </div>
-      
+
       <div className="text-center">
         <p className="text-sm font-semibold text-[#202224]" style={{ fontFamily: "'Nunito Sans', sans-serif" }}>
-            Sedang memproses...
+          Sedang memproses...
         </p>
         <p className="text-[11px] text-[#202224]/50" style={{ fontFamily: "'Nunito Sans', sans-serif" }}>
-            Mohon tunggu sebentar
+          Mohon tunggu sebentar
         </p>
       </div>
     </div>
@@ -71,10 +71,10 @@ const HybridLoader = () => {
 };
 
 const STATUS_MAP: Record<string, { label: string; className: string }> = {
-  proses:  { label: "Dalam Proses", className: "bg-[#FFA756]/15 text-[#FFA756]" },
-  selesai: { label: "Selesai",      className: "bg-[#00B69B]/15 text-[#00B69B]" },
-  revisi:  { label: "Revisi",       className: "bg-[#FD5454]/15 text-[#FD5454]" },
-  pending: { label: "Pending",      className: "bg-gray-100 text-gray-500" },
+  proses: { label: "Dalam Proses", className: "bg-[#FFA756]/15 text-[#FFA756]" },
+  selesai: { label: "Selesai", className: "bg-[#00B69B]/15 text-[#00B69B]" },
+  revisi: { label: "Revisi", className: "bg-[#FD5454]/15 text-[#FD5454]" },
+  pending: { label: "Pending", className: "bg-gray-100 text-gray-500" },
 }
 
 function StatusBadge({ status }: { status?: string }) {
@@ -110,13 +110,6 @@ export default function RecentRequests({ data, loading }: Props) {
     <div className="rounded-2xl bg-white p-6 shadow-[6px_6px_54px_rgba(0,0,0,0.05)]">
       <div className="flex items-center justify-between mb-4">
         <h2 className="text-lg font-bold text-[#202224]">Permintaan Terbaru</h2>
-        <Link
-          href="/permintaan"
-          className="flex items-center gap-2 rounded-xl border border-[#202224]/15 px-4 py-2 text-sm font-semibold text-[#202224] hover:bg-[#F1F4F9] transition-colors"
-        >
-          <TableIcon className="h-4 w-4" />
-          Lihat Semua (Tabel)
-        </Link>
       </div>
 
       {loading ? (

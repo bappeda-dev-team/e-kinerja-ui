@@ -21,12 +21,14 @@ interface Props {
 
 export default function EditMasterAplikasi({ data, onClose, onSave }: Props) {
   const [nama, setNama] = useState("")
+  const [link, setLink] = useState("")
   const [selectedFile, setSelectedFile] = useState<File | undefined>(undefined)
   const [previewUrl, setPreviewUrl] = useState<string | null>(null)
   const fileInputRef = useRef<HTMLInputElement>(null)
 
   useEffect(() => {
     setNama(data?.nama_aplikasi ?? "")
+    setLink(data?.link ?? "")
     setSelectedFile(undefined)
     setPreviewUrl(null)
   }, [data])
@@ -55,6 +57,7 @@ export default function EditMasterAplikasi({ data, onClose, onSave }: Props) {
       id: data.id,
       nama_aplikasi: nama,
       logo: data.logo,
+      link: link,
       created_at: data.created_at,
       updated_at: new Date().toISOString(),
       logoFile: selectedFile,
@@ -122,15 +125,27 @@ export default function EditMasterAplikasi({ data, onClose, onSave }: Props) {
           </div>
 
           {/* Input Field */}
-          <div className="space-y-2 max-w-[780px]">
-            <Label className="text-sm font-semibold text-[#606060]">Nama Aplikasi*</Label>
-            <Input
-              placeholder="Masukkan nama aplikasi"
-              value={nama}
-              onChange={(e) => setNama(e.target.value)}
-              className="h-[52px] bg-[#F5F6FA] border-[#D5D5D5] rounded-md px-4 text-sm focus-visible:ring-[#4880FF]"
-            />
-            <p className="text-sm text-[#A6A6A6] font-normal">*Nama aplikasi harus terisi</p>
+          <div className="space-y-4 max-w-[780px]">
+            <div className="space-y-2">
+              <Label className="text-sm font-semibold text-[#606060]">Nama Aplikasi*</Label>
+              <Input
+                placeholder="Masukkan nama aplikasi"
+                value={nama}
+                onChange={(e) => setNama(e.target.value)}
+                className="h-[52px] bg-[#F5F6FA] border-[#D5D5D5] rounded-md px-4 text-sm focus-visible:ring-[#4880FF]"
+              />
+              <p className="text-sm text-[#A6A6A6] font-normal">*Nama aplikasi harus terisi</p>
+            </div>
+            
+            <div className="space-y-2">
+              <Label className="text-sm font-semibold text-[#606060]">Link Aplikasi</Label>
+              <Input
+                placeholder="Masukkan link aplikasi (opsional, contoh: https://...)"
+                value={link}
+                onChange={(e) => setLink(e.target.value)}
+                className="h-[52px] bg-[#F5F6FA] border-[#D5D5D5] rounded-md px-4 text-sm focus-visible:ring-[#4880FF]"
+              />
+            </div>
           </div>
 
           {/* Footer Buttons */}

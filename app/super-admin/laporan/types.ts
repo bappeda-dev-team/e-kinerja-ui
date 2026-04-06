@@ -66,5 +66,6 @@ export interface LaporanKinerjaItem {
     status_verified?: string
   } | null
   created_at?: string
-  logo_pemda?: string // ✅ Tambahkan ini
+  updated_at?: string
+  logo_pemda?: string
 }

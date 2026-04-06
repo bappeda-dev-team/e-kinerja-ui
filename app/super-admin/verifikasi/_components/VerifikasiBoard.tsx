@@ -3,7 +3,8 @@
 "use client"
 
 import { Fragment, useMemo, useState } from "react"
-import { LayoutGrid, MoreVertical, Table2 } from "lucide-react"
+import { motion } from "framer-motion"
+import { LayoutGrid, Table2, AlignJustify, Inbox, ClipboardList, Check } from "lucide-react"
 
 import {
   Pagination,
@@ -25,18 +26,18 @@ interface Props {
 }
 
 export default function VerifikasiBoard({ data, onVerify }: Props) {
-  const [activeView, setActiveView] = useState<"table" | "permintaan" | "distribusi" | "selesai">("permintaan")
+  const [activeView, setActiveView] = useState<"table" | "permintaan" | "distribusi" | "selesai">("table")
   const [currentPage, setCurrentPage] = useState(1)
-  const cardPerPage = 9
+  const cardPerPage = 7
 
   const didistribusikan = data.filter((item) => item.status === "menunggu" || item.status === "revisi")
   const selesai = data.filter((item) => item.status === "terverifikasi")
 
   const tabs = [
-    { key: "table" as const, label: "Lihat Semua (Tabel)", count: data.length, icon: Table2, activeClass: "border-[#D6D9E2] bg-white text-[#202224]" },
-    { key: "permintaan" as const, label: "Permintaan", count: data.length, activeClass: "border-[#8EB9F7] bg-[#BFDDFD] text-[#2359A8]" },
-    { key: "distribusi" as const, label: "Didistribusikan", count: didistribusikan.length, activeClass: "border-[#F3C1D8] bg-[#FDE7F2] text-[#D14C87]" },
-    { key: "selesai" as const, label: "Selesai", count: selesai.length, activeClass: "border-[#BFE9E2] bg-[#DDF7F1] text-[#00A58E]" },
+    { key: "table" as const, label: "Lihat Semua", count: data.length, icon: AlignJustify },
+    { key: "permintaan" as const, label: "Permintaan", count: data.length, icon: Inbox },
+    { key: "distribusi" as const, label: "Didistribusikan", count: didistribusikan.length, icon: ClipboardList },
+    { key: "selesai" as const, label: "Selesai", count: selesai.length, icon: Check },
   ]
 
   const activeItems = useMemo(() => {
@@ -63,11 +64,10 @@ export default function VerifikasiBoard({ data, onVerify }: Props) {
 
   return (
     <div className="space-y-6">
-      <div className="flex flex-wrap gap-4">
+      <div className="inline-flex items-center gap-1 overflow-x-auto rounded-full bg-gray-100 p-1.5 max-w-full">
         {tabs.map((tab) => {
           const isActive = activeView === tab.key
           const Icon = tab.icon ?? LayoutGrid
-
           return (
             <button
               key={tab.key}
@@ -76,13 +76,24 @@ export default function VerifikasiBoard({ data, onVerify }: Props) {
                 setActiveView(tab.key)
                 setCurrentPage(1)
               }}
-              className={`inline-flex items-center gap-3 rounded-[18px] border px-5 py-3 text-sm font-bold shadow-[0_4px_18px_rgba(0,0,0,0.08)] transition ${
-                isActive ? tab.activeClass : "border-[#D6D9E2] bg-[#EDEFF5] text-[#202224]"
+              className={`relative inline-flex items-center justify-center whitespace-nowrap rounded-full px-5 py-2.5 text-[13px] font-semibold transition-colors duration-200 ${
+                isActive
+                  ? "text-gray-900"
+                  : "text-gray-500 hover:bg-gray-200/50 hover:text-gray-900"
               }`}
             >
-              <Icon className="size-5" />
-              <span>{tab.key === "table" ? tab.label : `${tab.label} (${tab.count})`}</span>
-              <MoreVertical className="size-4 text-[#6D6F73]" />
+              {isActive && (
+                <motion.div
+                  layoutId="activeVerifikasiTabPill"
+                  className="absolute inset-0 z-0 rounded-full bg-white shadow-sm"
+                  initial={false}
+                  transition={{ type: "spring", bounce: 0.2, duration: 0.6 }}
+                />
+              )}
+              <span className="relative z-10 flex items-center gap-2">
+                <Icon className="h-4 w-4" />
+                <span>{tab.key === "table" ? tab.label : `${tab.label} (${tab.count})`}</span>
+              </span>
             </button>
           )
         })}

@@ -36,7 +36,7 @@ interface Props {
 
 export function DistribusiTable({ distribusi, onSelesai, onDelete, onShowKomentar }: Props) {
   const [currentPage, setCurrentPage] = useState(1)
-  const rowsPerPage = 10
+  const rowsPerPage = 7
   const didistribusikan = distribusi.filter((d) => d.status === "didistribusikan" || d.status === "pending" || d.status === "revision")
   const selesai = distribusi.filter((d) => d.status === "approved")
 
@@ -61,19 +61,19 @@ export function DistribusiTable({ distribusi, onSelesai, onDelete, onShowKomenta
   }, [currentPage, totalPages])
 
   return (
-    <div className="bg-white rounded-2xl shadow-[6px_6px_54px_rgba(0,0,0,0.05)] overflow-hidden">
+    <div className="bg-white rounded-2xl border border-gray-200 shadow-[6px_6px_54px_rgba(0,0,0,0.05)] overflow-hidden">
       <Table>
         <TableHeader>
-          <TableRow className="border-b border-gray-100 bg-gray-50/50 hover:bg-gray-50/50">
-            <TableHead className="px-4 py-3 text-xs font-semibold text-[#202224]/50">No.</TableHead>
-            <TableHead className="px-4 py-3 text-xs font-semibold text-[#202224]/50">Status</TableHead>
-            <TableHead className="px-4 py-3 text-xs font-semibold text-[#202224]/50">Pemda</TableHead>
-            <TableHead className="px-4 py-3 text-xs font-semibold text-[#202224]/50">Aplikasi</TableHead>
-            <TableHead className="px-4 py-3 text-xs font-semibold text-[#202224]/50">Menu</TableHead>
-            <TableHead className="px-4 py-3 text-xs font-semibold text-[#202224]/50">Programmer</TableHead>
-            <TableHead className="px-4 py-3 text-xs font-semibold text-[#202224]/50">Komentar</TableHead>
-            <TableHead className="px-4 py-3 text-xs font-semibold text-[#202224]/50">Deadline</TableHead>
-            <TableHead className="px-4 py-3 text-xs font-semibold text-[#202224]/50">Aksi</TableHead>
+          <TableRow className="bg-gray-50 border-b border-gray-200 hover:bg-gray-50">
+            <TableHead className="px-4 py-3 text-xs uppercase font-semibold text-gray-500">No.</TableHead>
+            <TableHead className="px-4 py-3 text-xs uppercase font-semibold text-gray-500">Status</TableHead>
+            <TableHead className="px-4 py-3 text-xs uppercase font-semibold text-gray-500">Pemda</TableHead>
+            <TableHead className="px-4 py-3 text-xs uppercase font-semibold text-gray-500">Aplikasi</TableHead>
+            <TableHead className="px-4 py-3 text-xs uppercase font-semibold text-gray-500">Menu</TableHead>
+            <TableHead className="px-4 py-3 text-xs uppercase font-semibold text-gray-500">Programmer</TableHead>
+            <TableHead className="px-4 py-3 text-xs uppercase font-semibold text-gray-500">Komentar</TableHead>
+            <TableHead className="px-4 py-3 text-xs uppercase font-semibold text-gray-500">Deadline</TableHead>
+            <TableHead className="px-4 py-3 text-xs uppercase font-semibold text-gray-500">Aksi</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
@@ -81,7 +81,7 @@ export function DistribusiTable({ distribusi, onSelesai, onDelete, onShowKomenta
             const statusMeta = getStatusMeta(row.status)
 
             return (
-              <TableRow key={row.id} className="border-b border-gray-50 hover:bg-gray-50/50 transition">
+              <TableRow key={row.id} className="border-b border-gray-200 hover:bg-gray-50 transition-colors">
                 <TableCell className="px-4 py-3 text-xs text-[#202224]/40">{(currentPage - 1) * rowsPerPage + i + 1}</TableCell>
                 <TableCell className="px-4 py-3">
                   <span className={`px-2 py-0.5 rounded-full text-xs font-semibold ${statusMeta.badgeClass}`}>
@@ -134,7 +134,7 @@ export function DistribusiTable({ distribusi, onSelesai, onDelete, onShowKomenta
         </TableBody>
       </Table>
 
-      <div className="flex flex-col gap-3 border-t border-gray-100 px-4 py-4 md:flex-row md:items-center md:justify-between">
+      <div className="flex flex-col gap-3 border-t border-gray-200 px-4 py-4 md:flex-row md:items-center md:justify-between">
         <p className="text-sm text-[#202224]/60">
           Menampilkan {(currentPage - 1) * rowsPerPage + 1}-{Math.min(currentPage * rowsPerPage, allRows.length)} dari {allRows.length} data
         </p>

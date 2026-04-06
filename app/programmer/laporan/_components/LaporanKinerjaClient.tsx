@@ -1,17 +1,17 @@
-// app/programmer/laporan/_components/LaporanKinerjaClient.tsx
-
 "use client"
 
 import * as React from "react"
 import { useEffect, useState, useMemo } from "react"
 import { useSession } from "next-auth/react"
 import { Button } from "@/components/ui/button"
-import { Table2, LayoutGrid } from "lucide-react"
+import { Search, Plus, Filter, MoreHorizontal, SendHorizonal, CheckCircle2, ChevronLeft, ChevronRight } from "lucide-react"
 import { toast } from "sonner"
 
-import LaporanKinerjaGrid from "./LaporanKinerjaGrid"
+import { Input } from "@/components/ui/input"
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
 import AddLaporanKinerja from "./modals/AddLaporanKinerja"
 import EditLaporanKinerja from "./modals/EditLaporanKinerja"
+import LaporanSlideOver from "./LaporanSlideOver"
 
 import { getLaporan, createLaporan, updateLaporan, deleteLaporan, ajukanVerifikasi } from "../services"
 import { LaporanKinerjaItem } from "../types"
@@ -21,32 +21,34 @@ function entityLabel(value?: string | { name: string }) {
   return typeof value === "string" ? value : value.name
 }
 
+function mapStatusToProgress(status?: string): number {
+  if (status === "hijau") return 100
+  if (status === "kuning") return 55
+  if (status === "merah") return 20
+  return 80
+}
+
+type ReportStatus = "semua" | "menunggu" | "revisi" | "terverifikasi"
+
+function mapReportStatus(status?: string): Exclude<ReportStatus, "semua"> {
+  const norm = status?.toLowerCase()
+  if (norm === "hijau" || norm === "terverifikasi") return "terverifikasi"
+  if (norm === "kuning" || norm === "merah" || norm === "revisi") return "revisi"
+  return "menunggu"
+}
+
+// Compact Table Row Height = ~48px
+// Format Date for Table
+function formatDateTbl(iso?: string) {
+  if (!iso) return "-"
+  return new Date(iso).toLocaleDateString("id-ID", { day: "2-digit", month: "short", year: "numeric" })
+}
+
 const HybridLoader = () => {
-  const [progress, setProgress] = React.useState(0)
-  React.useEffect(() => {
-    const interval = setInterval(() => {
-      setProgress((prev) => (prev >= 90 ? prev : prev + Math.floor(Math.random() * 10)))
-    }, 200)
-    return () => clearInterval(interval)
-  }, [])
   return (
-    <div className="flex flex-col items-center justify-center py-12 space-y-4 min-h-[400px]">
-      <div className="relative flex items-center justify-center">
-        <svg className="w-24 h-24 transform -rotate-90">
-          <circle cx="48" cy="48" r="40" stroke="currentColor" strokeWidth="6" fill="transparent" className="text-blue-100" />
-          <circle cx="48" cy="48" r="40" stroke="currentColor" strokeWidth="6" fill="transparent"
-            strokeDasharray={251.2} strokeDashoffset={251.2 - (251.2 * progress) / 100}
-            className="text-blue-600 transition-all duration-300 ease-out" strokeLinecap="round" />
-        </svg>
-        <div className="absolute flex flex-col items-center">
-          <span className="text-blue-600 animate-bounce text-xl">⏳</span>
-          <span className="text-[10px] font-bold text-blue-600">{progress}%</span>
-        </div>
-      </div>
-      <div className="text-center">
-        <p className="text-sm font-semibold text-[#202224]">Sedang memproses...</p>
-        <p className="text-[11px] text-[#202224]/50">Mohon tunggu sebentar</p>
-      </div>
+    <div className="flex flex-col items-center justify-center py-24 space-y-4">
+      <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+      <p className="text-sm font-medium text-gray-500">Memuat laporan...</p>
     </div>
   )
 }
@@ -56,17 +58,25 @@ export default function LaporanKinerjaClient() {
   const [data, setData] = useState<LaporanKinerjaItem[]>([])
   const [loading, setLoading] = useState(true)
   const [submittingId, setSubmittingId] = useState<string | null>(null)
+  
+  // Modals
   const [showAdd, setShowAdd] = useState(false)
   const [editItem, setEditItem] = useState<LaporanKinerjaItem | null>(null)
-  const [showTable, setShowTable] = useState(false)
+  const [selectedSlideItem, setSelectedSlideItem] = useState<LaporanKinerjaItem | null>(null)
+
+  // Filters
+  const [statusFilter, setStatusFilter] = useState<ReportStatus>("semua")
+  const [searchQuery, setSearchQuery] = useState("")
+
+  // Pagination
+  const ITEMS_PER_PAGE = 10
+  const [currentPage, setCurrentPage] = useState(1)
 
   const currentProgrammer = useMemo(() => {
     const user = session?.user as any
     const programmerId = user?.user_id ?? user?.id ?? ""
     const programmerName = user?.full_name ?? user?.name ?? user?.username ?? "Programmer"
-    return programmerId
-      ? [{ id: programmerId, nama_pegawai: programmerName, jabatan: "Programmer" }]
-      : []
+    return programmerId ? [{ id: programmerId, nama_pegawai: programmerName, jabatan: "Programmer" }] : []
   }, [session])
 
   const permintaanList = useMemo(() => {
@@ -109,11 +119,15 @@ export default function LaporanKinerjaClient() {
         }
       })
       const unique = Array.from(new Map(mapped.map((m) => [m.id, m])).values())
+      
+      // Sort: terbaru di atas
+      unique.sort((a, b) => new Date(b.updated_at ?? 0).getTime() - new Date(a.updated_at ?? 0).getTime())
+      
       setData(unique)
     } catch (err: any) {
       toast.error(err.message || "Terjadi kesalahan sistem")
     } finally {
-      setTimeout(() => setLoading(false), 800)
+      setTimeout(() => setLoading(false), 300)
     }
   }
 
@@ -168,39 +182,251 @@ export default function LaporanKinerjaClient() {
     }
   }
 
+  const summary = useMemo(() => {
+    return data.reduce(
+      (acc, item) => {
+        acc.semua += 1
+        acc[mapReportStatus(item.status)] += 1
+        return acc
+      },
+      { semua: 0, menunggu: 0, revisi: 0, terverifikasi: 0 }
+    )
+  }, [data])
+
+  const filteredItems = useMemo(() => {
+    return data.filter(item => {
+      const matchStatus = statusFilter === "semua" || mapReportStatus(item.status) === statusFilter
+      const lbl = entityLabel(item.permintaan?.pemda).toLowerCase()
+      const matchSearch = lbl.includes(searchQuery.toLowerCase())
+      return matchStatus && matchSearch
+    })
+  }, [data, statusFilter, searchQuery])
+
+  // Reset to page 1 whenever filter/search changes
+  useEffect(() => { setCurrentPage(1) }, [statusFilter, searchQuery])
+
+  const totalPages = Math.max(1, Math.ceil(filteredItems.length / ITEMS_PER_PAGE))
+  const paginatedItems = filteredItems.slice((currentPage - 1) * ITEMS_PER_PAGE, currentPage * ITEMS_PER_PAGE)
+
   return (
-    <div className="space-y-6 px-3 sm:px-4">
-      <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
-        <h1 className="text-[2.1rem] leading-tight font-bold text-[#202224] sm:text-3xl">
-          Laporan Kinerja
-        </h1>
-        <div className="flex w-full flex-col gap-3 sm:flex-row sm:flex-wrap lg:w-auto lg:justify-end">
-          {!loading && (
+    <div className="space-y-6">
+      
+      {/* Header & Fitur Atas */}
+      <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+        
+        {/* Filter Tabs */}
+        <div className="flex items-center gap-1 bg-gray-100/50 p-1 rounded-xl border border-gray-100">
+          {[
+            { id: "semua", label: "Semua", count: summary.semua },
+            { id: "menunggu", label: "Menunggu", count: summary.menunggu },
+            { id: "revisi", label: "Revisi", count: summary.revisi },
+            { id: "terverifikasi", label: "Terverifikasi", count: summary.terverifikasi },
+          ].map((tab) => (
             <button
-              onClick={() => setShowTable((prev) => !prev)}
-              className={`inline-flex w-full items-center justify-center gap-2 rounded-xl px-4 py-3 text-sm font-semibold transition sm:w-auto sm:px-5 sm:py-2.5 ${showTable ? "bg-blue-600 text-white" : "bg-white border"}`}
+              key={tab.id}
+              onClick={() => setStatusFilter(tab.id as ReportStatus)}
+              className={`px-4 py-2 rounded-lg text-sm font-semibold transition-all flex items-center gap-2 ${
+                statusFilter === tab.id 
+                  ? "bg-white text-gray-900 shadow-sm ring-1 ring-gray-900/5" 
+                  : "text-gray-500 hover:text-gray-700 hover:bg-gray-100/50"
+              }`}
             >
-              {showTable ? <LayoutGrid className="size-4" /> : <Table2 className="size-4" />}
-              {showTable ? "Lihat Grid" : "Lihat Tabel"}
+              {tab.label}
+              <span className={`px-1.5 py-0.5 rounded-md text-[10px] bg-gray-100 ${statusFilter === tab.id ? "bg-gray-100 text-gray-700" : "bg-transparent text-gray-400"}`}>
+                {tab.count}
+              </span>
             </button>
-          )}
-          <Button onClick={() => setShowAdd(true)} className="w-full font-bold sm:w-auto">+ Tambah Laporan</Button>
+          ))}
         </div>
+
+        {/* Search & Actions */}
+        <div className="flex items-center gap-3">
+          <div className="relative w-full md:w-64">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
+            <Input 
+              placeholder="Cari nama pemda..." 
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="pl-9 bg-white border-gray-200 focus-visible:ring-blue-500 rounded-xl"
+            />
+          </div>
+          <Button onClick={() => setShowAdd(true)} className="rounded-xl font-bold gap-2 shrink-0">
+            <Plus className="h-4 w-4" />
+            <span className="hidden sm:inline">Tambah Laporan</span>
+          </Button>
+        </div>
+
       </div>
 
+      {/* Main Table Area */}
       {loading ? (
         <HybridLoader />
       ) : (
-        <LaporanKinerjaGrid
-          data={data}
-          showTable={showTable}
-          onEdit={setEditItem}
-          onDelete={handleDelete}
-          onSubmitVerifikasi={handleSubmitVerifikasi}
-          submittingId={submittingId}
-        />
+        <div className="rounded-2xl border border-gray-200 bg-white shadow-sm overflow-hidden">
+          <div className="overflow-x-auto">
+            <table className="w-full text-sm whitespace-nowrap">
+              <thead>
+                <tr className="border-b border-gray-100 bg-gray-50/50">
+                  <th className="px-6 py-4 text-left font-semibold text-gray-500 w-[300px]">Pemda / Kategori</th>
+                  <th className="px-6 py-4 text-left font-semibold text-gray-500 w-[150px]">Status</th>
+                  <th className="px-6 py-4 text-left font-semibold text-gray-500 w-[200px]">Progress</th>
+                  <th className="px-6 py-4 text-left font-semibold text-gray-500 w-[150px]">Deadline</th>
+                  <th className="px-6 py-4 text-left font-semibold text-gray-500 w-[120px]">File</th>
+                  <th className="px-6 py-4 text-right font-semibold text-gray-500 w-[80px]">Aksi</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-gray-100">
+                {paginatedItems.length === 0 ? (
+                  <tr>
+                    <td colSpan={6} className="py-12 text-center text-gray-500">
+                      Tidak ada laporan ditemukan.
+                    </td>
+                  </tr>
+                ) : (
+                  paginatedItems.map((item) => {
+                    const statusType = mapReportStatus(item.status)
+                    const progressVal = mapStatusToProgress(item.status)
+
+                    let statusBadgeClass = "bg-amber-50 text-amber-700 ring-amber-600/20"
+                    let statusLabel = "Menunggu"
+                    if (statusType === "terverifikasi") {
+                      statusBadgeClass = "bg-emerald-50 text-emerald-700 ring-emerald-600/20"
+                      statusLabel = "Terverifikasi"
+                    } else if (statusType === "revisi") {
+                      statusBadgeClass = "bg-red-50 text-red-700 ring-red-600/10"
+                      statusLabel = "Perlu Revisi"
+                    }
+
+                    const progressColor = statusType === "terverifikasi" ? "bg-emerald-500" : statusType === "revisi" ? "bg-red-500" : "bg-amber-500"
+                    const isNearDeadline = item.permintaan?.tanggal_deadline && new Date(item.permintaan.tanggal_deadline).getTime() - new Date().getTime() < 7 * 24 * 60 * 60 * 1000 ? true : false
+
+                    const isAlreadySubmitted = Boolean(item.verifikasi)
+                    const isDisabled = submittingId === item.id || statusType === "terverifikasi" || isAlreadySubmitted
+
+                    return (
+                      <tr 
+                        key={item.id} 
+                        className="group cursor-pointer hover:bg-gray-50/50 transition-colors"
+                        onClick={() => setSelectedSlideItem(item)} // Open slide over
+                      >
+                        <td className="px-6 h-14 w-10">
+                          <div className="flex flex-col justify-center h-full">
+                            <span className="font-bold text-gray-900 truncate block">
+                              {entityLabel(item.permintaan?.pemda)}
+                            </span>
+                            <span className="text-xs text-gray-500 font-medium truncate block">
+                              {entityLabel(item.permintaan?.aplikasi)}
+                            </span>
+                          </div>
+                        </td>
+                        <td className="px-6 h-14">
+                          <span className={`inline-flex items-center rounded-md px-2 py-1 text-xs font-semibold ring-1 ring-inset ${statusBadgeClass}`}>
+                            {statusLabel}
+                          </span>
+                        </td>
+                        <td className="px-6 h-14">
+                          <div className="flex items-center gap-3">
+                            <div className="w-24 h-1.5 rounded-full bg-gray-100 overflow-hidden shrink-0">
+                              <div className={`h-full rounded-full ${progressColor}`} style={{ width: `${progressVal}%` }} />
+                            </div>
+                            <span className="text-xs font-bold text-gray-700">{progressVal}%</span>
+                          </div>
+                        </td>
+                        <td className="px-6 h-14">
+                          <span className={`text-sm font-semibold ${isNearDeadline && statusType !== 'terverifikasi' ? 'text-red-600' : 'text-gray-900'}`}>
+                            {formatDateTbl(item.permintaan?.tanggal_deadline)}
+                          </span>
+                        </td>
+                        <td className="px-6 h-14">
+                          <span 
+                            className="text-sm font-bold text-blue-600 hover:text-blue-700 hover:underline inline-flex items-center gap-1"
+                            onClick={(e) => e.stopPropagation()} // Prevent slideover just for link
+                          >
+                            2 file
+                          </span>
+                        </td>
+                        <td className="px-6 h-14 text-right">
+                          <div className="flex justify-end gap-2" onClick={(e) => e.stopPropagation()}>
+                            <Button 
+                              size="sm" 
+                              variant="outline" 
+                              className={`h-8 w-8 p-0 rounded-lg ${isAlreadySubmitted ? 'border-emerald-200 text-emerald-600 bg-emerald-50 cursor-default hover:bg-emerald-50 hover:text-emerald-600' : ''}`}
+                              disabled={isDisabled}
+                              onClick={() => handleSubmitVerifikasi(item)}
+                              title={isAlreadySubmitted ? "Sudah Diajukan" : "Ajukan Verifikasi"}
+                            >
+                              {submittingId === item.id ? "..." : isAlreadySubmitted ? <CheckCircle2 className="h-4 w-4" /> : <SendHorizonal className="h-4 w-4" />}
+                            </Button>
+                            
+                            <DropdownMenu>
+                              <DropdownMenuTrigger asChild>
+                                <Button size="sm" variant="ghost" className="h-8 w-8 p-0 rounded-lg shrink-0">
+                                  <MoreHorizontal className="h-4 w-4 text-gray-500" />
+                                </Button>
+                              </DropdownMenuTrigger>
+                              <DropdownMenuContent align="end" className="w-32 rounded-xl">
+                                <DropdownMenuItem onClick={() => setEditItem(item)} className="cursor-pointer font-medium text-gray-700">Edit</DropdownMenuItem>
+                                <DropdownMenuItem className="cursor-pointer font-medium text-red-600 focus:text-red-600" onClick={() => handleDelete(item.id)}>Hapus</DropdownMenuItem>
+                              </DropdownMenuContent>
+                            </DropdownMenu>
+                          </div>
+                        </td>
+                      </tr>
+                    )
+                  })
+                )}
+              </tbody>
+            </table>
+          </div>
+
+          {/* Pagination Footer */}
+          {totalPages > 1 && (
+            <div className="flex items-center justify-between px-6 py-3 border-t border-gray-100 bg-gray-50/30">
+              <p className="text-xs text-gray-500">
+                Menampilkan {(currentPage - 1) * ITEMS_PER_PAGE + 1}–{Math.min(currentPage * ITEMS_PER_PAGE, filteredItems.length)} dari {filteredItems.length} laporan
+              </p>
+              <div className="flex items-center gap-1">
+                <button
+                  onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
+                  disabled={currentPage === 1}
+                  className="h-8 w-8 flex items-center justify-center rounded-lg text-gray-500 hover:bg-gray-100 disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
+                >
+                  <ChevronLeft className="h-4 w-4" />
+                </button>
+                {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
+                  <button
+                    key={page}
+                    onClick={() => setCurrentPage(page)}
+                    className={`h-8 w-8 flex items-center justify-center rounded-lg text-xs font-semibold transition-colors ${
+                      page === currentPage
+                        ? "bg-gray-900 text-white"
+                        : "text-gray-500 hover:bg-gray-100"
+                    }`}
+                  >
+                    {page}
+                  </button>
+                ))}
+                <button
+                  onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
+                  disabled={currentPage === totalPages}
+                  className="h-8 w-8 flex items-center justify-center rounded-lg text-gray-500 hover:bg-gray-100 disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
+                >
+                  <ChevronRight className="h-4 w-4" />
+                </button>
+              </div>
+            </div>
+          )}
+        </div>
       )}
 
+      {/* Slide-Over Panel */}
+      <LaporanSlideOver 
+        isOpen={!!selectedSlideItem} 
+        onClose={() => setSelectedSlideItem(null)} 
+        item={selectedSlideItem} 
+      />
+
+      {/* Modals */}
       <AddLaporanKinerja open={showAdd} onClose={() => setShowAdd(false)} onSave={handleAdd} permintaanList={permintaanList} masterPegawai={currentProgrammer} />
       <EditLaporanKinerja open={!!editItem} data={editItem} onClose={() => setEditItem(null)} onSave={handleEdit} permintaanList={permintaanList} masterPegawai={currentProgrammer} />
     </div>
