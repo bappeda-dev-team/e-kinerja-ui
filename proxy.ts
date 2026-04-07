@@ -47,8 +47,16 @@ export default async function proxy(req: NextRequest) {
   if (isAuthRoute && isAuthenticated) {
     const roleId = (token as any)?.user?.role_id as string | undefined
     const role = roleId ? ROLE_ID_MAP[roleId] : null
-    const home = role ? ROLE_HOME[role] : "/login"
-    return NextResponse.redirect(new URL(home, req.url))
+
+    if (!role) {
+      // Role tidak dikenal → hapus session, biarkan tetap di /login
+      const res = NextResponse.next()
+      res.cookies.delete("next-auth.session-token")
+      res.cookies.delete("__Secure-next-auth.session-token")
+      return res
+    }
+
+    return NextResponse.redirect(new URL(ROLE_HOME[role], req.url))
   }
 
   // Sudah login tapi akses prefix role lain → redirect ke home role sendiri
