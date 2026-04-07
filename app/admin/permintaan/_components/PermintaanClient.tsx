@@ -22,7 +22,7 @@ import {
   getMasterPemda,
 } from "../services"
 import type { PermintaanResponse, DistribusiResponse } from "@/app/super-admin/distribusi/types"
-import type { PermintaanRequest } from "@/app/super-admin/permintaan/types"
+import type { PermintaanRequest, PermintaanResponse as PermintaanResponseFull } from "@/app/super-admin/permintaan/types"
 import { NetworkError } from "@/components/network-error"
 
 function formatTgl(dateStr?: string) {
@@ -76,7 +76,7 @@ interface PermintaanRow {
   deadline: string
   sudahDistribusi: boolean
   distribusiId?: string
-  raw: PermintaanResponse
+  raw: PermintaanResponseFull
 }
 
 export default function AdminPermintaanClient() {
@@ -86,7 +86,7 @@ export default function AdminPermintaanClient() {
   const [fetchKey, setFetchKey] = useState(0)
   const [distribusiTarget, setDistribusiTarget] = useState<PermintaanRow | null>(null)
   const [showAdd, setShowAdd] = useState(false)
-  const [editItem, setEditItem] = useState<PermintaanResponse | null>(null)
+  const [editItem, setEditItem] = useState<PermintaanResponseFull | null>(null)
   const [submitLoading, setSubmitLoading] = useState(false)
   const [currentPage, setCurrentPage] = useState(1)
   const rowsPerPage = 10
@@ -117,7 +117,7 @@ export default function AdminPermintaanClient() {
         deadline: p.tanggal_deadline ?? "",
         sudahDistribusi: distribusiMap.has(p.id),
         distribusiId: distribusiMap.get(p.id),
-        raw: p,
+        raw: p as unknown as PermintaanResponseFull,
       }))
 
       mapped.sort((a, b) => {
