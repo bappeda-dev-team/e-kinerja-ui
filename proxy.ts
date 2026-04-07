@@ -6,27 +6,34 @@ import { getToken } from "next-auth/jwt"
 const AUTH_ROUTES = ["/login", "/"]
 
 const ROLE_ID_MAP: Record<string, string> = {
-  "3fc5cfba-e591-4b67-9e99-78562fba36e8": "super_admin",
-  "8c0c4dda-eaa9-4abc-b79e-132cf7f696d2": "admin",
-  "7726b58e-3223-415e-aef9-3784af6754a6": "programmer",
-  "bee727b8-a9c2-4577-bf63-7b4a8d201798": "level2",
+  "cd8c9166-9b38-4c9b-8afc-1c10ec97e068": "super_admin",
+  "5fa89680-b618-42fc-8725-fa72453a9351": "admin",
+  "b0cabba0-e1b9-4696-ab4b-7c9a229959e2": "programmer",
+  "dda6d213-4503-49e6-955c-5f4ae7796b19": "verifikator",
 }
 
 const ROLE_HOME: Record<string, string> = {
   super_admin: "/super-admin/dashboard",
   admin:       "/admin/dashboard",
   programmer:  "/programmer/dashboard",
-  level2:      "/verifikator/dashboard",
+  verifikator: "/verifikator/dashboard",
 }
 
 const ROLE_PREFIX: Record<string, string> = {
   super_admin: "/super-admin",
   admin:       "/admin",
   programmer:  "/programmer",
-  level2:      "/verifikator",
+  verifikator: "/verifikator",
 }
 
 const PROTECTED_PREFIXES = ["/super-admin", "/admin", "/programmer", "/verifikator"]
+
+const DEBUG = process.env.MIDDLEWARE_DEBUG === "true"
+
+function log(event: string, data: Record<string, unknown>) {
+  if (!DEBUG) return
+  console.log(`[MIDDLEWARE] ${event}`, JSON.stringify(data))
+}
 
 export default async function proxy(req: NextRequest) {
   const { pathname } = req.nextUrl
@@ -36,8 +43,21 @@ export default async function proxy(req: NextRequest) {
   const isAuthRoute = AUTH_ROUTES.includes(pathname)
   const isProtected = PROTECTED_PREFIXES.some((p) => pathname.startsWith(p))
 
+  const roleId = (token as any)?.user?.role_id as string | undefined
+  const role = roleId ? ROLE_ID_MAP[roleId] : null
+
+  log("REQUEST", {
+    pathname,
+    isAuthenticated,
+    isAuthRoute,
+    isProtected,
+    roleId: roleId ?? null,
+    role: role ?? null,
+  })
+
   // Belum login → redirect ke /login
   if (isProtected && !isAuthenticated) {
+    log("REDIRECT → /login (unauthenticated)", { pathname })
     const url = new URL("/login", req.url)
     url.searchParams.set("callbackUrl", pathname)
     return NextResponse.redirect(url)
@@ -45,27 +65,22 @@ export default async function proxy(req: NextRequest) {
 
   // Sudah login → jangan akses /login atau /
   if (isAuthRoute && isAuthenticated) {
-    const roleId = (token as any)?.user?.role_id as string | undefined
-    const role = roleId ? ROLE_ID_MAP[roleId] : null
-
     if (!role) {
-      // Role tidak dikenal → hapus session, biarkan tetap di /login
+      log("AUTH_ROUTE: token ada tapi role tidak dikenal → hapus cookie, tetap di halaman", { roleId })
       const res = NextResponse.next()
       res.cookies.delete("next-auth.session-token")
       res.cookies.delete("__Secure-next-auth.session-token")
       return res
     }
 
+    log(`REDIRECT → ${ROLE_HOME[role]} (sudah login, akses auth route)`, { role })
     return NextResponse.redirect(new URL(ROLE_HOME[role], req.url))
   }
 
   // Sudah login tapi akses prefix role lain → redirect ke home role sendiri
   if (isAuthenticated && isProtected) {
-    const roleId = (token as any)?.user?.role_id as string | undefined
-    const role = roleId ? ROLE_ID_MAP[roleId] : null
-
     if (!role) {
-      // Role tidak dikenal → paksa logout
+      log("PROTECTED: role tidak dikenal → paksa logout", { roleId })
       const res = NextResponse.redirect(new URL("/login", req.url))
       res.cookies.delete("next-auth.session-token")
       res.cookies.delete("__Secure-next-auth.session-token")
@@ -74,10 +89,12 @@ export default async function proxy(req: NextRequest) {
 
     const myPrefix = ROLE_PREFIX[role]
     if (!pathname.startsWith(myPrefix)) {
+      log(`REDIRECT → ${ROLE_HOME[role]} (akses prefix role lain)`, { pathname, myPrefix })
       return NextResponse.redirect(new URL(ROLE_HOME[role], req.url))
     }
   }
 
+  log("PASS", { pathname })
   return NextResponse.next()
 }
 

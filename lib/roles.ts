@@ -1,26 +1,26 @@
 // lib/roles.ts
 
-export type RoleName = "super_admin" | "admin" | "programmer" | "level2"
+export type RoleName = "super_admin" | "admin" | "programmer" | "verifikator"
 
 export const ROLE_ID_MAP: Record<string, RoleName> = {
-  "3fc5cfba-e591-4b67-9e99-78562fba36e8": "super_admin",
-  "8c0c4dda-eaa9-4abc-b79e-132cf7f696d2": "admin",
-  "7726b58e-3223-415e-aef9-3784af6754a6": "programmer",
-  "bee727b8-a9c2-4577-bf63-7b4a8d201798": "level2",
+  "cd8c9166-9b38-4c9b-8afc-1c10ec97e068": "super_admin",
+  "5fa89680-b618-42fc-8725-fa72453a9351": "admin",
+  "b0cabba0-e1b9-4696-ab4b-7c9a229959e2": "programmer",
+  "dda6d213-4503-49e6-955c-5f4ae7796b19": "verifikator",
 }
 
 export const ROLE_LABEL: Record<RoleName, string> = {
   super_admin: "Super Admin",
   admin:       "Admin",
   programmer:  "Programmer",
-  level2:      "Verifikator",
+  verifikator: "Verifikator",
 }
 
 export const ROLE_PREFIX: Record<RoleName, string> = {
   super_admin: "/super-admin",
-  admin: "/admin",
-  programmer: "/programmer",
-  level2: "/verifikator",
+  admin:       "/admin",
+  programmer:  "/programmer",
+  verifikator: "/verifikator",
 }
 
 /** Menu yang boleh diakses per role (dipakai di sidebar) */
@@ -28,7 +28,7 @@ export const ROLE_MENUS: Record<RoleName, string[]> = {
   super_admin: ["dashboard", "data-master", "permintaan", "distribusi", "laporan", "verifikasi"],
   admin:       ["dashboard", "permintaan", "distribusi"],
   programmer:  ["dashboard", "laporan"],
-  level2:      ["dashboard"],
+  verifikator: ["dashboard"],
 }
 
 /** Ambil role name dari session.user */
