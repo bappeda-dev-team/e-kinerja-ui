@@ -14,6 +14,7 @@ import { getSuperadminDashboard } from "../services"
 
 import type { DashboardPermintaanItem, DashboardDistribusi } from "../types"
 import { getRoleName } from "@/lib/roles"
+import { NetworkError } from "@/components/network-error"
 
 export default function DashboardClient({ session }: { session: any }) {
   const u = (session?.user as any)
@@ -26,6 +27,8 @@ export default function DashboardClient({ session }: { session: any }) {
   const [totalDistribusi, setTotalDistribusi] = useState(0)
   const [totalLaporan, setTotalLaporan] = useState(0)
   const [loading, setLoading] = useState(true)
+  const [networkError, setNetworkError] = useState(false)
+  const [fetchKey, setFetchKey] = useState(0)
 
   useEffect(() => {
     if (!roleName) return
@@ -37,7 +40,14 @@ export default function DashboardClient({ session }: { session: any }) {
 
     const fetchAll = async () => {
       try {
+        setNetworkError(false)
         const res = await getSuperadminDashboard()
+
+        if (res.status === 0) {
+          setNetworkError(true)
+          return
+        }
+
         const d = res.data?.data
 
         setPermintaan(d?.permintaan ?? [])
@@ -56,7 +66,11 @@ export default function DashboardClient({ session }: { session: any }) {
     }
 
     fetchAll()
-  }, [roleName, isSuperAdmin])
+  }, [roleName, isSuperAdmin, fetchKey])
+
+  if (networkError) {
+    return <NetworkError onRetry={() => setFetchKey((k) => k + 1)} />
+  }
 
   if (!isSuperAdmin) {
     return (

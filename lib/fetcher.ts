@@ -98,7 +98,11 @@ export async function fetchApi<T = any>(
     web = urlOrParams.web;
   }
 
-  const baseURL = process.env.NEXT_PUBLIC_API_URL || process.env.SITE_URL;
+  // Client-side: pakai proxy rewrites (/api/backend/...) untuk menghindari CORS
+  // Server-side: pakai URL langsung ke backend
+  const baseURL = typeof window === "undefined"
+    ? (process.env.NEXT_PUBLIC_API_URL || process.env.SITE_URL || "http://localhost:8080")
+    : "/api/backend";
   const headers = new Headers();
   const isFormData = body instanceof FormData;
 
@@ -155,8 +159,12 @@ export async function fetchApi<T = any>(
 
     if (response.status === 403) {
       invalidateClientSessionCache();
-      if (typeof window === "undefined") redirect("/unauthorized");
-      else window.location.href = "/unauthorized";
+      // Hanya redirect ke /unauthorized jika memang ada token tapi ditolak (bukan karena belum login)
+      const hadToken = headers.get("Authorization") !== null;
+      if (hadToken) {
+        if (typeof window === "undefined") redirect("/unauthorized");
+        else window.location.href = "/unauthorized";
+      }
     }
 
     let data = null;
@@ -173,10 +181,13 @@ export async function fetchApi<T = any>(
     };
 
   } catch (error: any) {
+    const isNetworkFailure =
+      error instanceof TypeError &&
+      (error.message === "Failed to fetch" || error.message === "Network request failed" || error.message === "Load failed")
     console.error("FetchAPI Error:", error);
     return {
-      status: 500,
-      message: error.message || "Internal Server Error",
+      status: isNetworkFailure ? 0 : 500,
+      message: isNetworkFailure ? "Tidak dapat terhubung ke server. Periksa koneksi internet kamu." : (error.message || "Internal Server Error"),
       data: null as any
     };
   }

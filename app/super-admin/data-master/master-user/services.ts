@@ -29,7 +29,7 @@ export const createUser = async (data: RegisterUserRequest) => {
 }
 
 export const updateUser = async (id: string, data: UserRequest) => {
-  return fetchApi<APIResponse<UserResponse>>(`/users/${id}`, { method: "PUT", body: data })
+  return fetchApi<APIResponse<UserResponse>>(`/users/${id}`, { method: "PATCH", body: data })
 }
 
 export const deleteUser = async (id: string) => {

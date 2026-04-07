@@ -2,10 +2,16 @@
 
 "use client"
 
-import Link from "next/link"
 import { ShieldX } from "lucide-react"
+import { signOut } from "next-auth/react"
+import { invalidateClientSessionCache } from "@/lib/fetcher"
 
 export default function UnauthorizedPage() {
+  const handleBackToLogin = async () => {
+    invalidateClientSessionCache()
+    await signOut({ callbackUrl: "/login" })
+  }
+
   return (
     <div className="flex flex-col items-center justify-center h-screen bg-white gap-4">
       <ShieldX className="w-16 h-16 text-red-400" />
@@ -13,12 +19,12 @@ export default function UnauthorizedPage() {
       <p className="text-gray-500 text-sm">
         Anda tidak memiliki izin untuk mengakses halaman ini.
       </p>
-      <Link
-        href="/dashboard"
+      <button
+        onClick={handleBackToLogin}
         className="mt-4 px-6 py-2.5 bg-[#4880FF] text-white font-semibold rounded-xl hover:opacity-90"
       >
-        Kembali ke Dashboard
-      </Link>
+        Kembali ke Login
+      </button>
     </div>
   )
 }

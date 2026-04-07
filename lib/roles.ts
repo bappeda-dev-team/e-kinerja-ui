@@ -26,7 +26,7 @@ export const ROLE_PREFIX: Record<RoleName, string> = {
 /** Menu yang boleh diakses per role (dipakai di sidebar) */
 export const ROLE_MENUS: Record<RoleName, string[]> = {
   super_admin: ["dashboard", "data-master", "permintaan", "distribusi", "laporan", "verifikasi"],
-  admin:       ["dashboard", "distribusi"],
+  admin:       ["dashboard", "permintaan", "distribusi"],
   programmer:  ["dashboard", "laporan"],
   level2:      ["dashboard"],
 }

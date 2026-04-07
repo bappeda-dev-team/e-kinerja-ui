@@ -17,7 +17,7 @@ export const createRole = async (data: RoleRequest) => {
 };
 
 export const updateRole = async (id: string, data: RoleRequest) => {
-  return fetchApi<APIResponse<Roles>>(`/roles/${id}`, { method: "PUT", body: data });
+  return fetchApi<APIResponse<Roles>>(`/roles/${id}`, { method: "PATCH", body: data });
 };
 
 export const deleteRole = async (id: string) => {

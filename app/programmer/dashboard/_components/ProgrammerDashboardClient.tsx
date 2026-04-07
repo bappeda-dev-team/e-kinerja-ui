@@ -9,16 +9,25 @@ import { mapReportStatus, getProgrammerName } from "./utils"
 import { DashboardStats } from "./DashboardStats"
 import { AttentionPanel } from "./AttentionPanel"
 import { ActivityPanel } from "./ActivityPanel"
+import { NetworkError } from "@/components/network-error"
 
 export default function ProgrammerDashboardClient() {
   const [items, setItems] = useState<ProgrammerTaskItem[]>([])
   const [loading, setLoading] = useState(true)
+  const [networkError, setNetworkError] = useState(false)
+  const [fetchKey, setFetchKey] = useState(0)
 
   useEffect(() => {
     const fetchData = async () => {
       try {
         setLoading(true)
+        setNetworkError(false)
         const response = await getLaporan()
+
+        if (response.status === 0) {
+          setNetworkError(true)
+          return
+        }
 
         if (response.status !== 200) {
           throw new Error(response.data?.message || "Gagal memuat data laporan")
@@ -51,7 +60,7 @@ export default function ProgrammerDashboardClient() {
     }
 
     fetchData()
-  }, [])
+  }, [fetchKey])
 
   const summary = useMemo<DashboardSummary>(() => {
     return items.reduce(
@@ -78,6 +87,10 @@ export default function ProgrammerDashboardClient() {
     () => [...items].sort((a, b) => new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime()),
     [items]
   )
+
+  if (networkError) {
+    return <NetworkError onRetry={() => setFetchKey((k) => k + 1)} />
+  }
 
   return (
     <div className="space-y-3">

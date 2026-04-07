@@ -34,6 +34,7 @@ export interface PermintaanResponse {
 export interface DistribusiRequest {
     komentar?: string;
     permintaan_id: string;
+    programmer_ids?: string[];
 }
 
 export interface DistribusiPermintaan {
