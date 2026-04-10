@@ -10,10 +10,31 @@ import { Button } from "@/components/ui/button"
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import { Badge } from "@/components/ui/badge"
-import { getRoleName } from "@/lib/roles"
 
 import { getPermintaan, getUsers } from "../../services"
 import type { PermintaanResponse, DistribusiRequest, UserResponse } from "../../types"
+
+const PROGRAMMER_ROLE_ID = "b0cabba0-e1b9-4696-ab4b-7c9a229959e2"
+
+function isProgrammerUser(user: UserResponse) {
+  const roleName =
+    typeof user.role === "string"
+      ? user.role
+      : user.role?.name ?? user.role?.description ?? ""
+
+  return (
+    user.role_id === PROGRAMMER_ROLE_ID ||
+    roleName.toLowerCase().trim() === "programmer"
+  )
+}
+
+function getUserLabel(user: UserResponse) {
+  const fullName = user.full_name?.trim()
+  const username = user.username?.trim()
+
+  if (fullName && username) return `${fullName} (${username})`
+  return fullName || username || "Programmer"
+}
 
 interface Props {
   onClose: () => void
@@ -41,7 +62,7 @@ export default function AddDistribusiModal({ onClose, onSave, loading }: Props) 
         setPermintaans(permintaanRes.data?.data ?? [])
         setProgrammers(
           (usersRes.data?.data ?? []).filter(
-            (user) => user.is_active && getRoleName({ user }) === "programmer"
+            (user) => user.is_active && isProgrammerUser(user)
           )
         )
       } catch {
@@ -136,7 +157,7 @@ export default function AddDistribusiModal({ onClose, onSave, loading }: Props) 
                   <option value="">Pilih programmer...</option>
                   {availableProgrammers.map((user) => (
                     <option key={user.id} value={user.id}>
-                      {user.full_name || user.username}
+                      {getUserLabel(user)}
                     </option>
                   ))}
                 </select>
@@ -149,7 +170,7 @@ export default function AddDistribusiModal({ onClose, onSave, loading }: Props) 
                         variant="secondary"
                         className="flex items-center gap-1 border border-blue-100 bg-blue-50 px-2.5 py-1 text-blue-700"
                       >
-                        {user.full_name || user.username}
+                        {getUserLabel(user)}
                         <button
                           type="button"
                           onClick={() => handleToggleProgrammer(user.id)}
