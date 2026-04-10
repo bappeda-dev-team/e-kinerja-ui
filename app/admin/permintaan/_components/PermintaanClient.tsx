@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useState, Fragment } from "react"
 import { toast } from "sonner"
-import { Send, Loader2, ClipboardList, Plus } from "lucide-react"
+import { Send, Loader2, ClipboardList } from "lucide-react"
 import {
   Pagination, PaginationContent, PaginationEllipsis, PaginationItem,
   PaginationLink, PaginationNext, PaginationPrevious,
@@ -15,11 +15,9 @@ import {
   getDistribusi,
   createDistribusi,
   updateDistribusi,
-  createPermintaan,
   updatePermintaan,
   deletePermintaan,
   uploadPermintaanAttachment,
-  getMasterPemda,
 } from "../services"
 import type { PermintaanResponse, DistribusiResponse } from "@/app/super-admin/distribusi/types"
 import type { PermintaanRequest, PermintaanResponse as PermintaanResponseFull } from "@/app/super-admin/permintaan/types"
@@ -85,7 +83,6 @@ export default function AdminPermintaanClient() {
   const [networkError, setNetworkError] = useState(false)
   const [fetchKey, setFetchKey] = useState(0)
   const [distribusiTarget, setDistribusiTarget] = useState<PermintaanRow | null>(null)
-  const [showAdd, setShowAdd] = useState(false)
   const [editItem, setEditItem] = useState<PermintaanResponseFull | null>(null)
   const [submitLoading, setSubmitLoading] = useState(false)
   const [currentPage, setCurrentPage] = useState(1)
@@ -134,24 +131,6 @@ export default function AdminPermintaanClient() {
   }
 
   useEffect(() => { fetchAll() }, [fetchKey])
-
-  const handleAddPermintaan = async (val: PermintaanRequest, files: File[]) => {
-    try {
-      setSubmitLoading(true)
-      const res = await createPermintaan(val)
-      if (res.status === 200 || res.status === 201) {
-        const newId = res.data?.data?.id
-        if (files.length > 0 && newId) {
-          try { await uploadPermintaanAttachment(newId, files) } catch { toast.error("Lampiran gagal diunggah") }
-        }
-        toast.success("Permintaan berhasil ditambahkan")
-        setShowAdd(false)
-        fetchAll()
-      }
-    } catch (err: any) {
-      toast.error(err.message || "Gagal menambah permintaan")
-    } finally { setSubmitLoading(false) }
-  }
 
   const handleEditPermintaan = async (val: PermintaanRequest, files: File[], id?: string) => {
     if (!id) return
@@ -241,12 +220,6 @@ export default function AdminPermintaanClient() {
           </h2>
           <p className="text-sm text-[#797A7C]">Daftar semua permintaan dan status pendistribusiannya.</p>
         </div>
-        <button
-          onClick={() => setShowAdd(true)}
-          className="inline-flex items-center justify-center gap-2 rounded-xl bg-[#4880FF] px-5 py-2.5 text-sm font-bold text-white shadow-[0_4px_14px_0_rgba(72,128,255,0.39)] transition hover:bg-blue-600 active:scale-95 shrink-0"
-        >
-          <Plus className="size-4" /> Tambah Permintaan
-        </button>
       </div>
 
       <div className="bg-white rounded-2xl border border-gray-200 shadow-[6px_6px_54px_rgba(0,0,0,0.05)] overflow-hidden">
@@ -378,11 +351,11 @@ export default function AdminPermintaanClient() {
         />
       )}
 
-      {(showAdd || editItem) && (
+      {editItem && (
         <AddPermintaan
-          initialData={editItem || undefined}
-          onClose={() => { setShowAdd(false); setEditItem(null) }}
-          onSave={editItem ? handleEditPermintaan : handleAddPermintaan}
+          initialData={editItem}
+          onClose={() => setEditItem(null)}
+          onSave={handleEditPermintaan}
         />
       )}
     </div>
