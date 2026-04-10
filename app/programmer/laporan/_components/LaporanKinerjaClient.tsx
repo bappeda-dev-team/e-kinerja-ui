@@ -4,7 +4,7 @@ import * as React from "react"
 import { useEffect, useState, useMemo } from "react"
 import { useSession } from "next-auth/react"
 import { Button } from "@/components/ui/button"
-import { Search, Plus, Filter, MoreHorizontal, SendHorizonal, CheckCircle2, ChevronLeft, ChevronRight } from "lucide-react"
+import { Search, Plus, MoreHorizontal, SendHorizonal, CheckCircle2, ChevronLeft, ChevronRight } from "lucide-react"
 import { toast } from "sonner"
 
 import { Input } from "@/components/ui/input"
@@ -14,7 +14,15 @@ import EditLaporanKinerja from "./modals/EditLaporanKinerja"
 import LaporanSlideOver from "./LaporanSlideOver"
 
 import { getLaporan, createLaporan, updateLaporan, deleteLaporan, ajukanVerifikasi } from "../services"
-import { LaporanKinerjaItem } from "../types"
+import { LaporanKinerjaItem, LaporanResponse } from "../types"
+
+type SessionUser = {
+  id?: string
+  user_id?: string
+  full_name?: string
+  name?: string
+  username?: string
+}
 
 function entityLabel(value?: string | { name: string }) {
   if (!value) return "-"
@@ -29,6 +37,13 @@ function mapStatusToProgress(status?: string): number {
 }
 
 type ReportStatus = "semua" | "menunggu" | "revisi" | "terverifikasi"
+
+const REPORT_TABS: { id: ReportStatus; label: string }[] = [
+  { id: "semua", label: "Semua" },
+  { id: "menunggu", label: "Menunggu" },
+  { id: "revisi", label: "Revisi" },
+  { id: "terverifikasi", label: "Terverifikasi" },
+]
 
 function mapReportStatus(status?: string): Exclude<ReportStatus, "semua"> {
   const norm = status?.toLowerCase()
@@ -73,7 +88,7 @@ export default function LaporanKinerjaClient() {
   const [currentPage, setCurrentPage] = useState(1)
 
   const currentProgrammer = useMemo(() => {
-    const user = session?.user as any
+    const user = session?.user as SessionUser | undefined
     const programmerId = user?.user_id ?? user?.id ?? ""
     const programmerName = user?.full_name ?? user?.name ?? user?.username ?? "Programmer"
     return programmerId ? [{ id: programmerId, nama_pegawai: programmerName, jabatan: "Programmer" }] : []
@@ -100,7 +115,7 @@ export default function LaporanKinerjaClient() {
       if (resLaporan.status !== 200) throw new Error(resLaporan.data?.message || "Gagal memuat data")
 
       const rawData = resLaporan.data?.data || []
-      const mapped: LaporanKinerjaItem[] = rawData.map((item: any) => {
+      const mapped: LaporanKinerjaItem[] = rawData.map((item: LaporanResponse) => {
         const pemda = item.permintaan?.pemda
         const aplikasi = item.permintaan?.aplikasi
         const pemdaName = typeof pemda === "object" ? pemda?.name : pemda
@@ -124,8 +139,8 @@ export default function LaporanKinerjaClient() {
       unique.sort((a, b) => new Date(b.updated_at ?? 0).getTime() - new Date(a.updated_at ?? 0).getTime())
       
       setData(unique)
-    } catch (err: any) {
-      toast.error(err.message || "Terjadi kesalahan sistem")
+    } catch (err: unknown) {
+      toast.error(err instanceof Error ? err.message : "Terjadi kesalahan sistem")
     } finally {
       setTimeout(() => setLoading(false), 300)
     }
@@ -160,7 +175,9 @@ export default function LaporanKinerjaClient() {
       if (res.status < 200 || res.status >= 300) throw new Error(res.message)
       setData((prev) => prev.filter((d) => d.id !== id))
       toast.success("Berhasil dihapus")
-    } catch (err: any) { toast.error(err.message) }
+    } catch (err: unknown) {
+      toast.error(err instanceof Error ? err.message : "Terjadi kesalahan sistem")
+    }
   }
 
   const handleSubmitVerifikasi = async (item: LaporanKinerjaItem) => {
@@ -175,8 +192,8 @@ export default function LaporanKinerjaClient() {
       if (res.status < 200 || res.status >= 300) throw new Error(res.data?.message || "Gagal mengajukan verifikasi")
       await fetchData()
       toast.success("Berhasil diajukan untuk verifikasi!")
-    } catch (err: any) {
-      toast.error(err.message)
+    } catch (err: unknown) {
+      toast.error(err instanceof Error ? err.message : "Terjadi kesalahan sistem")
     } finally {
       setSubmittingId(null)
     }
@@ -207,6 +224,7 @@ export default function LaporanKinerjaClient() {
 
   const totalPages = Math.max(1, Math.ceil(filteredItems.length / ITEMS_PER_PAGE))
   const paginatedItems = filteredItems.slice((currentPage - 1) * ITEMS_PER_PAGE, currentPage * ITEMS_PER_PAGE)
+  const activeTabIndex = REPORT_TABS.findIndex((tab) => tab.id === statusFilter)
 
   return (
     <div className="space-y-6">
@@ -215,25 +233,32 @@ export default function LaporanKinerjaClient() {
       <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
         
         {/* Filter Tabs */}
-        <div className="flex items-center gap-1 bg-gray-100/50 p-1 rounded-xl border border-gray-100">
-          {[
-            { id: "semua", label: "Semua", count: summary.semua },
-            { id: "menunggu", label: "Menunggu", count: summary.menunggu },
-            { id: "revisi", label: "Revisi", count: summary.revisi },
-            { id: "terverifikasi", label: "Terverifikasi", count: summary.terverifikasi },
-          ].map((tab) => (
+        <div className="relative grid w-full max-w-[680px] grid-cols-4 rounded-[28px] border border-gray-200 bg-[#f6f7fb] p-2 shadow-[inset_0_1px_0_rgba(255,255,255,0.9)]">
+          <div
+            className="pointer-events-none absolute top-2 bottom-2 left-2 w-[calc((100%-1rem)/4)] rounded-[20px] border border-gray-200 bg-white shadow-[0_10px_25px_rgba(15,23,42,0.08)] transition-transform duration-300 ease-[cubic-bezier(0.22,1,0.36,1)]"
+            style={{ transform: `translateX(calc(${activeTabIndex} * 100%))` }}
+          />
+          {REPORT_TABS.map((tab) => (
             <button
               key={tab.id}
               onClick={() => setStatusFilter(tab.id as ReportStatus)}
-              className={`px-4 py-2 rounded-lg text-sm font-semibold transition-all flex items-center gap-2 ${
-                statusFilter === tab.id 
-                  ? "bg-white text-gray-900 shadow-sm ring-1 ring-gray-900/5" 
-                  : "text-gray-500 hover:text-gray-700 hover:bg-gray-100/50"
+              className={`relative z-10 flex items-center justify-center gap-2 rounded-[20px] px-4 py-3 text-sm font-semibold transition-colors ${
+                statusFilter === tab.id
+                  ? "text-gray-900"
+                  : "text-gray-500 hover:text-gray-700"
               }`}
             >
               {tab.label}
-              <span className={`px-1.5 py-0.5 rounded-md text-[10px] bg-gray-100 ${statusFilter === tab.id ? "bg-gray-100 text-gray-700" : "bg-transparent text-gray-400"}`}>
-                {tab.count}
+              <span className={`rounded-xl px-2 py-0.5 text-[10px] font-bold transition-colors ${
+                statusFilter === tab.id ? "border border-gray-200 bg-gray-100 text-gray-700" : "bg-transparent text-gray-400"
+              }`}>
+                {tab.id === "semua"
+                  ? summary.semua
+                  : tab.id === "menunggu"
+                    ? summary.menunggu
+                    : tab.id === "revisi"
+                      ? summary.revisi
+                      : summary.terverifikasi}
               </span>
             </button>
           ))}

@@ -1,0 +1,398 @@
+"use client"
+
+import { useCallback, useEffect, useMemo, useRef, useState } from "react"
+import { useSession } from "next-auth/react"
+import { Search, ChevronLeft, ChevronRight, BriefcaseBusiness, ArrowRight } from "lucide-react"
+import { toast } from "sonner"
+
+import { Input } from "@/components/ui/input"
+import { Button } from "@/components/ui/button"
+import { NetworkError } from "@/components/network-error"
+
+import { getPenugasan } from "../services"
+import { PenugasanItem, PenugasanResponse } from "../types"
+import PenugasanSlideOver from "./PenugasanSlideOver"
+
+type AssignmentFilter = "semua" | "ada-catatan" | "tanpa-catatan"
+
+const FILTER_TABS: { id: AssignmentFilter; label: string }[] = [
+  { id: "semua", label: "Semua" },
+  { id: "ada-catatan", label: "Ada Catatan" },
+  { id: "tanpa-catatan", label: "Tanpa Catatan" },
+]
+
+function entityLabel(value?: string | { name?: string }) {
+  if (!value) return "-"
+  return typeof value === "string" ? value : value.name || "-"
+}
+
+function entityLogo(value?: string | { logo?: string }) {
+  if (!value || typeof value === "string") return ""
+  return value.logo || ""
+}
+
+function formatDateTbl(iso?: string) {
+  if (!iso) return "-"
+  return new Date(iso).toLocaleDateString("id-ID", {
+    day: "2-digit",
+    month: "short",
+    year: "numeric",
+  })
+}
+
+const ITEMS_PER_PAGE = 10
+const SLIDE_TRANSITION_MS = 300
+
+const HybridLoader = () => {
+  return (
+    <div className="flex flex-col items-center justify-center space-y-4 py-24">
+      <div className="h-8 w-8 animate-spin rounded-full border-b-2 border-blue-600"></div>
+      <p className="text-sm font-medium text-gray-500">Memuat penugasan...</p>
+    </div>
+  )
+}
+
+export default function PenugasanClient() {
+  const { data: session } = useSession()
+
+  const [data, setData] = useState<PenugasanItem[]>([])
+  const [loading, setLoading] = useState(true)
+  const [networkError, setNetworkError] = useState(false)
+  const [fetchKey, setFetchKey] = useState(0)
+  const [searchQuery, setSearchQuery] = useState("")
+  const [filter, setFilter] = useState<AssignmentFilter>("semua")
+  const [currentPage, setCurrentPage] = useState(1)
+  const [selectedItem, setSelectedItem] = useState<PenugasanItem | null>(null)
+  const [isSlideOpen, setIsSlideOpen] = useState(false)
+  const openFrameRef = useRef<number | null>(null)
+  const closeTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+
+  const currentUserId = useMemo(() => {
+    const user = session?.user as { user_id?: string; id?: string } | undefined
+    return user?.user_id ?? user?.id ?? ""
+  }, [session])
+
+  const fetchData = useCallback(async () => {
+    try {
+      setLoading(true)
+      setNetworkError(false)
+
+      const res = await getPenugasan()
+
+      if (res.status === 0) {
+        setNetworkError(true)
+        return
+      }
+
+      if (res.status !== 200) {
+        throw new Error(res.data?.message || "Gagal memuat data penugasan")
+      }
+
+      const rawData = res.data?.data ?? []
+      const filteredByUser = currentUserId
+        ? rawData.filter((item: PenugasanResponse) => {
+            const programmerId = item.programmer?.id ?? ""
+            return programmerId ? programmerId === currentUserId : true
+          })
+        : rawData
+
+      const mapped = filteredByUser.map((item: PenugasanResponse) => ({
+        id: item.id,
+        distribusi_id: item.distribusi?.id ?? "",
+        nama_pemda: entityLabel(item.distribusi?.pemda),
+        aplikasi: entityLabel(item.distribusi?.aplikasi),
+        logo_pemda: entityLogo(item.distribusi?.pemda),
+        komentar: item.distribusi?.komentar?.trim() ?? "",
+        programmer_nama: item.programmer?.full_name ?? item.programmer?.username ?? "Programmer",
+        programmer_username: item.programmer?.username ? `@${item.programmer.username}` : "-",
+        created_at: item.created_at,
+        updated_at: item.updated_at,
+      }))
+
+      mapped.sort((a, b) => {
+        const aTime = new Date(a.updated_at ?? a.created_at ?? 0).getTime()
+        const bTime = new Date(b.updated_at ?? b.created_at ?? 0).getTime()
+        return bTime - aTime
+      })
+
+      setData(mapped)
+    } catch (error) {
+      const message = error instanceof Error ? error.message : "Terjadi kesalahan sistem"
+      toast.error(message)
+    } finally {
+      setTimeout(() => setLoading(false), 300)
+    }
+  }, [currentUserId])
+
+  useEffect(() => {
+    fetchData()
+  }, [fetchData, fetchKey])
+
+  const summary = useMemo(() => {
+    return data.reduce(
+      (acc, item) => {
+        acc.semua += 1
+        if (item.komentar) acc["ada-catatan"] += 1
+        else acc["tanpa-catatan"] += 1
+        return acc
+      },
+      { semua: 0, "ada-catatan": 0, "tanpa-catatan": 0 }
+    )
+  }, [data])
+
+  const filteredItems = useMemo(() => {
+    const query = searchQuery.toLowerCase()
+
+    return data.filter((item) => {
+      const matchesFilter =
+        filter === "semua" ||
+        (filter === "ada-catatan" && Boolean(item.komentar)) ||
+        (filter === "tanpa-catatan" && !item.komentar)
+
+      const haystack = `${item.nama_pemda} ${item.aplikasi} ${item.komentar}`.toLowerCase()
+      return matchesFilter && haystack.includes(query)
+    })
+  }, [data, filter, searchQuery])
+
+  useEffect(() => {
+    setCurrentPage(1)
+  }, [filter, searchQuery])
+
+  useEffect(() => {
+    return () => {
+      if (openFrameRef.current !== null) {
+        window.cancelAnimationFrame(openFrameRef.current)
+      }
+      if (closeTimeoutRef.current !== null) {
+        clearTimeout(closeTimeoutRef.current)
+      }
+    }
+  }, [])
+
+  const openDetail = (item: PenugasanItem) => {
+    if (closeTimeoutRef.current !== null) {
+      clearTimeout(closeTimeoutRef.current)
+      closeTimeoutRef.current = null
+    }
+    if (openFrameRef.current !== null) {
+      window.cancelAnimationFrame(openFrameRef.current)
+    }
+
+    setSelectedItem(item)
+    setIsSlideOpen(false)
+    openFrameRef.current = window.requestAnimationFrame(() => {
+      setIsSlideOpen(true)
+      openFrameRef.current = null
+    })
+  }
+
+  const closeDetail = () => {
+    setIsSlideOpen(false)
+    if (closeTimeoutRef.current !== null) {
+      clearTimeout(closeTimeoutRef.current)
+    }
+    closeTimeoutRef.current = setTimeout(() => {
+      setSelectedItem(null)
+      closeTimeoutRef.current = null
+    }, SLIDE_TRANSITION_MS)
+  }
+
+  const totalPages = Math.max(1, Math.ceil(filteredItems.length / ITEMS_PER_PAGE))
+  const paginatedItems = filteredItems.slice((currentPage - 1) * ITEMS_PER_PAGE, currentPage * ITEMS_PER_PAGE)
+  const activeFilterIndex = FILTER_TABS.findIndex((tab) => tab.id === filter)
+
+  if (networkError) {
+    return <NetworkError onRetry={() => setFetchKey((prev) => prev + 1)} />
+  }
+
+  return (
+    <div className="space-y-6">
+      <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+        <div className="relative grid w-full max-w-[520px] grid-cols-3 rounded-[28px] border border-gray-200 bg-[#f6f7fb] p-2 shadow-[inset_0_1px_0_rgba(255,255,255,0.9)]">
+          <div
+            className="pointer-events-none absolute top-2 bottom-2 left-2 w-[calc((100%-1rem)/3)] rounded-[20px] border border-gray-200 bg-white shadow-[0_10px_25px_rgba(15,23,42,0.08)] transition-transform duration-300 ease-[cubic-bezier(0.22,1,0.36,1)]"
+            style={{ transform: `translateX(calc(${activeFilterIndex} * 100%))` }}
+          />
+          {FILTER_TABS.map((tab) => (
+            <button
+              key={tab.id}
+              onClick={() => setFilter(tab.id as AssignmentFilter)}
+              className={`relative z-10 flex items-center justify-center gap-2 rounded-[20px] px-4 py-3 text-sm font-semibold transition-colors ${
+                filter === tab.id
+                  ? "text-gray-900"
+                  : "text-gray-500 hover:text-gray-700"
+              }`}
+            >
+              {tab.label}
+              <span className={`rounded-xl px-2 py-0.5 text-[10px] font-bold transition-colors ${filter === tab.id ? "border border-gray-200 bg-gray-100 text-gray-700" : "bg-transparent text-gray-400"}`}>
+                {tab.id === "semua" ? summary.semua : tab.id === "ada-catatan" ? summary["ada-catatan"] : summary["tanpa-catatan"]}
+              </span>
+            </button>
+          ))}
+        </div>
+
+        <div className="flex items-center gap-3">
+          <div className="relative w-full md:w-72">
+            <Search className="absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2 text-gray-400" />
+            <Input
+              placeholder="Cari pemda, aplikasi, catatan..."
+              value={searchQuery}
+              onChange={(event) => setSearchQuery(event.target.value)}
+              className="rounded-xl border-gray-200 bg-white pl-9 focus-visible:ring-blue-500"
+            />
+          </div>
+
+          <div className="hidden items-center gap-2 rounded-xl border border-blue-100 bg-blue-50 px-4 py-2 text-sm font-semibold text-blue-700 sm:inline-flex">
+            <BriefcaseBusiness className="h-4 w-4" />
+            {summary.semua} tugas
+          </div>
+        </div>
+      </div>
+
+      {loading ? (
+        <HybridLoader />
+      ) : (
+        <div className="overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-sm">
+          <div className="overflow-x-auto">
+            <table className="w-full whitespace-nowrap text-sm">
+              <thead>
+                <tr className="border-b border-gray-100 bg-gray-50/50">
+                  <th className="w-[280px] px-6 py-4 text-left font-semibold text-gray-500">Pemda / Aplikasi</th>
+                  <th className="w-[360px] px-6 py-4 text-left font-semibold text-gray-500">Catatan Atasan</th>
+                  <th className="w-[170px] px-6 py-4 text-left font-semibold text-gray-500">Programmer</th>
+                  <th className="w-[150px] px-6 py-4 text-left font-semibold text-gray-500">Ditugaskan</th>
+                  <th className="w-[120px] px-6 py-4 text-right font-semibold text-gray-500">Aksi</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-gray-100">
+                {paginatedItems.length === 0 ? (
+                  <tr>
+                    <td colSpan={5} className="py-12 text-center text-gray-500">
+                      Belum ada penugasan yang cocok dengan filter saat ini.
+                    </td>
+                  </tr>
+                ) : (
+                  paginatedItems.map((item) => {
+                    const hasKomentar = Boolean(item.komentar)
+
+                    return (
+                      <tr
+                        key={item.id}
+                        className="group cursor-pointer transition-colors hover:bg-gray-50/50"
+                        onClick={() => openDetail(item)}
+                      >
+                        <td className="h-16 px-6">
+                          <div className="flex items-center gap-3">
+                            <div className="flex h-11 w-11 items-center justify-center overflow-hidden rounded-2xl bg-blue-50 text-sm font-bold text-blue-700">
+                              {item.logo_pemda ? (
+                                <div
+                                  aria-label={item.nama_pemda}
+                                  className="h-full w-full bg-cover bg-center"
+                                  style={{ backgroundImage: `url(${item.logo_pemda})` }}
+                                />
+                              ) : (
+                                item.nama_pemda.slice(0, 2).toUpperCase()
+                              )}
+                            </div>
+                            <div className="min-w-0">
+                              <span className="block truncate font-bold text-gray-900">{item.nama_pemda}</span>
+                              <span className="block truncate text-xs font-medium text-gray-500">{item.aplikasi}</span>
+                            </div>
+                          </div>
+                        </td>
+
+                        <td className="h-16 px-6">
+                          {hasKomentar ? (
+                            <div className="max-w-[360px]">
+                              <span className="inline-flex rounded-md bg-blue-50 px-2 py-1 text-xs font-semibold text-blue-700">
+                                Ada Catatan
+                              </span>
+                              <p className="mt-2 truncate text-sm text-gray-600">{item.komentar}</p>
+                            </div>
+                          ) : (
+                            <span className="inline-flex rounded-md bg-gray-100 px-2 py-1 text-xs font-semibold text-gray-500">
+                              Tidak ada catatan
+                            </span>
+                          )}
+                        </td>
+
+                        <td className="h-16 px-6">
+                          <div className="flex flex-col">
+                            <span className="font-semibold text-gray-900">{item.programmer_nama}</span>
+                            <span className="text-xs text-gray-500">{item.programmer_username}</span>
+                          </div>
+                        </td>
+
+                        <td className="h-16 px-6">
+                          <span className="text-sm font-semibold text-gray-900">{formatDateTbl(item.created_at)}</span>
+                        </td>
+
+                        <td className="h-16 px-6 text-right">
+                          <div onClick={(event) => event.stopPropagation()}>
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              className="rounded-lg font-semibold text-blue-600 hover:bg-blue-50 hover:text-blue-700"
+                              onClick={() => openDetail(item)}
+                            >
+                              Detail
+                              <ArrowRight className="h-4 w-4" />
+                            </Button>
+                          </div>
+                        </td>
+                      </tr>
+                    )
+                  })
+                )}
+              </tbody>
+            </table>
+          </div>
+
+          {totalPages > 1 && (
+            <div className="flex items-center justify-between border-t border-gray-100 bg-gray-50/30 px-6 py-3">
+              <p className="text-xs text-gray-500">
+                Menampilkan {(currentPage - 1) * ITEMS_PER_PAGE + 1}–{Math.min(currentPage * ITEMS_PER_PAGE, filteredItems.length)} dari {filteredItems.length} penugasan
+              </p>
+
+              <div className="flex items-center gap-1">
+                <button
+                  onClick={() => setCurrentPage((page) => Math.max(1, page - 1))}
+                  disabled={currentPage === 1}
+                  className="flex h-8 w-8 items-center justify-center rounded-lg text-gray-500 transition-colors hover:bg-gray-100 disabled:cursor-not-allowed disabled:opacity-30"
+                >
+                  <ChevronLeft className="h-4 w-4" />
+                </button>
+
+                {Array.from({ length: totalPages }, (_, index) => index + 1).map((page) => (
+                  <button
+                    key={page}
+                    onClick={() => setCurrentPage(page)}
+                    className={`flex h-8 w-8 items-center justify-center rounded-lg text-xs font-semibold transition-colors ${
+                      page === currentPage ? "bg-gray-900 text-white" : "text-gray-500 hover:bg-gray-100"
+                    }`}
+                  >
+                    {page}
+                  </button>
+                ))}
+
+                <button
+                  onClick={() => setCurrentPage((page) => Math.min(totalPages, page + 1))}
+                  disabled={currentPage === totalPages}
+                  className="flex h-8 w-8 items-center justify-center rounded-lg text-gray-500 transition-colors hover:bg-gray-100 disabled:cursor-not-allowed disabled:opacity-30"
+                >
+                  <ChevronRight className="h-4 w-4" />
+                </button>
+              </div>
+            </div>
+          )}
+        </div>
+      )}
+
+      <PenugasanSlideOver
+        isOpen={isSlideOpen}
+        onClose={closeDetail}
+        item={selectedItem}
+      />
+    </div>
+  )
+}

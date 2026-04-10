@@ -4,7 +4,7 @@
 
 import { Fragment, useMemo, useState } from "react"
 import { motion } from "framer-motion"
-import { LayoutGrid, Table2, AlignJustify, Inbox, ClipboardList, Check } from "lucide-react"
+import { LayoutGrid, AlignJustify, Inbox, ClipboardList, Check } from "lucide-react"
 
 import {
   Pagination,
@@ -105,19 +105,25 @@ export default function DistribusiBoard({ distribusi, onSelesai, onDelete, onSho
         <DistribusiTable distribusi={distribusi} onSelesai={onSelesai} onDelete={onDelete} onShowKomentar={onShowKomentar} />
       ) : (
         <>
-          <div className="grid grid-cols-1 gap-5 lg:grid-cols-2 xl:grid-cols-3">
-            {paginatedItems.map((item) => {
-              if (activeView === "permintaan") {
-                return <DistribusiPermintaanCard key={item.id} item={item} />
-              }
+          {paginatedItems.length === 0 ? (
+            <div className="rounded-[22px] border border-dashed border-[#D6D9E2] bg-white px-6 py-16 text-center text-sm text-[#202224]/50 shadow-[6px_6px_54px_rgba(0,0,0,0.05)]">
+              Belum ada data pada tab ini.
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 gap-5 lg:grid-cols-2 xl:grid-cols-3">
+              {paginatedItems.map((item) => {
+                if (activeView === "permintaan") {
+                  return <DistribusiPermintaanCard key={item.id} item={item} />
+                }
 
-              if (activeView === "selesai") {
-                return <SelesaiCard key={item.id} item={item} onDelete={onDelete} />
-              }
+                if (activeView === "selesai") {
+                  return <SelesaiCard key={item.id} item={item} onDelete={onDelete} />
+                }
 
-              return <DistribusiCard key={item.id} item={item} onSelesai={onSelesai} onDelete={onDelete} onShowKomentar={onShowKomentar} />
-            })}
-          </div>
+                return <DistribusiCard key={item.id} item={item} onSelesai={onSelesai} onDelete={onDelete} onShowKomentar={onShowKomentar} />
+              })}
+            </div>
+          )}
 
           <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
             <div className="flex items-center gap-3 text-[15px] text-[#202224]">
