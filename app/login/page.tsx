@@ -9,6 +9,7 @@ import { signIn, getSession } from "next-auth/react"
 import { toast } from "sonner"
 import Image from "next/image" // Import komponen Image
 import { invalidateClientSessionCache, primeClientSessionCache } from "@/lib/fetcher"
+import { getRoleName, getRolePrefix } from "@/lib/roles"
 
 interface FormValues {
   username: string
@@ -38,17 +39,11 @@ const onSubmit = async () => {
     } else {
       const session = await getSession()
       primeClientSessionCache(session)
-      const roleId = (session?.user as any)?.role_id as string | undefined
-
-      const ROLE_HOME: Record<string, string> = {
-        "3fc5cfba-e591-4b67-9e99-78562fba36e8": "/super-admin/dashboard",
-        "8c0c4dda-eaa9-4abc-b79e-132cf7f696d2": "/admin/dashboard",
-        "7726b58e-3223-415e-aef9-3784af6754a6": "/programmer/dashboard",
-        "bee727b8-a9c2-4577-bf63-7b4a8d201798": "/verifikator/dashboard",
-      }
+      const roleName = getRoleName(session)
+      const rolePrefix = getRolePrefix(session)
 
       toast.success("Login berhasil!")
-      window.location.href = roleId ? (ROLE_HOME[roleId] ?? "/login") : "/login"
+      window.location.href = roleName ? `${rolePrefix}/dashboard` : "/login"
     }
   } catch (error) {
     toast.error("Terjadi kesalahan, coba lagi.")

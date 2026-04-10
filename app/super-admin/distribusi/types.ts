@@ -34,7 +34,7 @@ export interface PermintaanResponse {
 export interface DistribusiRequest {
     komentar?: string;
     permintaan_id: string;
-    programmer_ids?: string[];
+    programmer_ids: string[];
 }
 
 export interface DistribusiPermintaan {
@@ -89,13 +89,18 @@ export interface PelaksanaResponse {
     programmer_id?: string;
     created_at?: string;
     updated_at?: string;
-    programmer?: any;
+    programmer?: unknown;
 }
 
 // ─── Users ────────────────────────────────────────────────
 export interface UserResponse {
     id: string;
     role_id: string;
+    role?: {
+        id?: string;
+        name?: string;
+        description?: string;
+    } | string;
     username: string;
     full_name: string;
     profile_picture?: string;

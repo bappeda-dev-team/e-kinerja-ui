@@ -17,7 +17,7 @@ import {
   deleteDistribusi,
 } from "../services"
 
-import type { DistribusiResponse } from "../types"
+import type { DistribusiRequest, DistribusiResponse } from "../types"
 
 const HybridLoader = () => {
   const [progress, setProgress] = React.useState(0)
@@ -77,6 +77,10 @@ function mapDistribusiStatus(item: DistribusiResponse): DistribusiItem["status"]
   if (verificationStatus === "pending") return "pending"
 
   return "didistribusikan"
+}
+
+function getErrorMessage(error: unknown, fallback: string) {
+  return error instanceof Error && error.message ? error.message : fallback
 }
 
 export default function DistribusiClient() {
@@ -142,7 +146,7 @@ export default function DistribusiClient() {
     }
   }
 
-  const handleAdd = async (val: { permintaan_id: string; komentar?: string }) => {
+  const handleAdd = async (val: DistribusiRequest) => {
     try {
       setSubmitLoading(true)
       const res = await createDistribusi(val)
@@ -153,8 +157,8 @@ export default function DistribusiClient() {
       } else {
         throw new Error("Gagal menyimpan distribusi")
       }
-    } catch (err: any) {
-      toast.error(err.message || "Gagal menyimpan distribusi")
+    } catch (error) {
+      toast.error(getErrorMessage(error, "Gagal menyimpan distribusi"))
     } finally {
       setSubmitLoading(false)
     }

@@ -9,9 +9,11 @@ import {
 import { Button } from "@/components/ui/button"
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
+import { Badge } from "@/components/ui/badge"
+import { getRoleName } from "@/lib/roles"
 
-import { getPermintaan } from "../../services"
-import type { PermintaanResponse, DistribusiRequest } from "../../types"
+import { getPermintaan, getUsers } from "../../services"
+import type { PermintaanResponse, DistribusiRequest, UserResponse } from "../../types"
 
 interface Props {
   onClose: () => void
@@ -21,40 +23,66 @@ interface Props {
 
 export default function AddDistribusiModal({ onClose, onSave, loading }: Props) {
   const [permintaans, setPermintaans] = useState<PermintaanResponse[]>([])
+  const [programmers, setProgrammers] = useState<UserResponse[]>([])
   const [fetching, setFetching] = useState(true)
 
   const [selectedPermintaan, setSelectedPermintaan] = useState("")
+  const [selectedProgrammerIds, setSelectedProgrammerIds] = useState<string[]>([])
   const [komentar, setKomentar] = useState("")
 
   useEffect(() => {
     let mounted = true
-    const fetchPermintaan = async () => {
+    const fetchData = async () => {
       try {
-        const res = await getPermintaan()
-        if (mounted && res.data?.data) {
-          setPermintaans(res.data.data)
+        const [permintaanRes, usersRes] = await Promise.all([getPermintaan(), getUsers()])
+
+        if (!mounted) return
+
+        setPermintaans(permintaanRes.data?.data ?? [])
+        setProgrammers(
+          (usersRes.data?.data ?? []).filter(
+            (user) => user.is_active && getRoleName({ user }) === "programmer"
+          )
+        )
+      } catch {
+        if (mounted) {
+          toast.error("Gagal memuat data distribusi")
         }
-      } catch (err) {
-        toast.error("Gagal memuat list permintaan")
       } finally {
         if (mounted) setFetching(false)
       }
     }
-    fetchPermintaan()
+
+    fetchData()
     return () => { mounted = false }
   }, [])
+
+  const handleToggleProgrammer = (id: string) => {
+    setSelectedProgrammerIds((prev) =>
+      prev.includes(id) ? prev.filter((value) => value !== id) : [...prev, id]
+    )
+  }
 
   const handleSubmit = () => {
     if (!selectedPermintaan) {
       toast.error("Pilih permintaan terlebih dahulu", { icon: "⚠️" })
       return
     }
-    
+
+    if (selectedProgrammerIds.length === 0) {
+      toast.error("Pilih minimal satu programmer", { icon: "⚠️" })
+      return
+    }
+
     onSave({
       permintaan_id: selectedPermintaan,
-      komentar: komentar.trim()
+      komentar: komentar.trim(),
+      programmer_ids: selectedProgrammerIds,
     })
   }
+
+  const selectedProgrammers = programmers.filter((user) => selectedProgrammerIds.includes(user.id))
+  const availableProgrammers = programmers.filter((user) => !selectedProgrammerIds.includes(user.id))
 
   return (
     <Dialog open onOpenChange={onClose}>
@@ -91,11 +119,58 @@ export default function AddDistribusiModal({ onClose, onSave, loading }: Props) 
           </div>
 
           <div className="space-y-1.5">
+            <Label className="text-sm font-semibold text-[#202224]">Programmer*</Label>
+            {fetching ? (
+              <div className="w-full flex items-center gap-2 border rounded-md px-3 py-2 text-sm text-gray-500 bg-gray-50">
+                <Loader2 className="size-4 animate-spin" /> Memuat...
+              </div>
+            ) : (
+              <>
+                <select
+                  className="w-full border rounded-lg bg-[#F5F6FA] border-[#D5D5D5] px-4 py-2.5 text-sm focus:ring-[#4880FF] focus:border-[#4880FF] outline-none"
+                  value=""
+                  onChange={(e) => {
+                    if (e.target.value) handleToggleProgrammer(e.target.value)
+                  }}
+                >
+                  <option value="">Pilih programmer...</option>
+                  {availableProgrammers.map((user) => (
+                    <option key={user.id} value={user.id}>
+                      {user.full_name || user.username}
+                    </option>
+                  ))}
+                </select>
+
+                {selectedProgrammers.length > 0 && (
+                  <div className="mt-2 flex flex-wrap gap-1.5">
+                    {selectedProgrammers.map((user) => (
+                      <Badge
+                        key={user.id}
+                        variant="secondary"
+                        className="flex items-center gap-1 border border-blue-100 bg-blue-50 px-2.5 py-1 text-blue-700"
+                      >
+                        {user.full_name || user.username}
+                        <button
+                          type="button"
+                          onClick={() => handleToggleProgrammer(user.id)}
+                          className="ml-0.5 transition-colors hover:text-red-500"
+                        >
+                          <X className="size-3" />
+                        </button>
+                      </Badge>
+                    ))}
+                  </div>
+                )}
+              </>
+            )}
+          </div>
+
+          <div className="space-y-1.5">
             <Label className="text-sm font-semibold text-[#202224]">Komentar (opsional)</Label>
             <Textarea
               value={komentar}
               onChange={(e) => setKomentar(e.target.value)}
-              placeholder="Tambahkan catatan untuk distribusi..."
+              placeholder="Tambahkan catatan untuk programmer..."
               className="w-full bg-[#F5F6FA] border-[#D5D5D5] rounded-lg px-4 py-3 text-sm focus-visible:ring-[#4880FF]"
               rows={4}
             />
