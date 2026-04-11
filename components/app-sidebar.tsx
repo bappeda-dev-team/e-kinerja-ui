@@ -7,7 +7,7 @@ import { usePathname } from "next/navigation"
 import { useState, useEffect } from "react"
 import { Session } from "next-auth"
 import { Collapsible } from "radix-ui"
-import { getRoleName, getRolePrefix, ROLE_MENUS } from "@/lib/roles"
+import { getRoleName, getRolePrefix, ROLE_MENUS, ROLE_LABEL } from "@/lib/roles"
 
 import {
   Sidebar,
@@ -73,6 +73,11 @@ export function AppSidebar({ session }: { session: Session | null }) {
             className="w-16 h-16 object-contain"
           />
           <span className="mt-2 text-lg font-bold text-center">E-Kinerja</span>
+          {roleName && (
+            <span className="text-xs font-semibold uppercase tracking-[0.18em] text-blue-600">
+              {ROLE_LABEL[roleName]}
+            </span>
+          )}
         </div>
       </SidebarHeader>
 

@@ -5,7 +5,7 @@ import { Session } from "next-auth"
 import { useRouter, usePathname } from "next/navigation"
 import Link from "next/link"
 import Image from "next/image"
-import { getRolePrefix } from "@/lib/roles"
+import { getRolePrefix, getRoleName, ROLE_LABEL } from "@/lib/roles"
 import { fetchApi, invalidateClientSessionCache } from "@/lib/fetcher"
 import { APIResponse } from "@/types/api"
 import { deleteCookie } from "cookies-next"
@@ -44,6 +44,7 @@ export function ProgrammerNavbar({ session }: ProgrammerNavbarProps) {
   const router = useRouter()
   const pathname = usePathname()
   const rolePrefix = getRolePrefix(session)
+  const roleName = getRoleName(session)
   const sessionUser = session?.user as SessionUser | undefined
 
   const [profile, setProfile] = useState<UserProfile | null>(null)
@@ -80,7 +81,12 @@ export function ProgrammerNavbar({ session }: ProgrammerNavbarProps) {
         {/* Left: Logo */}
         <div className="flex items-center gap-3 w-[250px]">
           <Image src="/logo-e-kinerja.png" alt="Logo" width={36} height={36} className="h-9 w-9 object-contain" />
-          <span className="text-lg font-bold text-gray-900 tracking-tight">E-Kinerja</span>
+          <div className="min-w-0">
+            <span className="block truncate text-lg font-bold tracking-tight text-gray-900">E-Kinerja</span>
+            <span className="block truncate text-xs font-semibold uppercase tracking-[0.18em] text-blue-600">
+              {roleName ? ROLE_LABEL[roleName] : "Programmer"}
+            </span>
+          </div>
         </div>
 
         {/* Center: Tabs */}
@@ -129,11 +135,13 @@ export function ProgrammerNavbar({ session }: ProgrammerNavbarProps) {
                   <AvatarImage src={profile?.profile_picture} className="object-cover" />
                   <AvatarFallback className="bg-blue-100 text-blue-700 font-bold">{initials}</AvatarFallback>
                 </Avatar>
-                <div className="hidden md:flex flex-col items-start leading-none text-left">
-                  <span className="text-sm font-bold text-gray-900">{displayName}</span>
-                  <span className="text-[10px] uppercase tracking-wider font-bold text-blue-600 mt-0.5">
-                    {roleLabel}
-                  </span>
+                <div className="hidden md:flex flex-col items-start leading-tight text-left">
+                  <span className="text-sm font-medium text-gray-900">{displayName}</span>
+                  {roleLabel && (
+                    <span className="inline-flex items-center rounded px-1.5 py-0 text-[11px] font-semibold bg-purple-600 text-white">
+                      {roleLabel}
+                    </span>
+                  )}
                 </div>
                 <ChevronDown className="h-4 w-4 text-gray-400 hidden md:block" />
               </button>

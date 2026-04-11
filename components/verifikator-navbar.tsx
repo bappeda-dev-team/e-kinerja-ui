@@ -7,7 +7,7 @@ import { Session } from "next-auth"
 import { signOut } from "next-auth/react"
 import { usePathname, useRouter } from "next/navigation"
 import { deleteCookie } from "cookies-next"
-import { BadgeCheck, LayoutDashboard, LogOut, ShieldCheck, User, ChevronDown } from "lucide-react"
+import { BadgeCheck, LayoutDashboard, LogOut, User, ChevronDown } from "lucide-react"
 
 import { getRolePrefix } from "@/lib/roles"
 import { fetchApi, invalidateClientSessionCache } from "@/lib/fetcher"
@@ -130,12 +130,13 @@ export function VerifikatorNavbar({ session }: VerifikatorNavbarProps) {
                   <AvatarImage src={profile?.profile_picture} className="object-cover" />
                   <AvatarFallback className="bg-blue-100 text-blue-700 font-bold">{initials}</AvatarFallback>
                 </Avatar>
-                <div className="hidden text-left leading-none md:flex md:flex-col md:items-start">
-                  <span className="text-sm font-bold text-gray-900">{displayName}</span>
-                  <span className="mt-0.5 inline-flex items-center gap-1 text-[10px] font-bold uppercase tracking-wider text-blue-600">
-                    <ShieldCheck className="h-3 w-3" />
-                    {roleLabel}
-                  </span>
+                <div className="hidden text-left leading-tight md:flex md:flex-col md:items-start">
+                  <span className="text-sm font-medium text-gray-900">{displayName}</span>
+                  {roleLabel && (
+                    <span className="inline-flex items-center rounded px-1.5 py-0 text-[11px] font-semibold bg-purple-600 text-white">
+                      {roleLabel}
+                    </span>
+                  )}
                 </div>
                 <ChevronDown className="hidden h-4 w-4 text-gray-400 md:block" />
               </button>
