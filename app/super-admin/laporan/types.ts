@@ -39,17 +39,19 @@ export interface LaporanProgrammer {
   profile_picture?: string
 }
 
+export interface LaporanVerifikasi {
+  id: string
+  komentar?: string | null
+  status_verified?: string
+}
+
 export interface LaporanResponse {
   id: string
   permintaan: LaporanPermintaan
   programmer: LaporanProgrammer
   laporan_progress: string
   status?: string
-  verifikasi?: {
-    id: string
-    komentar?: string | null
-    status_verified?: string
-  } | null
+  verifikasi?: LaporanVerifikasi[] | LaporanVerifikasi | null
   created_at?: string
   updated_at?: string
 }
@@ -60,11 +62,7 @@ export interface LaporanKinerjaItem {
   permintaan: LaporanPermintaan
   programmer: LaporanProgrammer
   status?: string
-  verifikasi?: {
-    id: string
-    komentar?: string | null
-    status_verified?: string
-  } | null
+  verifikasi?: LaporanVerifikasi[] | LaporanVerifikasi | null
   created_at?: string
   updated_at?: string
   logo_pemda?: string

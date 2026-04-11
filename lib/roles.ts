@@ -28,7 +28,7 @@ export const ROLE_MENUS: Record<RoleName, string[]> = {
   super_admin: ["dashboard", "data-master", "permintaan", "distribusi", "laporan", "verifikasi"],
   admin:       ["dashboard", "permintaan", "distribusi"],
   programmer:  ["dashboard", "laporan"],
-  verifikator: ["dashboard"],
+  verifikator: ["dashboard", "verifikasi"],
 }
 
 function normalizeRoleName(value?: string | null): RoleName | "" {

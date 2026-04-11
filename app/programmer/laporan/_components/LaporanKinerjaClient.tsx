@@ -4,11 +4,10 @@ import * as React from "react"
 import { useEffect, useState, useMemo } from "react"
 import { useSession } from "next-auth/react"
 import { Button } from "@/components/ui/button"
-import { Search, Plus, MoreHorizontal, SendHorizonal, CheckCircle2, ChevronLeft, ChevronRight } from "lucide-react"
+import { Search, Plus, SendHorizonal, CheckCircle2, ChevronLeft, ChevronRight, Pencil, Trash2 } from "lucide-react"
 import { toast } from "sonner"
 
 import { Input } from "@/components/ui/input"
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
 import AddLaporanKinerja from "./modals/AddLaporanKinerja"
 import EditLaporanKinerja from "./modals/EditLaporanKinerja"
 import LaporanSlideOver from "./LaporanSlideOver"
@@ -179,7 +178,8 @@ export default function LaporanKinerjaClient() {
   }
 
   const handleSubmitVerifikasi = async (item: LaporanKinerjaItem) => {
-    if (item.verifikasi) {
+    const sudahDiajukan = Array.isArray(item.verifikasi) ? item.verifikasi.length > 0 : item.verifikasi != null
+    if (sudahDiajukan) {
       toast.error("Laporan ini sudah diajukan untuk verifikasi")
       return
     }
@@ -295,7 +295,7 @@ export default function LaporanKinerjaClient() {
                   <th className="px-6 py-4 text-left font-semibold text-gray-500 w-[200px]">Progress</th>
                   <th className="px-6 py-4 text-left font-semibold text-gray-500 w-[150px]">Deadline</th>
                   <th className="px-6 py-4 text-left font-semibold text-gray-500 w-[120px]">File</th>
-                  <th className="px-6 py-4 text-right font-semibold text-gray-500 w-[80px]">Aksi</th>
+                  <th className="px-6 py-4 text-center font-semibold text-gray-500 w-[80px]">Aksi</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-100">
@@ -323,8 +323,8 @@ export default function LaporanKinerjaClient() {
                     const progressColor = statusType === "terverifikasi" ? "bg-emerald-500" : statusType === "revisi" ? "bg-red-500" : "bg-amber-500"
                     const isNearDeadline = item.permintaan?.tanggal_deadline && new Date(item.permintaan.tanggal_deadline).getTime() - new Date().getTime() < 7 * 24 * 60 * 60 * 1000 ? true : false
 
-                    const isAlreadySubmitted = Boolean(item.verifikasi)
-                    const isDisabled = submittingId === item.id || statusType === "terverifikasi" || isAlreadySubmitted
+                    const isAlreadySubmitted = Array.isArray(item.verifikasi) ? item.verifikasi.length > 0 : item.verifikasi != null
+                    const isDisabled = submittingId === item.id || isAlreadySubmitted
 
                     return (
                       <tr 
@@ -368,8 +368,8 @@ export default function LaporanKinerjaClient() {
                             2 file
                           </span>
                         </td>
-                        <td className="px-6 h-14 text-right">
-                          <div className="flex justify-end gap-2" onClick={(e) => e.stopPropagation()}>
+                        <td className="px-6 h-14 text-center">
+                          <div className="flex justify-center gap-2" onClick={(e) => e.stopPropagation()}>
                             <Button 
                               size="sm" 
                               variant="outline" 
@@ -381,17 +381,24 @@ export default function LaporanKinerjaClient() {
                               {submittingId === item.id ? "..." : isAlreadySubmitted ? <CheckCircle2 className="h-4 w-4" /> : <SendHorizonal className="h-4 w-4" />}
                             </Button>
                             
-                            <DropdownMenu>
-                              <DropdownMenuTrigger asChild>
-                                <Button size="sm" variant="ghost" className="h-8 w-8 p-0 rounded-lg shrink-0">
-                                  <MoreHorizontal className="h-4 w-4 text-gray-500" />
-                                </Button>
-                              </DropdownMenuTrigger>
-                              <DropdownMenuContent align="end" className="w-32 rounded-xl">
-                                <DropdownMenuItem onClick={() => setEditItem(item)} className="cursor-pointer font-medium text-gray-700">Edit</DropdownMenuItem>
-                                <DropdownMenuItem className="cursor-pointer font-medium text-red-600 focus:text-red-600" onClick={() => handleDelete(item.id)}>Hapus</DropdownMenuItem>
-                              </DropdownMenuContent>
-                            </DropdownMenu>
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              className="h-8 w-8 p-0 rounded-lg"
+                              onClick={() => setEditItem(item)}
+                              title="Edit"
+                            >
+                              <Pencil className="h-4 w-4 text-gray-500" />
+                            </Button>
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              className="h-8 w-8 p-0 rounded-lg border-red-200 text-red-500 hover:bg-red-50 hover:text-red-600"
+                              onClick={() => handleDelete(item.id)}
+                              title="Hapus"
+                            >
+                              <Trash2 className="h-4 w-4" />
+                            </Button>
                           </div>
                         </td>
                       </tr>
