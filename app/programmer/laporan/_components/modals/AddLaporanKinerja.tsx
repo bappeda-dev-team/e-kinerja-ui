@@ -160,7 +160,7 @@ export default function AddLaporanKinerja({
 
   return (
     <Dialog open={open} onOpenChange={onClose}>
-      <DialogContent className="sm:max-w-lg p-0 overflow-hidden rounded-[24px] border-none shadow-2xl [&>button]:hidden">
+      <DialogContent aria-describedby={undefined} className="sm:max-w-lg p-0 overflow-hidden rounded-[24px] border-none shadow-2xl [&>button]:hidden">
         <DialogHeader className="px-8 pt-8 pb-5 flex flex-row items-center justify-between">
           <DialogTitle className="text-[24px] font-bold text-[#202224]" style={ff}>
             {initialData ? "Edit Laporan Kinerja" : "Tambah Laporan Kinerja"}

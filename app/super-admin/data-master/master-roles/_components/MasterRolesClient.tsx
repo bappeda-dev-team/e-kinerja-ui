@@ -112,7 +112,7 @@ function AddModal({ onClose, onSaved }: AddModalProps) {
                   key={c}
                   type="button"
                   onClick={() => setColor(c)}
-                  className={`h-8 w-8 rounded-full transition-all ${color === c ? "ring-4 ring-offset-2 ring-blue-400 scale-110" : "hover:scale-105 opacity-80"}`}
+                  className={`h-8 w-8 rounded-full transition-all ${color === c ? "outline outline-2 outline-blue-400 outline-offset-2" : "hover:scale-105 opacity-80"}`}
                   style={{ backgroundColor: c }}
                 />
               ))}
@@ -226,7 +226,7 @@ function EditModal({ role, onClose, onSaved }: EditModalProps) {
                   key={c}
                   type="button"
                   onClick={() => setColor(c)}
-                  className={`h-8 w-8 rounded-full transition-all ${color === c ? "ring-4 ring-offset-2 ring-blue-400 scale-110" : "hover:scale-105 opacity-80"}`}
+                  className={`h-8 w-8 rounded-full transition-all ${color === c ? "outline outline-2 outline-blue-400 outline-offset-2" : "hover:scale-105 opacity-80"}`}
                   style={{ backgroundColor: c }}
                 />
               ))}

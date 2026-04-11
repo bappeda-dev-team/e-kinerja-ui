@@ -14,7 +14,9 @@ import EditLaporanKinerja from "./modals/EditLaporanKinerja"
 import LaporanSlideOver from "./LaporanSlideOver"
 
 import { getLaporan, createLaporan, updateLaporan, deleteLaporan, ajukanVerifikasi } from "../services"
+import { getPermintaan } from "@/app/super-admin/distribusi/services"
 import { LaporanKinerjaItem, LaporanResponse } from "../types"
+import { PermintaanResponse } from "@/app/super-admin/distribusi/types"
 
 type SessionUser = {
   id?: string
@@ -71,6 +73,7 @@ const HybridLoader = () => {
 export default function LaporanKinerjaClient() {
   const { data: session } = useSession()
   const [data, setData] = useState<LaporanKinerjaItem[]>([])
+  const [permintaanList, setPermintaanList] = useState<{ id: string; pemda: string; menu: string }[]>([])
   const [loading, setLoading] = useState(true)
   const [submittingId, setSubmittingId] = useState<string | null>(null)
   
@@ -94,25 +97,20 @@ export default function LaporanKinerjaClient() {
     return programmerId ? [{ id: programmerId, nama_pegawai: programmerName, jabatan: "Programmer" }] : []
   }, [session])
 
-  const permintaanList = useMemo(() => {
-    const uniqueMap = new Map<string, { id: string; pemda: string; menu: string }>()
-    for (const item of data) {
-      const permintaanId = item.permintaan?.id
-      if (!permintaanId || uniqueMap.has(permintaanId)) continue
-      uniqueMap.set(permintaanId, {
-        id: permintaanId,
-        pemda: entityLabel(item.permintaan?.pemda),
-        menu: item.permintaan?.menu ?? "",
-      })
-    }
-    return Array.from(uniqueMap.values())
-  }, [data])
-
   const fetchData = async () => {
     try {
       setLoading(true)
-      const resLaporan = await getLaporan()
+      const [resLaporan, resPermintaan] = await Promise.all([getLaporan(), getPermintaan()])
       if (resLaporan.status !== 200) throw new Error(resLaporan.data?.message || "Gagal memuat data")
+
+      const rawPermintaan: PermintaanResponse[] = resPermintaan.data?.data || []
+      setPermintaanList(
+        rawPermintaan.map((p) => ({
+          id: p.id,
+          pemda: typeof p.pemda === "object" ? p.pemda.name : p.pemda ?? "",
+          menu: p.menu ?? "",
+        }))
+      )
 
       const rawData = resLaporan.data?.data || []
       const mapped: LaporanKinerjaItem[] = rawData.map((item: LaporanResponse) => {
