@@ -7,6 +7,7 @@ import Link from "next/link"
 import Image from "next/image"
 import { getRolePrefix, getRoleName, ROLE_LABEL } from "@/lib/roles"
 import { fetchApi, invalidateClientSessionCache } from "@/lib/fetcher"
+import { usePenugasanBadge } from "@/hooks/use-penugasan-badge"
 import { APIResponse } from "@/types/api"
 import { deleteCookie } from "cookies-next"
 import { signOut } from "next-auth/react"
@@ -50,6 +51,7 @@ export function ProgrammerNavbar({ session }: ProgrammerNavbarProps) {
   const [profile, setProfile] = useState<UserProfile | null>(null)
 
   const userId = sessionUser?.user_id ?? sessionUser?.id
+  const { unreadCount } = usePenugasanBadge({ userId })
 
   useEffect(() => {
     if (!userId) return
@@ -115,7 +117,7 @@ export function ProgrammerNavbar({ session }: ProgrammerNavbarProps) {
           </Link>
           <Link
             href={`${rolePrefix}/penugasan`}
-            className={`flex items-center gap-2 px-4 py-2 rounded-full text-sm font-semibold transition-all duration-200 ${
+            className={`relative flex items-center gap-2 rounded-full px-4 py-2 text-sm font-semibold transition-all duration-200 ${
               isActive("/penugasan")
                 ? "bg-blue-50 text-blue-700"
                 : "text-gray-500 hover:bg-gray-50 hover:text-gray-900"
@@ -123,6 +125,11 @@ export function ProgrammerNavbar({ session }: ProgrammerNavbarProps) {
           >
             <BriefcaseBusiness className="w-4 h-4" />
             Penugasan
+            {unreadCount > 0 && (
+              <span className="absolute -top-1 -right-1 flex h-5 min-w-[20px] items-center justify-center rounded-full bg-red-500 px-1 text-[10px] font-bold text-white ring-2 ring-white">
+                {unreadCount > 99 ? "99+" : unreadCount}
+              </span>
+            )}
           </Link>
         </nav>
 

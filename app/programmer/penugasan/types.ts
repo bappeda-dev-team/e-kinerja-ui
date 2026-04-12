@@ -22,6 +22,7 @@ export interface PenugasanResponse {
   id: string
   distribusi?: PenugasanDistribusi
   programmer?: PenugasanProgrammer
+  is_read?: boolean
   created_at?: string
   updated_at?: string
 }
@@ -35,6 +36,7 @@ export interface PenugasanItem {
   komentar: string
   programmer_nama: string
   programmer_username: string
+  is_read?: boolean
   created_at?: string
   updated_at?: string
 }

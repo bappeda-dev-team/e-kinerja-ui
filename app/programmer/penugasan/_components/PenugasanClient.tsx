@@ -8,8 +8,9 @@ import { toast } from "sonner"
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
 import { NetworkError } from "@/components/network-error"
+import { PENUGASAN_ALL_READ_EVENT } from "@/hooks/use-penugasan-badge"
 
-import { getPenugasan } from "../services"
+import { getPenugasan, markAllPenugasanAsRead } from "../services"
 import { PenugasanItem, PenugasanResponse } from "../types"
 import PenugasanSlideOver from "./PenugasanSlideOver"
 
@@ -105,6 +106,7 @@ export default function PenugasanClient() {
         komentar: item.distribusi?.komentar?.trim() ?? "",
         programmer_nama: item.programmer?.full_name ?? item.programmer?.username ?? "Programmer",
         programmer_username: item.programmer?.username ? `@${item.programmer.username}` : "-",
+        is_read: item.is_read,
         created_at: item.created_at,
         updated_at: item.updated_at,
       }))
@@ -116,6 +118,9 @@ export default function PenugasanClient() {
       })
 
       setData(mapped)
+
+      markAllPenugasanAsRead().catch(() => {})
+      window.dispatchEvent(new CustomEvent(PENUGASAN_ALL_READ_EVENT))
     } catch (error) {
       const message = error instanceof Error ? error.message : "Terjadi kesalahan sistem"
       toast.error(message)

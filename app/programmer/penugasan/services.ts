@@ -5,3 +5,7 @@ import { PenugasanResponse } from "./types"
 export const getPenugasan = async () => {
   return fetchApi<APIResponse<PenugasanResponse[]>>("/pelaksana", { method: "GET" })
 }
+
+export const markAllPenugasanAsRead = async () => {
+  return fetchApi<APIResponse<null>>("/pelaksana/mark-all-read", { method: "PATCH" })
+}
