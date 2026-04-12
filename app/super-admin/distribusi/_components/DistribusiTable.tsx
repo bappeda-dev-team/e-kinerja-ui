@@ -3,7 +3,7 @@
 "use client"
 
 import { Fragment, useMemo, useState } from "react"
-import { MoreVertical } from "lucide-react"
+import { MoreVertical, Pencil } from "lucide-react"
 import {
   DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
@@ -32,9 +32,10 @@ interface Props {
   onSelesai: (id: string) => void
   onDelete: (id: string) => void
   onShowKomentar: (text: string) => void
+  onEdit: (item: DistribusiItem) => void
 }
 
-export function DistribusiTable({ distribusi, onSelesai, onDelete, onShowKomentar }: Props) {
+export function DistribusiTable({ distribusi, onSelesai, onDelete, onShowKomentar, onEdit }: Props) {
   const [currentPage, setCurrentPage] = useState(1)
   const rowsPerPage = 7
   const didistribusikan = distribusi.filter((d) => d.status === "didistribusikan" || d.status === "pending" || d.status === "revision")
@@ -123,6 +124,9 @@ export function DistribusiTable({ distribusi, onSelesai, onDelete, onShowKomenta
                       </button>
                     </DropdownMenuTrigger>
                     <DropdownMenuContent align="end" className="w-44">
+                      <DropdownMenuItem onClick={() => onEdit(row)}>
+                        <Pencil className="size-3.5 mr-2" /> Edit Programmer
+                      </DropdownMenuItem>
                       <DropdownMenuItem onClick={() => onSelesai(row.id)}>Tandai Selesai</DropdownMenuItem>
                       <DropdownMenuItem className="text-red-500 focus:text-red-500" onClick={() => onDelete(row.id)}>Hapus</DropdownMenuItem>
                     </DropdownMenuContent>

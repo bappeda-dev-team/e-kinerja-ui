@@ -162,17 +162,19 @@ export default function AdminPermintaanClient() {
     if (!distribusiTarget) return
     try {
       setSubmitLoading(true)
-      const payload = {
-        permintaan_id: distribusiTarget.id,
-        komentar: val.komentar,
-        programmer_ids: val.programmer_ids,
-      }
-
       let res
       if (distribusiTarget.distribusiId) {
-        res = await updateDistribusi(distribusiTarget.distribusiId, payload)
+        res = await updateDistribusi(distribusiTarget.distribusiId, {
+          permintaan_id: distribusiTarget.id,
+          komentar: val.komentar,
+          pelaksana: val.programmer_ids,
+        })
       } else {
-        res = await createDistribusi(payload)
+        res = await createDistribusi({
+          permintaan_id: distribusiTarget.id,
+          komentar: val.komentar,
+          programmer_ids: val.programmer_ids,
+        })
       }
 
       if (res.status === 200 || res.status === 201) {

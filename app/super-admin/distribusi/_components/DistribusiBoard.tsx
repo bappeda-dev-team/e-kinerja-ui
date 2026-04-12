@@ -25,9 +25,10 @@ interface Props {
   onSelesai: (id: string) => void
   onDelete: (id: string) => void
   onShowKomentar: (text: string) => void
+  onEdit: (item: DistribusiItem) => void
 }
 
-export default function DistribusiBoard({ distribusi, onSelesai, onDelete, onShowKomentar }: Props) {
+export default function DistribusiBoard({ distribusi, onSelesai, onDelete, onShowKomentar, onEdit }: Props) {
   const [activeView, setActiveView] = useState<"table" | "permintaan" | "distribusi" | "selesai">("table")
   const [currentPage, setCurrentPage] = useState(1)
   const cardPerPage = 7
@@ -102,7 +103,13 @@ export default function DistribusiBoard({ distribusi, onSelesai, onDelete, onSho
       </div>
 
       {activeView === "table" ? (
-        <DistribusiTable distribusi={distribusi} onSelesai={onSelesai} onDelete={onDelete} onShowKomentar={onShowKomentar} />
+        <DistribusiTable
+          distribusi={distribusi}
+          onSelesai={onSelesai}
+          onDelete={onDelete}
+          onShowKomentar={onShowKomentar}
+          onEdit={onEdit}
+        />
       ) : (
         <>
           {paginatedItems.length === 0 ? (
@@ -120,7 +127,16 @@ export default function DistribusiBoard({ distribusi, onSelesai, onDelete, onSho
                   return <SelesaiCard key={item.id} item={item} onDelete={onDelete} />
                 }
 
-                return <DistribusiCard key={item.id} item={item} onSelesai={onSelesai} onDelete={onDelete} onShowKomentar={onShowKomentar} />
+                return (
+                  <DistribusiCard
+                    key={item.id}
+                    item={item}
+                    onSelesai={onSelesai}
+                    onDelete={onDelete}
+                    onShowKomentar={onShowKomentar}
+                    onEdit={onEdit}
+                  />
+                )
               })}
             </div>
           )}

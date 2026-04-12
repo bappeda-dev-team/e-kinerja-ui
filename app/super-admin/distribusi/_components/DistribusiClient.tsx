@@ -10,14 +10,17 @@ import { Plus } from "lucide-react"
 import DistribusiBoard from "./DistribusiBoard"
 import KomentarModal from "./modals/KomentarModal"
 import AddDistribusiModal from "./modals/AddDistribusiModal"
+import EditPelaksanaModal from "./modals/EditPelaksanaModal"
 
 import {
   getDistribusi,
   createDistribusi,
   deleteDistribusi,
+  getUsers,
+  updateDistribusi,
 } from "../services"
 
-import type { DistribusiRequest, DistribusiResponse } from "../types"
+import type { DistribusiRequest, DistribusiResponse, UserResponse } from "../types"
 
 const HybridLoader = () => {
   const [progress, setProgress] = React.useState(0)
@@ -51,6 +54,7 @@ const HybridLoader = () => {
 
 export interface DistribusiItem {
   id: string
+  permintaan_id: string
   nama_pemda: string
   logo_pemda?: string
   aplikasi: string
@@ -85,15 +89,19 @@ function getErrorMessage(error: unknown, fallback: string) {
 
 export default function DistribusiClient() {
   const [distribusi, setDistribusi] = useState<DistribusiItem[]>([])
+  const [users, setUsers] = useState<UserResponse[]>([])
   const [loading, setLoading] = useState(true)
   const [showAdd, setShowAdd] = useState(false)
   const [submitLoading, setSubmitLoading] = useState(false)
   const [selectedKomentar, setSelectedKomentar] = useState<string | null>(null)
+  const [editTarget, setEditTarget] = useState<DistribusiItem | null>(null)
 
   const fetchAll = async () => {
     try {
       setLoading(true)
-      const distribusiRes = await getDistribusi()
+      const [distribusiRes, usersRes] = await Promise.all([getDistribusi(), getUsers()])
+
+      setUsers((usersRes.data?.data ?? []).filter((user: UserResponse) => user.is_active))
 
       const mappedDistribusi: DistribusiItem[] = (distribusiRes.data?.data ?? []).map((item: DistribusiResponse) => {
         const programmerList = (item.pelaksana ?? []).map((pelaksana) => ({
@@ -108,6 +116,7 @@ export default function DistribusiClient() {
 
         return {
           id: item.id,
+          permintaan_id: item.permintaan?.id ?? "",
           nama_pemda: namaPemda,
           logo_pemda: typeof item.permintaan?.pemda === "object" ? item.permintaan.pemda.logo ?? "" : "",
           aplikasi: typeof item.permintaan?.aplikasi === "object"
@@ -164,6 +173,32 @@ export default function DistribusiClient() {
     }
   }
 
+  const handleEdit = async (id: string, val: { komentar: string; pelaksana: string[] }) => {
+    try {
+      setSubmitLoading(true)
+      const target = distribusi.find((item) => item.id === id)
+      if (!target) return
+
+      const res = await updateDistribusi(id, {
+        permintaan_id: target.permintaan_id,
+        komentar: val.komentar,
+        pelaksana: val.pelaksana,
+      })
+
+      if (res.status === 200 || res.status === 201) {
+        toast.success("Distribusi berhasil diperbarui")
+        setEditTarget(null)
+        fetchAll()
+      } else {
+        throw new Error("Gagal memperbarui distribusi")
+      }
+    } catch (error) {
+      toast.error(getErrorMessage(error, "Gagal memperbarui distribusi"))
+    } finally {
+      setSubmitLoading(false)
+    }
+  }
+
   const handleSelesai = (id: string) => {
     setDistribusi((prev) => prev.map((item) => item.id === id ? { ...item, status: "approved" } : item))
     toast.success("Pekerjaan ditandai selesai")
@@ -191,6 +226,7 @@ export default function DistribusiClient() {
           onSelesai={handleSelesai}
           onDelete={handleDelete}
           onShowKomentar={setSelectedKomentar}
+          onEdit={setEditTarget}
         />
       )}
 
@@ -205,6 +241,16 @@ export default function DistribusiClient() {
         <AddDistribusiModal
           onClose={() => setShowAdd(false)}
           onSave={handleAdd}
+          loading={submitLoading}
+        />
+      )}
+
+      {editTarget && (
+        <EditPelaksanaModal
+          item={editTarget}
+          users={users}
+          onClose={() => setEditTarget(null)}
+          onSave={handleEdit}
           loading={submitLoading}
         />
       )}

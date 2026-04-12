@@ -2,7 +2,7 @@
 
 import { fetchApi } from "@/lib/fetcher";
 import { APIResponse } from "@/types/api";
-import { DistribusiRequest, DistribusiResponse, PelaksanaRequest, PelaksanaResponse, PermintaanResponse, UserResponse } from "./types";
+import { DistribusiRequest, DistribusiResponse, PelaksanaRequest, PelaksanaResponse, PermintaanResponse, UpdateDistribusiRequest, UserResponse } from "./types";
 
 export const getPermintaan = async () => {
   return fetchApi<APIResponse<PermintaanResponse[]>>("/permintaan", { method: "GET" });
@@ -20,12 +20,12 @@ export const createDistribusi = async (data: DistribusiRequest) => {
   return fetchApi<APIResponse<DistribusiResponse>>("/distribusi", { method: "POST", body: data });
 };
 
-export const updateDistribusi = async (id: string, data: DistribusiRequest) => {
+export const updateDistribusi = async (id: string, data: UpdateDistribusiRequest) => {
   return fetchApi<APIResponse<DistribusiResponse>>(`/distribusi/${id}`, { method: "PUT", body: data });
 };
 
 export const deleteDistribusi = async (id: string) => {
-  return fetchApi<APIResponse<any>>(`/distribusi/${id}`, { method: "DELETE" });
+  return fetchApi<APIResponse<unknown>>(`/distribusi/${id}`, { method: "DELETE" });
 };
 
 export const getPelaksana = async () => {
@@ -45,7 +45,7 @@ export const updatePelaksana = async (id: string, data: PelaksanaRequest) => {
 };
 
 export const deletePelaksana = async (id: string) => {
-  return fetchApi<APIResponse<any>>(`/pelaksana/${id}`, { method: "DELETE" });
+  return fetchApi<APIResponse<unknown>>(`/pelaksana/${id}`, { method: "DELETE" });
 };
 
 export const getUsers = async () => {
@@ -54,5 +54,5 @@ export const getUsers = async () => {
 
 // Tambahkan ini untuk ambil logo
 export const getPemda = async () => {
-  return fetchApi<APIResponse<any[]>>("/master-pemda", { method: "GET" });
+  return fetchApi<APIResponse<unknown[]>>("/master-pemda", { method: "GET" });
 };

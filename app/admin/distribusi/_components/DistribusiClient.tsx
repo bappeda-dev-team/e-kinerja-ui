@@ -52,6 +52,7 @@ const HybridLoader = () => {
 
 export interface DistribusiItem {
   id: string
+  permintaan_id: string
   nama_pemda: string
   logo_pemda?: string
   aplikasi: string
@@ -114,6 +115,7 @@ export default function AdminDistribusiClient() {
 
         return {
           id: item.id,
+          permintaan_id: item.permintaan?.id ?? "",
           nama_pemda: namaPemda,
           logo_pemda: typeof item.permintaan?.pemda === "object" ? item.permintaan.pemda.logo ?? "" : "",
           aplikasi: typeof item.permintaan?.aplikasi === "object"
@@ -158,9 +160,9 @@ export default function AdminDistribusiClient() {
       const target = distribusi.find((d) => d.id === id)
       if (!target) return
       const res = await updateDistribusi(id, {
-        permintaan_id: "", // will be ignored by backend on PUT
+        permintaan_id: target.permintaan_id,
         komentar: val.komentar,
-        programmer_ids: val.programmer_ids,
+        pelaksana: val.programmer_ids,
       })
       if (res.status === 200 || res.status === 201) {
         toast.success("Distribusi berhasil diperbarui")

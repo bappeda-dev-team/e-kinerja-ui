@@ -37,6 +37,12 @@ export interface DistribusiRequest {
     programmer_ids: string[];
 }
 
+export interface UpdateDistribusiRequest {
+    komentar?: string;
+    permintaan_id: string;
+    pelaksana: string[];
+}
+
 export interface DistribusiPermintaan {
     id: string;
     pemda: NamedEntity | string;   // toleran: bisa object atau string

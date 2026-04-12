@@ -1,86 +1,93 @@
-// app/super-admin/distribusi/_components/modals/EditPelaksanaModal.tsx
-
 "use client"
 
 import { useState } from "react"
 import { toast } from "sonner"
-import { X } from "lucide-react"
+import { Loader2, X } from "lucide-react"
 import {
-  Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter,
+  Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle,
 } from "@/components/ui/dialog"
 import { Button } from "@/components/ui/button"
 import { Label } from "@/components/ui/label"
+import { Textarea } from "@/components/ui/textarea"
 import { Badge } from "@/components/ui/badge"
 import type { DistribusiItem } from "../DistribusiClient"
-
-interface UserItem {
-  id: string
-  full_name: string
-}
+import type { UserResponse } from "../../types"
 
 interface Props {
   item: DistribusiItem
-  users: UserItem[]
+  users: UserResponse[]
   onClose: () => void
-  onAddPelaksana: (distribusi_id: string, programmer_id: string) => Promise<void>
-  onDeletePelaksana: (pelaksana_id: string, distribusi_id: string) => Promise<void>
+  onSave: (id: string, val: { komentar: string; pelaksana: string[] }) => void
+  loading?: boolean
 }
 
-export default function EditPelaksanaModal({ item, users, onClose, onAddPelaksana, onDeletePelaksana }: Props) {
-  const [selectedId, setSelectedId] = useState("")
-  const [loading, setLoading] = useState(false)
+export default function EditPelaksanaModal({ item, users, onClose, onSave, loading }: Props) {
+  const [selectedIds, setSelectedIds] = useState<string[]>(item.programmer.map((programmer) => programmer.id))
+  const [komentar, setKomentar] = useState(item.komentar ?? "")
 
-  const assignedIds = item.programmer.map((p) => p.id)
-  const availableUsers = users.filter((u) => !assignedIds.includes(u.id))
-
-  const handleAdd = async () => {
-    if (!selectedId) { toast.error("Pilih programmer dulu"); return }
-    setLoading(true)
-    try {
-      await onAddPelaksana(item.id, selectedId)
-      setSelectedId("")
-    } finally {
-      setLoading(false)
-    }
+  const handleToggle = (id: string) => {
+    setSelectedIds((prev) =>
+      prev.includes(id) ? prev.filter((value) => value !== id) : [...prev, id]
+    )
   }
 
-  const handleDelete = async (pelaksana_id: string) => {
-    setLoading(true)
-    try {
-      await onDeletePelaksana(pelaksana_id, item.id)
-    } finally {
-      setLoading(false)
+  const handleSubmit = () => {
+    if (selectedIds.length === 0) {
+      toast.error("Pilih minimal satu programmer")
+      return
     }
+
+    onSave(item.id, { komentar: komentar.trim(), pelaksana: selectedIds })
   }
+
+  const selectedUsers = users.filter((user) => selectedIds.includes(user.id))
+  const availableUsers = users.filter((user) => !selectedIds.includes(user.id))
 
   return (
     <Dialog open onOpenChange={onClose}>
-      <DialogContent className="max-w-md">
-        <DialogHeader>
-          <DialogTitle>Edit Programmer</DialogTitle>
+      <DialogContent className="max-w-md bg-white p-0 overflow-hidden border-[#B9B9B9] rounded-2xl">
+        <DialogHeader className="px-6 py-4 border-b border-[#E0E0E0]">
+          <DialogTitle className="text-xl font-bold text-[#202224]">Edit Programmer</DialogTitle>
         </DialogHeader>
 
-        <div className="space-y-4 text-sm">
-          <div className="rounded-md bg-muted px-3 py-2 text-muted-foreground">
-            <span className="font-semibold text-foreground">{item.nama_pemda}</span>
-            {" — "}
-            {item.aplikasi} · {item.menu}
+        <div className="px-6 py-5 space-y-4">
+          <div className="rounded-xl bg-blue-50/60 border border-blue-100 px-4 py-3 text-sm">
+            <p className="font-bold text-[#202224]">{item.nama_pemda}</p>
+            <p className="text-[#797A7C] mt-0.5">{item.aplikasi} · {item.menu}</p>
           </div>
 
-          {/* Programmer yang sudah assigned */}
           <div className="space-y-1.5">
-            <Label>Programmer Saat Ini</Label>
-            {item.programmer.length === 0 ? (
-              <p className="text-xs text-muted-foreground">Belum ada programmer</p>
-            ) : (
-              <div className="flex flex-wrap gap-1.5">
-                {item.programmer.map((p) => (
-                  <Badge key={p.pelaksana_id} variant="secondary" className="flex items-center gap-1 px-2 py-1">
-                    {p.nama}
+            <Label className="text-sm font-semibold text-[#202224]">Programmer*</Label>
+            <select
+              className="w-full border rounded-lg bg-[#F5F6FA] border-[#D5D5D5] px-4 py-2.5 text-sm focus:ring-[#4880FF] focus:border-[#4880FF] outline-none"
+              value=""
+              onChange={(event) => {
+                if (event.target.value) handleToggle(event.target.value)
+              }}
+              disabled={loading}
+            >
+              <option value="">Tambah programmer...</option>
+              {availableUsers.map((user) => (
+                <option key={user.id} value={user.id}>
+                  {user.full_name || user.username}
+                </option>
+              ))}
+            </select>
+
+            {selectedUsers.length > 0 && (
+              <div className="flex flex-wrap gap-1.5 mt-2">
+                {selectedUsers.map((user) => (
+                  <Badge
+                    key={user.id}
+                    variant="secondary"
+                    className="flex items-center gap-1 bg-blue-50 text-blue-700 border border-blue-100 px-2.5 py-1"
+                  >
+                    {user.full_name || user.username}
                     <button
-                      onClick={() => handleDelete(p.pelaksana_id)}
+                      type="button"
+                      onClick={() => handleToggle(user.id)}
                       disabled={loading}
-                      className="text-gray-400 hover:text-red-500 transition ml-1"
+                      className="ml-0.5 hover:text-red-500 transition-colors"
                     >
                       <X className="size-3" />
                     </button>
@@ -90,36 +97,34 @@ export default function EditPelaksanaModal({ item, users, onClose, onAddPelaksan
             )}
           </div>
 
-          <div className="border-t border-black/10" />
-
-          {/* Tambah programmer baru */}
           <div className="space-y-1.5">
-            <Label>Tambah Programmer</Label>
-            <div className="flex gap-2">
-<select
-  className="flex-1 border rounded-md px-3 py-2 text-sm bg-background"
-  value={selectedId}
-  onChange={(e) => {
-    e.stopPropagation()
-    setSelectedId(e.target.value)
-  }}
-  disabled={loading}
-  size={1}
->
-  <option value="" disabled>Pilih programmer...</option>
-  {availableUsers.map((u) => (
-    <option key={u.id} value={u.id}>{u.full_name}</option>
-  ))}
-</select>
-              <Button onClick={handleAdd} disabled={loading || !selectedId} size="sm">
-                Tambah
-              </Button>
-            </div>
+            <Label className="text-sm font-semibold text-[#202224]">Komentar (opsional)</Label>
+            <Textarea
+              value={komentar}
+              onChange={(event) => setKomentar(event.target.value)}
+              placeholder="Tambahkan catatan untuk programmer..."
+              className="w-full bg-[#F5F6FA] border-[#D5D5D5] rounded-lg px-4 py-3 text-sm focus-visible:ring-[#4880FF]"
+              rows={3}
+            />
           </div>
         </div>
 
-        <DialogFooter>
-          <Button variant="outline" onClick={onClose}>Tutup</Button>
+        <DialogFooter className="px-6 py-4 border-t border-gray-100 flex justify-end gap-3">
+          <Button
+            variant="outline"
+            onClick={onClose}
+            className="rounded-xl border-[#D5D5D5] text-sm font-bold text-[#313131] hover:bg-gray-50"
+          >
+            Batal
+          </Button>
+          <Button
+            onClick={handleSubmit}
+            disabled={loading}
+            className="rounded-xl bg-[#4880FF] text-sm font-bold text-white hover:bg-blue-600 active:scale-95 transition-all gap-2"
+          >
+            {loading && <Loader2 className="size-4 animate-spin" />}
+            Simpan
+          </Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>

@@ -2,7 +2,7 @@
 
 "use client"
 
-import { MoreVertical, MessageSquare, Users } from "lucide-react"
+import { MoreVertical, MessageSquare, Pencil, Users } from "lucide-react"
 import {
   DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
@@ -14,6 +14,7 @@ interface Props {
   onSelesai: (id: string) => void
   onDelete: (id: string) => void
   onShowKomentar: (text: string) => void
+  onEdit: (item: DistribusiItem) => void
 }
 
 export function DistribusiPermintaanCard({ item }: { item: DistribusiItem }) {
@@ -60,7 +61,7 @@ export function DistribusiPermintaanCard({ item }: { item: DistribusiItem }) {
   )
 }
 
-export function DistribusiCard({ item, onSelesai, onDelete, onShowKomentar }: Props) {
+export function DistribusiCard({ item, onSelesai, onDelete, onShowKomentar, onEdit }: Props) {
   const statusMeta = getStatusMeta(item.status)
 
   return (
@@ -82,6 +83,9 @@ export function DistribusiCard({ item, onSelesai, onDelete, onShowKomentar }: Pr
             </button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end" className="w-44">
+            <DropdownMenuItem onClick={() => onEdit(item)}>
+              <Pencil className="size-3.5 mr-2" /> Edit Programmer
+            </DropdownMenuItem>
             <DropdownMenuItem onClick={() => onSelesai(item.id)}>Tandai Selesai</DropdownMenuItem>
             <DropdownMenuItem className="text-red-500 focus:text-red-500" onClick={() => onDelete(item.id)}>Hapus</DropdownMenuItem>
           </DropdownMenuContent>
