@@ -265,6 +265,19 @@ export default function PermintaanTable({ data, showTable, onEdit, onDelete }: P
           </table>
         </div>
 
+        <AlertDialog open={!!deleteId} onOpenChange={(o) => !o && setDeleteId(null)}>
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>Hapus Data?</AlertDialogTitle>
+              <AlertDialogDescription>Data tidak dapat dikembalikan setelah dihapus.</AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel>Batal</AlertDialogCancel>
+              <AlertDialogAction className="bg-red-500 hover:bg-red-600" onClick={() => { if (deleteId) { onDelete(deleteId); setDeleteId(null); } }}>Hapus</AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
+
         <div className="flex flex-col gap-3 border-t border-gray-200 px-4 py-4 md:flex-row md:items-center md:justify-between">
           <p className="text-sm text-[#202224]/60">
             Menampilkan {data.length === 0 ? "0-0" : `${(currentPage - 1) * rowsPerPage + 1}-${Math.min(currentPage * rowsPerPage, data.length)}`} dari {data.length} data
