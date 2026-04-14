@@ -8,7 +8,7 @@ import { User, Shield, Hash } from "lucide-react"
 
 import StatCards from "./StatCards"
 import RecentRequests from "./RecentRequests"
-import RecentActivity from "./RecentActivity"
+import RecentActivity, { PanduanCard } from "./RecentActivity"
 
 import { getSuperadminDashboard } from "../services"
 
@@ -127,7 +127,10 @@ export default function DashboardClient({ session }: { session: any }) {
 
       <div className="grid gap-5 lg:grid-cols-[1fr_300px]">
         <RecentRequests data={permintaan} loading={loading} />
-        <RecentActivity data={distribusi} loading={loading} />
+        <div className="flex flex-col gap-5">
+          <PanduanCard />
+          <RecentActivity data={distribusi} loading={loading} />
+        </div>
       </div>
 
     </div>

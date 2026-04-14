@@ -9,6 +9,7 @@ import { getDeadlineTime, mapVerifikasiItem, type VerifikasiListItem } from "@/a
 import SummaryCards from "./SummaryCards"
 import AttentionList from "./AttentionList"
 import ActivityFeed from "./ActivityFeed"
+import { PanduanCard } from "./PanduanCard"
 
 export default function VerifikatorDashboardClient() {
   const [items, setItems] = useState<VerifikasiListItem[]>([])
@@ -82,7 +83,10 @@ export default function VerifikatorDashboardClient() {
 
       <div className="grid gap-5 xl:grid-cols-[minmax(0,1fr)_320px]">
         <AttentionList items={attentionItems} loading={loading} />
-        <ActivityFeed items={latestActivity} loading={loading} />
+        <div className="flex flex-col gap-5">
+          <PanduanCard />
+          <ActivityFeed items={latestActivity} loading={loading} />
+        </div>
       </div>
     </div>
   )

@@ -2,9 +2,8 @@ import { useState } from "react"
 import { ClipboardList } from "lucide-react"
 import type { ProgrammerTaskItem } from "./types"
 import { formatRelativeTime } from "./utils"
-import { Pagination } from "./Pagination"
 
-const PER_PAGE = 4
+const PER_PAGE = 2
 
 interface Props {
   items: ProgrammerTaskItem[]
@@ -27,15 +26,25 @@ function getActivityLabel(statusLabel: ProgrammerTaskItem["statusLabel"]) {
 }
 
 export function ActivityPanel({ items, loading }: Props) {
-  const [page, setPage] = useState(1)
-  const totalPages = Math.max(1, Math.ceil(items.length / PER_PAGE))
-  const paginated = items.slice((page - 1) * PER_PAGE, page * PER_PAGE)
+  const [showAll, setShowAll] = useState(false)
+  const visible = showAll ? items : items.slice(0, PER_PAGE)
+  const hasMore = items.length > PER_PAGE
 
   return (
     <div className="lg:col-span-1 rounded-2xl border border-gray-100 bg-white shadow-sm flex flex-col">
-      <div className="border-b border-gray-100 px-6 py-5">
-        <h2 className="text-lg font-bold text-gray-900">Aktivitas Terbaru</h2>
-        <p className="mt-1 text-sm text-gray-500">Timeline update terkini.</p>
+      <div className="border-b border-gray-100 px-6 py-5 flex items-center justify-between">
+        <div>
+          <h2 className="text-lg font-bold text-gray-900">Aktivitas Terbaru</h2>
+          <p className="mt-1 text-sm text-gray-500">Timeline update terkini.</p>
+        </div>
+        {hasMore && (
+          <button
+            onClick={() => setShowAll((v) => !v)}
+            className="text-xs font-semibold text-[#4880FF] hover:underline shrink-0"
+          >
+            {showAll ? "Sembunyikan" : "View All"}
+          </button>
+        )}
       </div>
 
       <div className="flex-1 p-6">
@@ -45,7 +54,7 @@ export function ActivityPanel({ items, loading }: Props) {
           <EmptyState label="Belum ada aktivitas." />
         ) : (
           <div className="relative border-l-2 border-gray-100 ml-3 space-y-6">
-            {paginated.map((item, index) => {
+            {visible.map((item, index) => {
               const isVerif = item.statusLabel === "terverifikasi"
               const isRevisi = item.statusLabel === "revisi"
               const colorClass = isVerif ? "bg-emerald-500" : isRevisi ? "bg-red-500" : "bg-amber-500"
@@ -63,13 +72,6 @@ export function ActivityPanel({ items, loading }: Props) {
             })}
           </div>
         )}
-        <Pagination
-          page={page}
-          totalPages={totalPages}
-          totalItems={items.length}
-          perPage={PER_PAGE}
-          onPageChange={setPage}
-        />
       </div>
     </div>
   )

@@ -9,6 +9,7 @@ import { mapReportStatus, getProgrammerName } from "./utils"
 import { DashboardStats } from "./DashboardStats"
 import { AttentionPanel } from "./AttentionPanel"
 import { ActivityPanel } from "./ActivityPanel"
+import { PanduanCard } from "./PanduanCard"
 import { NetworkError } from "@/components/network-error"
 
 export default function ProgrammerDashboardClient() {
@@ -97,7 +98,10 @@ export default function ProgrammerDashboardClient() {
       <DashboardStats summary={summary} />
       <div className="grid gap-6 lg:grid-cols-3 xl:grid-cols-4">
         <AttentionPanel items={needsAttention} loading={loading} />
-        <ActivityPanel items={latestActivity} loading={loading} />
+        <div className="flex flex-col gap-6">
+          <PanduanCard />
+          <ActivityPanel items={latestActivity} loading={loading} />
+        </div>
       </div>
     </div>
   )

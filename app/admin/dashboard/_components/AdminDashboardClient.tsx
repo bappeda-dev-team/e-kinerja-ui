@@ -12,6 +12,7 @@ import type { AdminPermintaanItem, AdminDashboardSummary } from "./types"
 import { AdminDashboardStats } from "./AdminDashboardStats"
 import { PendingPanel } from "./PendingPanel"
 import { RecentDistribusiPanel } from "./RecentDistribusiPanel"
+import { PanduanCard } from "./PanduanCard"
 import { NetworkError } from "@/components/network-error"
 
 export default function AdminDashboardClient() {
@@ -106,7 +107,10 @@ export default function AdminDashboardClient() {
       <AdminDashboardStats summary={summary} />
       <div className="grid gap-6 lg:grid-cols-3 xl:grid-cols-4">
         <PendingPanel items={pendingItems} loading={loading} />
-        <RecentDistribusiPanel items={recentDistribusi} loading={loading} />
+        <div className="flex flex-col gap-6">
+          <PanduanCard />
+          <RecentDistribusiPanel items={recentDistribusi} loading={loading} />
+        </div>
       </div>
     </div>
   )
