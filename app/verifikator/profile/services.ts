@@ -15,11 +15,9 @@ export const updateProfilePicture = async (id: string, file: File) => {
   const formData = new FormData()
   formData.append("file", file)
 
-  const response = await fetch(`/api/users/${id}/profile-picture`, {
+  return fetchApi<ApiResponse<ProfileResponse>>({
+    url: `/users/${id}/profile-picture`,
     method: "PATCH",
     body: formData,
   })
-
-  const data = await response.json().catch(() => null)
-  return { status: response.status, message: response.ok ? "Success" : response.statusText, data }
 }
