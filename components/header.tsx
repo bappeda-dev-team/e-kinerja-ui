@@ -29,7 +29,7 @@ import {
 
 import { Settings, LogOut, User, Bell, ChevronDown } from "lucide-react"
 import { fetchApi } from "@/lib/fetcher"
-import { APIResponse } from "@/types/api"
+import type { ApiResponse } from "@/types/api"
 import { signOut } from "next-auth/react"
 import { deleteCookie } from "cookies-next"
 import { getRolePrefix } from "@/lib/roles"
@@ -73,7 +73,10 @@ export function Header({ title, session }: HeaderProps) {
     if (!userId) return
 
     const fetchProfile = async () => {
-      const res = await fetchApi<APIResponse<UserProfile>>(`/users/${userId}`, { method: "GET" })
+      const res = await fetchApi<ApiResponse<UserProfile>>({
+        url: `/users/${userId}`,
+        method: "GET",
+      })
       if (res.status === 200 && res.data?.data) {
         setProfile(res.data.data)
       }

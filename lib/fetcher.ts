@@ -2,7 +2,7 @@
 
 import { NextRequest } from "next/server";
 import { getCookie } from "cookies-next";
-import { getSession } from "next-auth/react";
+import { getSession, signOut } from "next-auth/react";
 import { getServerSession } from "next-auth";
 import { redirect } from "next/navigation";
 import { authOptions } from "@/app/api/auth/[...nextauth]/route";
@@ -67,36 +67,17 @@ interface ReqApi {
   req?: NextRequest;
 }
 
-export async function fetchApi<T = any>(url: string): Promise<{ status: number; message: string; data: T }>;
-export async function fetchApi<T = any>(url: string, options: Partial<Omit<ReqApi, 'url'>>): Promise<{ status: number; message: string; data: T }>;
-export async function fetchApi<T = any>(params: ReqApi): Promise<{ status: number; message: string; data: T }>;
-
 export async function fetchApi<T = any>(
-  urlOrParams: string | ReqApi,
-  options?: Partial<Omit<ReqApi, 'url'>>
+  params: ReqApi,
 ): Promise<{ status: number; message: string; data: T }> {
-  let type: "auth" | "withoutAuth";
-  let url: string;
-  let method: "GET" | "POST" | "PUT" | "PATCH" | "DELETE";
-  let body: any;
-  let token: string | undefined;
-  let web: string | undefined;
-
-  if (typeof urlOrParams === 'string') {
-    url = urlOrParams;
-    type = options?.type ?? "auth";
-    method = options?.method ?? "GET";
-    body = options?.body;
-    token = options?.token;
-    web = options?.web;
-  } else {
-    type = urlOrParams.type ?? "auth";
-    url = urlOrParams.url;
-    method = urlOrParams.method ?? "GET";
-    body = urlOrParams.body;
-    token = urlOrParams.token;
-    web = urlOrParams.web;
-  }
+  const {
+    type = "auth",
+    url,
+    method = "GET",
+    body,
+    token,
+    web,
+  } = params;
 
   // Client-side: pakai proxy rewrites (/api/backend/...) untuk menghindari CORS
   // Server-side: pakai URL langsung ke backend
@@ -142,15 +123,6 @@ export async function fetchApi<T = any>(
         : JSON.stringify(body)
       : null
 
-    // 🔍 DEBUG — hapus setelah berhasil
-    if (method === "PUT") {
-      console.log("=== FETCHER DEBUG PUT ===")
-      console.log("URL:", `${baseURL}${url}`)
-      console.log("BODY RAW:", body)
-      console.log("BODY FINAL:", stringifiedBody)
-      console.log("========================")
-    }
-
     const response = await fetch(`${baseURL}${url}`, {
       method,
       headers,
@@ -164,6 +136,21 @@ export async function fetchApi<T = any>(
       if (hadToken) {
         if (typeof window === "undefined") redirect("/unauthorized");
         else window.location.href = "/unauthorized";
+      }
+    }
+
+    if (response.status === 401) {
+      let resData: any = null;
+      try {
+        resData = await response.clone().json();
+      } catch {}
+      if (resData?.message?.toLowerCase() === "token tidak valid") {
+        invalidateClientSessionCache();
+        if (typeof window === "undefined") {
+          redirect("/login");
+        } else {
+          await signOut({ callbackUrl: "/login" });
+        }
       }
     }
 

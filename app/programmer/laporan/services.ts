@@ -8,8 +8,12 @@ export {
 } from "@/app/super-admin/laporan/services"
 
 import { fetchApi } from "@/lib/fetcher"
-import { APIResponse } from "@/types/api"
+import type { ApiResponse } from "@/types/api"
+import type { SubmitVerifikasiResponse } from "@/app/super-admin/verifikasi/types"
 
 export const ajukanVerifikasi = async (laporanId: string) => {
-  return fetchApi<APIResponse<any>>(`/laporan/verif/${laporanId}`, { method: "POST" })
+  return fetchApi<ApiResponse<SubmitVerifikasiResponse>>({
+    url: `/laporan/verif/${laporanId}`,
+    method: "POST",
+  })
 }

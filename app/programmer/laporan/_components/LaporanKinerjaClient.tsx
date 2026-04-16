@@ -125,6 +125,7 @@ export default function LaporanKinerjaClient() {
           programmer: item.programmer,
           status: item.status,
           verifikasi: item.verifikasi ?? null,
+          is_submitted_to_verified: item.is_submitted_to_verified ?? false,
           created_at: item.created_at,
           updated_at: item.updated_at,
           logo_pemda: pemdaLogo || "",
@@ -156,10 +157,14 @@ export default function LaporanKinerjaClient() {
   }
 
   const handleEdit = async (item: LaporanKinerjaItem) => {
+    const verifikasiObj = Array.isArray(item.verifikasi) ? item.verifikasi[0] : item.verifikasi
     const res = await updateLaporan(item.id, {
       laporan_progress: item.laporan_progress,
       permintaan_id: item.permintaan.id,
       status: item.status,
+      verifikasi_id: verifikasiObj?.id,
+      status_verified: verifikasiObj?.status_verified,
+      is_submitted_to_verified: item.is_submitted_to_verified,
     })
     if (res.status < 200 || res.status >= 300) throw new Error(res.data?.message || "Gagal")
     await fetchData()
@@ -178,8 +183,7 @@ export default function LaporanKinerjaClient() {
   }
 
   const handleSubmitVerifikasi = async (item: LaporanKinerjaItem) => {
-    const sudahDiajukan = Array.isArray(item.verifikasi) ? item.verifikasi.length > 0 : item.verifikasi != null
-    if (sudahDiajukan) {
+    if (item.is_submitted_to_verified === true) {
       toast.error("Laporan ini sudah diajukan untuk verifikasi")
       return
     }
@@ -323,7 +327,7 @@ export default function LaporanKinerjaClient() {
                     const progressColor = statusType === "terverifikasi" ? "bg-emerald-500" : statusType === "revisi" ? "bg-red-500" : "bg-amber-500"
                     const isNearDeadline = item.permintaan?.tanggal_deadline && new Date(item.permintaan.tanggal_deadline).getTime() - new Date().getTime() < 7 * 24 * 60 * 60 * 1000 ? true : false
 
-                    const isAlreadySubmitted = Array.isArray(item.verifikasi) ? item.verifikasi.length > 0 : item.verifikasi != null
+                    const isAlreadySubmitted = item.is_submitted_to_verified === true
                     const isDisabled = submittingId === item.id || isAlreadySubmitted
 
                     return (

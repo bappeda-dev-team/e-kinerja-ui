@@ -1,22 +1,27 @@
 // app/super-admin/data-master/master-pemda/services.ts
 
 import { fetchApi } from "@/lib/fetcher";
-import { APIResponse } from "@/types/api";
+import type { ApiResponse } from "@/types/api";
 import { MasterPemdaRequest, MasterPemda } from "./types";
 
 export const getMasterPemda = async () => {
-  return fetchApi<APIResponse<MasterPemda[]>>("/master-pemda", { method: "GET" });
+  return fetchApi<ApiResponse<MasterPemda[]>>({
+    url: "/master-pemda",
+    method: "GET",
+  });
 };
 
 export const createMasterPemda = async (data: MasterPemdaRequest) => {
-  return fetchApi<APIResponse<MasterPemda>>("/master-pemda", { 
+  return fetchApi<ApiResponse<MasterPemda>>({
+    url: "/master-pemda",
     method: "POST", 
     body: data 
   });
 };
 
 export const updateMasterPemda = async (id: string, data: Partial<MasterPemdaRequest>) => {
-  return fetchApi<APIResponse<MasterPemda>>(`/master-pemda/${id}`, { 
+  return fetchApi<ApiResponse<MasterPemda>>({
+    url: `/master-pemda/${id}`,
     method: "PUT", 
     body: data 
   });
@@ -27,7 +32,8 @@ export const updateMasterPemdaLogo = async (id: string, file: File) => {
   const formData = new FormData();
   formData.append("file", file); // Key harus "file" sesuai Postman kamu
 
-  const response = await fetchApi<APIResponse<any>>(`/master-pemda/${id}/logo`, {
+  const response = await fetchApi<ApiResponse<MasterPemda>>({
+    url: `/master-pemda/${id}/logo`,
     method: "PATCH",
     body: formData,
   });
@@ -40,5 +46,8 @@ export const updateMasterPemdaLogo = async (id: string, file: File) => {
 };
 
 export const deleteMasterPemda = async (id: string) => {
-  return fetchApi<APIResponse<any>>(`/master-pemda/${id}`, { method: "DELETE" });
+  return fetchApi<ApiResponse<null>>({
+    url: `/master-pemda/${id}`,
+    method: "DELETE",
+  });
 };

@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 
 import { getVerifikasi, updateVerifikasi } from "../services"
+import { updateLaporan } from "@/app/super-admin/laporan/services"
 import type { VerifikasiRequest } from "../types"
 import {
   formatDateLabel,
@@ -128,6 +129,15 @@ export default function VerifikasiClient() {
       const response = await updateVerifikasi(item.id, payload)
       if (response.status < 200 || response.status >= 300) {
         throw new Error(response.data?.message || "Gagal memperbarui verifikasi")
+      }
+
+      // Jika verifikator set "revisi", reset is_submitted_to_verified supaya programmer bisa kirim ulang
+      if (item.status === "revisi") {
+        await updateLaporan(item.laporanId, {
+          laporan_progress: item.progress,
+          permintaan_id: item.permintaanId,
+          is_submitted_to_verified: false,
+        })
       }
 
       await fetchData()

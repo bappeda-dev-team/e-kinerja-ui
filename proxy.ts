@@ -5,13 +5,6 @@ import { getToken } from "next-auth/jwt"
 
 const AUTH_ROUTES = ["/login", "/"]
 
-const ROLE_ID_MAP: Record<string, string> = {
-  "cd8c9166-9b38-4c9b-8afc-1c10ec97e068": "super_admin",
-  "5fa89680-b618-42fc-8725-fa72453a9351": "admin",
-  "b0cabba0-e1b9-4696-ab4b-7c9a229959e2": "programmer",
-  "dda6d213-4503-49e6-955c-5f4ae7796b19": "verifikator",
-}
-
 const ROLE_HOME: Record<string, string> = {
   super_admin: "/super-admin/dashboard",
   admin:       "/admin/dashboard",
@@ -43,15 +36,27 @@ export default async function proxy(req: NextRequest) {
   const isAuthRoute = AUTH_ROUTES.includes(pathname)
   const isProtected = PROTECTED_PREFIXES.some((p) => pathname.startsWith(p))
 
-  const roleId = (token as any)?.user?.role_id as string | undefined
-  const role = roleId ? ROLE_ID_MAP[roleId] : null
+  const u = (token as any)?.user
+  const rawRole: string =
+    u?.role_name ??
+    (typeof u?.role === "string" ? u.role : null) ??
+    u?.role?.name ??
+    u?.role?.description ??
+    u?.name ??
+    ""
+  const normalized = rawRole.toLowerCase().trim().replace(/[\s-]+/g, "_")
+  const role: string | null =
+    normalized === "super_admin" || normalized === "superadmin" ? "super_admin" :
+    normalized === "admin"       ? "admin" :
+    normalized === "programmer"  ? "programmer" :
+    normalized === "verifikator" || normalized === "level2" || normalized === "level_2" ? "verifikator" :
+    null
 
   log("REQUEST", {
     pathname,
     isAuthenticated,
     isAuthRoute,
     isProtected,
-    roleId: roleId ?? null,
     role: role ?? null,
   })
 
@@ -66,7 +71,7 @@ export default async function proxy(req: NextRequest) {
   // Sudah login → jangan akses /login atau /
   if (isAuthRoute && isAuthenticated) {
     if (!role) {
-      log("AUTH_ROUTE: token ada tapi role tidak dikenal → hapus cookie, tetap di halaman", { roleId })
+      log("AUTH_ROUTE: token ada tapi role tidak dikenal → hapus cookie, tetap di halaman", { role: role ?? null })
       const res = NextResponse.next()
       res.cookies.delete("next-auth.session-token")
       res.cookies.delete("__Secure-next-auth.session-token")
@@ -80,7 +85,7 @@ export default async function proxy(req: NextRequest) {
   // Sudah login tapi akses prefix role lain → redirect ke home role sendiri
   if (isAuthenticated && isProtected) {
     if (!role) {
-      log("PROTECTED: role tidak dikenal → paksa logout", { roleId })
+      log("PROTECTED: role tidak dikenal → paksa logout", { role: role ?? null })
       const res = NextResponse.redirect(new URL("/login", req.url))
       res.cookies.delete("next-auth.session-token")
       res.cookies.delete("__Secure-next-auth.session-token")

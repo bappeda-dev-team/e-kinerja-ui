@@ -1,15 +1,14 @@
 // app/super-admin/laporan/types.ts
 
-export interface APIResponse<T> {
-  status: number
-  message: string
-  data: T
-}
+export type { ApiResponse } from "@/types/api"
 
 export interface LaporanRequest {
   laporan_progress: string
   permintaan_id: string
   status?: string
+  verifikasi_id?: string
+  status_verified?: string
+  is_submitted_to_verified?: boolean
 }
 
 export interface LaporanPermintaan {
@@ -52,6 +51,7 @@ export interface LaporanResponse {
   laporan_progress: string
   status?: string
   verifikasi?: LaporanVerifikasi[] | LaporanVerifikasi | null
+  is_submitted_to_verified?: boolean
   created_at?: string
   updated_at?: string
 }
@@ -63,6 +63,7 @@ export interface LaporanKinerjaItem {
   programmer: LaporanProgrammer
   status?: string
   verifikasi?: LaporanVerifikasi[] | LaporanVerifikasi | null
+  is_submitted_to_verified?: boolean
   created_at?: string
   updated_at?: string
   logo_pemda?: string

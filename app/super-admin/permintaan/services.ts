@@ -2,41 +2,54 @@
 
 // services.ts
 import { fetchApi } from "@/lib/fetcher";
-import { APIResponse } from "@/types/api";
+import type { ApiResponse } from "@/types/api";
+import type { MasterPemda } from "@/app/super-admin/data-master/master-pemda/types";
 import { PermintaanRequest, PermintaanResponse } from "./types";
 
 // Mendapatkan data Master Pemda untuk ambil Logo
 export const getMasterPemda = async () => {
-  return fetchApi<APIResponse<any[]>>("/master-pemda", { method: "GET" });
+  return fetchApi<ApiResponse<MasterPemda[]>>({
+    url: "/master-pemda",
+    method: "GET",
+  });
 };
 
 export const getPermintaan = async () => {
-  return fetchApi<APIResponse<PermintaanResponse[]>>("/permintaan", { method: "GET" });
+  return fetchApi<ApiResponse<PermintaanResponse[]>>({
+    url: "/permintaan",
+    method: "GET",
+  });
 };
 
 export const createPermintaan = async (data: PermintaanRequest) => {
-  return fetchApi<APIResponse<PermintaanResponse>>("/permintaan", { 
+  return fetchApi<ApiResponse<PermintaanResponse>>({
+    url: "/permintaan",
     method: "POST", 
     body: data 
   });
 };
 
 export const updatePermintaan = async (id: string, data: PermintaanRequest) => {
-  return fetchApi<APIResponse<PermintaanResponse>>(`/permintaan/${id}`, { 
+  return fetchApi<ApiResponse<PermintaanResponse>>({
+    url: `/permintaan/${id}`,
     method: "PUT", 
     body: data 
   });
 };
 
 export const deletePermintaan = async (id: string) => {
-  return fetchApi<APIResponse<any>>(`/permintaan/${id}`, { method: "DELETE" });
+  return fetchApi<ApiResponse<null>>({
+    url: `/permintaan/${id}`,
+    method: "DELETE",
+  });
 };
 
 export const uploadPermintaanAttachment = async (id: string, files: File[]) => {
   const formData = new FormData();
   files.forEach((file) => formData.append("files", file));
 
-  const response = await fetchApi<APIResponse<any>>(`/permintaan/${id}/lampiran`, {
+  const response = await fetchApi<ApiResponse<PermintaanResponse>>({
+    url: `/permintaan/${id}/lampiran`,
     method: "PATCH",
     body: formData,
   });

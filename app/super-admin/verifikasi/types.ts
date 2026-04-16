@@ -41,3 +41,9 @@ export interface VerifikasiResponse {
     lampiran?: string[];
   };
 }
+
+export interface SubmitVerifikasiResponse {
+  laporan_id?: string;
+  is_submitted_to_verified?: boolean;
+  verifikasi?: VerifikasiResponse | null;
+}

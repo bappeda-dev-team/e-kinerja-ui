@@ -57,6 +57,8 @@ export const authOptions: NextAuthOptions = {
             );
             const userPayload = JSON.parse(jsonPayload);
 
+            console.log("JWT PAYLOAD:", JSON.stringify(userPayload));
+
             return {
               id: userPayload.user_id?.toString() || username,
               email: userPayload.email,

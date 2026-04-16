@@ -2,11 +2,26 @@
 
 export type RoleName = "super_admin" | "admin" | "programmer" | "verifikator"
 
-const LEGACY_ROLE_ID_MAP: Record<string, RoleName> = {
-  "cd8c9166-9b38-4c9b-8afc-1c10ec97e068": "super_admin",
-  "5fa89680-b618-42fc-8725-fa72453a9351": "admin",
-  "b0cabba0-e1b9-4696-ab4b-7c9a229959e2": "programmer",
-  "dda6d213-4503-49e6-955c-5f4ae7796b19": "verifikator",
+let cachedRoleIdMap: Record<string, RoleName> | null = null
+
+export async function fetchRoleIdMap(): Promise<Record<string, RoleName>> {
+  if (cachedRoleIdMap) return cachedRoleIdMap
+
+  try {
+    const baseURL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8080"
+    const res = await fetch(`${baseURL}/roles`, { next: { revalidate: 3600 } })
+    if (!res.ok) throw new Error("fetch /roles failed")
+    const json = await res.json()
+    const map: Record<string, RoleName> = {}
+    for (const role of json.data ?? []) {
+      const normalized = normalizeRoleName(role.name)
+      if (role.id && normalized) map[role.id] = normalized
+    }
+    cachedRoleIdMap = map
+    return map
+  } catch {
+    return {}
+  }
 }
 
 export const ROLE_LABEL: Record<RoleName, string> = {
@@ -31,10 +46,10 @@ export const ROLE_MENUS: Record<RoleName, string[]> = {
   verifikator: ["dashboard", "verifikasi"],
 }
 
-function normalizeRoleName(value?: string | null): RoleName | "" {
-  const normalized = value?.toLowerCase().trim().replace(/[\s-]+/g, "_")
+function normalizeRoleName(value?: unknown): RoleName | "" {
+  if (typeof value !== "string" || !value) return ""
+  const normalized = value.toLowerCase().trim().replace(/[\s-]+/g, "_")
 
-  if (!normalized) return ""
   if (normalized === "super_admin" || normalized === "superadmin") return "super_admin"
   if (normalized === "admin") return "admin"
   if (normalized === "programmer") return "programmer"
@@ -43,7 +58,7 @@ function normalizeRoleName(value?: string | null): RoleName | "" {
   return ""
 }
 
-/** Ambil role name dari session.user */
+/** Ambil role name dari session.user — mendukung berbagai struktur JWT payload */
 export function getRoleName(session: any): RoleName | "" {
   const user = session?.user
 
@@ -51,12 +66,20 @@ export function getRoleName(session: any): RoleName | "" {
     normalizeRoleName(user?.role_name) ||
     normalizeRoleName(user?.role) ||
     normalizeRoleName(user?.role?.name) ||
-    normalizeRoleName(user?.role?.description)
+    normalizeRoleName(user?.role?.description) ||
+    normalizeRoleName(user?.name)
 
   if (roleFromString) return roleFromString
 
   const roleId = user?.role_id as string | undefined
-  return roleId ? (LEGACY_ROLE_ID_MAP[roleId] ?? "") : ""
+  if (!roleId) return ""
+  return cachedRoleIdMap?.[roleId] ?? ""
+}
+
+/** Sama seperti getRoleName tapi fetch role map dari API jika belum ter-cache */
+export async function getRoleNameAsync(session: any): Promise<RoleName | ""> {
+  await fetchRoleIdMap()
+  return getRoleName(session)
 }
 
 export function is(session: any, role: RoleName): boolean {
@@ -71,5 +94,5 @@ export function canAccess(session: any, menu: string): boolean {
 
 export function getRolePrefix(session: any): string {
   const role = getRoleName(session)
-  return role ? ROLE_PREFIX[role] : "/super-admin"
+  return role ? ROLE_PREFIX[role] : ""
 }

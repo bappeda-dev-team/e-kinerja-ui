@@ -11,7 +11,7 @@ import { BadgeCheck, LayoutDashboard, LogOut, User, ChevronDown } from "lucide-r
 
 import { getRolePrefix } from "@/lib/roles"
 import { fetchApi, invalidateClientSessionCache } from "@/lib/fetcher"
-import type { APIResponse } from "@/types/api"
+import type { ApiResponse } from "@/types/api"
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -66,7 +66,10 @@ export function VerifikatorNavbar({ session }: VerifikatorNavbarProps) {
     if (!userId) return
 
     const fetchProfile = async () => {
-      const res = await fetchApi<APIResponse<UserProfile>>(`/users/${userId}`, { method: "GET" })
+      const res = await fetchApi<ApiResponse<UserProfile>>({
+        url: `/users/${userId}`,
+        method: "GET",
+      })
       if (res.status === 200 && res.data?.data) {
         setProfile(res.data.data)
       }

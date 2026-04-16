@@ -18,6 +18,7 @@ export interface VerifikasiListItem {
   pemdaLogo?: string
   aplikasiName: string
   menu: string
+  permintaanId: string
 }
 
 export function mapVerifikasiStatus(item: VerifikasiResponse): VerifikasiStatus {
@@ -64,6 +65,7 @@ export function mapVerifikasiItem(item: VerifikasiResponse): VerifikasiListItem 
     pemdaLogo: item.permintaan?.pemda?.logo,
     aplikasiName: item.permintaan?.aplikasi?.name ?? "-",
     menu: item.permintaan?.menu ?? "",
+    permintaanId: item.permintaan?.id ?? "",
   }
 }
 

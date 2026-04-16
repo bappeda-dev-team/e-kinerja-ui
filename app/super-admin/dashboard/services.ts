@@ -1,9 +1,12 @@
 // app/super-admin/dashboard/services.ts
 
 import { fetchApi } from "@/lib/fetcher"
-import { APIResponse } from "@/types/api"
+import type { ApiResponse } from "@/types/api"
 import type { DashboardResponse } from "./types"
 
 export const getSuperadminDashboard = async () => {
-  return fetchApi<APIResponse<DashboardResponse>>("/superadmin-dashboard", { method: "GET" })
+  return fetchApi<ApiResponse<DashboardResponse>>({
+    url: "/superadmin-dashboard",
+    method: "GET",
+  })
 }

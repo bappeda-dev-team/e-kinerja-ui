@@ -8,7 +8,7 @@ import Image from "next/image"
 import { getRolePrefix, getRoleName, ROLE_LABEL } from "@/lib/roles"
 import { fetchApi, invalidateClientSessionCache } from "@/lib/fetcher"
 import { usePenugasanBadge } from "@/hooks/use-penugasan-badge"
-import { APIResponse } from "@/types/api"
+import type { ApiResponse } from "@/types/api"
 import { deleteCookie } from "cookies-next"
 import { signOut } from "next-auth/react"
 
@@ -57,7 +57,10 @@ export function ProgrammerNavbar({ session }: ProgrammerNavbarProps) {
     if (!userId) return
 
     const fetchProfile = async () => {
-      const res = await fetchApi<APIResponse<UserProfile>>(`/users/${userId}`, { method: "GET" })
+      const res = await fetchApi<ApiResponse<UserProfile>>({
+        url: `/users/${userId}`,
+        method: "GET",
+      })
       if (res.status === 200 && res.data?.data) {
         setProfile(res.data.data)
       }

@@ -133,6 +133,8 @@ export default function AddLaporanKinerja({
       },
       laporan_progress: progress,
       status: mapProgressToStatus(statusProgress),
+      verifikasi: initialData?.verifikasi,
+      is_submitted_to_verified: initialData?.is_submitted_to_verified ?? false,
       created_at: initialData?.created_at ?? now,
     }
 

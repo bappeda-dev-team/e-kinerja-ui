@@ -1,11 +1,17 @@
 import { fetchApi } from "@/lib/fetcher"
-import { APIResponse } from "@/types/api"
+import type { ApiResponse } from "@/types/api"
 import { PenugasanResponse } from "./types"
 
 export const getPenugasan = async () => {
-  return fetchApi<APIResponse<PenugasanResponse[]>>("/pelaksana", { method: "GET" })
+  return fetchApi<ApiResponse<PenugasanResponse[]>>({
+    url: "/pelaksana",
+    method: "GET",
+  })
 }
 
 export const markAllPenugasanAsRead = async () => {
-  return fetchApi<APIResponse<null>>("/pelaksana/mark-all-read", { method: "PATCH" })
+  return fetchApi<ApiResponse<null>>({
+    url: "/pelaksana/mark-all-read",
+    method: "PATCH",
+  })
 }

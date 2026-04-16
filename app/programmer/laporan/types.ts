@@ -1,5 +1,5 @@
 export type {
-  APIResponse,
+  ApiResponse,
   LaporanRequest,
   LaporanPermintaan,
   LaporanProgrammer,

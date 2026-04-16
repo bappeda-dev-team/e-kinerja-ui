@@ -1,11 +1,14 @@
 // app/super-admin/profile/services.ts
 
 import { fetchApi } from "@/lib/fetcher"
-import { APIResponse } from "@/types/api"
+import type { ApiResponse } from "@/types/api"
 import { ProfileResponse } from "./types"
 
 export const getProfileById = async (id: string) => {
-  return fetchApi<APIResponse<ProfileResponse>>(`/users/${id}`, { method: "GET" })
+  return fetchApi<ApiResponse<ProfileResponse>>({
+    url: `/users/${id}`,
+    method: "GET",
+  })
 }
 
 export const updateProfilePicture = async (id: string, file: File) => {

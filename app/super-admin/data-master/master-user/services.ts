@@ -1,15 +1,21 @@
 // app/super-admin/data-master/master-user/services.ts
 
 import { fetchApi } from "@/lib/fetcher"
-import { APIResponse } from "@/types/api"
+import type { ApiResponse } from "@/types/api"
 import { RegisterUserRequest, UserRequest, UserResponse } from "./types"
 
 export const getUsers = async () => {
-  return fetchApi<APIResponse<UserResponse[]>>("/users", { method: "GET" })
+  return fetchApi<ApiResponse<UserResponse[]>>({
+    url: "/users",
+    method: "GET",
+  })
 }
 
 export const getUserById = async (id: string) => {
-  return fetchApi<APIResponse<UserResponse>>(`/users/${id}`, { method: "GET" })
+  return fetchApi<ApiResponse<UserResponse>>({
+    url: `/users/${id}`,
+    method: "GET",
+  })
 }
 
 export const createUser = async (data: RegisterUserRequest) => {
@@ -25,13 +31,24 @@ export const createUser = async (data: RegisterUserRequest) => {
     formData.append("file", "")
   }
 
-  return fetchApi<APIResponse<UserResponse>>("/users", { method: "POST", body: formData })
+  return fetchApi<ApiResponse<UserResponse>>({
+    url: "/users",
+    method: "POST",
+    body: formData,
+  })
 }
 
 export const updateUser = async (id: string, data: UserRequest) => {
-  return fetchApi<APIResponse<UserResponse>>(`/users/${id}`, { method: "PATCH", body: data })
+  return fetchApi<ApiResponse<UserResponse>>({
+    url: `/users/${id}`,
+    method: "PATCH",
+    body: data,
+  })
 }
 
 export const deleteUser = async (id: string) => {
-  return fetchApi<APIResponse<any>>(`/users/${id}`, { method: "DELETE" })
+  return fetchApi<ApiResponse<null>>({
+    url: `/users/${id}`,
+    method: "DELETE",
+  })
 }
