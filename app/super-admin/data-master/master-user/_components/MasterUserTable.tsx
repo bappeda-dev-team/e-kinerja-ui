@@ -63,6 +63,11 @@ export default function MasterUserTable({ data, loading, showTable, onEdit, onDe
   const [deleteId, setDeleteId] = React.useState<string | null>(null)
 
   const totalPages = Math.max(1, Math.ceil(data.length / pageSize))
+
+  React.useEffect(() => {
+    setPageIndex((prev) => Math.min(prev, totalPages - 1))
+  }, [totalPages])
+
   const paginatedData = React.useMemo(() => {
     const start = pageIndex * pageSize
     return data.slice(start, start + pageSize)
@@ -101,9 +106,9 @@ export default function MasterUserTable({ data, loading, showTable, onEdit, onDe
                   <tr>
                     <td colSpan={7} className="text-center py-12 text-sm text-[#202224]/40">Belum ada data.</td>
                   </tr>
-                ) : data.map((item, i) => (
+                ) : paginatedData.map((item, i) => (
                   <tr key={item.id} className="border-b border-gray-200 hover:bg-gray-50 transition-colors">
-                    <td className="px-4 py-3 text-xs text-[#202224]/50 font-medium">{i + 1}</td>
+                    <td className="px-4 py-3 text-xs text-[#202224]/50 font-medium">{pageIndex * pageSize + i + 1}</td>
                     <td className="px-4 py-3">
                       <div className="w-9 h-9 rounded-full overflow-hidden bg-gray-100 flex items-center justify-center shrink-0">
                         {item.profile_picture ? (
@@ -195,8 +200,8 @@ export default function MasterUserTable({ data, loading, showTable, onEdit, onDe
         </div>
       )}
 
-      {/* Pagination — hanya tampil di card view */}
-      {!showTable && (
+      {/* Pagination */}
+      {data.length > 0 && (
         <div className="flex items-center justify-between text-sm text-[#313131]">
           <div className="flex items-center gap-2">
             <span>Jumlah per halaman</span>

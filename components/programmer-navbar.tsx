@@ -16,7 +16,6 @@ import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
-  DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
@@ -158,12 +157,6 @@ export function ProgrammerNavbar({ session }: ProgrammerNavbarProps) {
             </DropdownMenuTrigger>
 
             <DropdownMenuContent align="end" className="w-56 rounded-xl p-2 shadow-xl border-gray-100">
-              <DropdownMenuLabel className="font-bold text-gray-900">
-                {displayName}
-                <div className="text-xs font-medium text-gray-500 mt-0.5">{profile?.username || sessionUser?.username}</div>
-              </DropdownMenuLabel>
-              <DropdownMenuSeparator className="my-2" />
-
               <DropdownMenuItem onClick={() => router.push(`${rolePrefix}/profile`)} className="rounded-lg cursor-pointer">
                 <User className="mr-2 h-4 w-4 text-gray-500" />
                 Profil

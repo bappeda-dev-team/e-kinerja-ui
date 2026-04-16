@@ -2,8 +2,8 @@
 
 import type { Metadata } from "next"
 import { Nunito_Sans, JetBrains_Mono } from "next/font/google" // Ganti Inter ke Nunito_Sans
-import { Toaster } from "sonner"
 import { Providers } from "@/components/providers"
+import { Toaster } from "@/components/ui/sonner"
 
 import "./globals.css"
 
@@ -44,12 +44,7 @@ export default function RootLayout({
           {children}
         </Providers>
 
-        <Toaster
-          position="top-center"
-          richColors
-          closeButton
-          expand
-        />
+        <Toaster position="top-center" closeButton expand />
       </body>
     </html>
   )

@@ -1,15 +1,15 @@
 "use client"
 
 import { useEffect, useState } from "react"
-import Image from "next/image"
-import Link from "next/link"
 import { Session } from "next-auth"
-import { signOut } from "next-auth/react"
 import { usePathname, useRouter } from "next/navigation"
+import Link from "next/link"
+import Image from "next/image"
 import { deleteCookie } from "cookies-next"
-import { BadgeCheck, LayoutDashboard, LogOut, User, ChevronDown } from "lucide-react"
+import { signOut } from "next-auth/react"
+import { ChevronDown, ClipboardList, LayoutDashboard, LogOut, Send, User } from "lucide-react"
 
-import { getRolePrefix } from "@/lib/roles"
+import { getRolePrefix, getRoleName, ROLE_LABEL } from "@/lib/roles"
 import { fetchApi, invalidateClientSessionCache } from "@/lib/fetcher"
 import type { ApiResponse } from "@/types/api"
 import {
@@ -21,7 +21,7 @@ import {
 } from "@/components/ui/dropdown-menu"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 
-interface VerifikatorNavbarProps {
+interface AdminNavbarProps {
   session: Session | null
 }
 
@@ -46,17 +46,24 @@ const NAV_ITEMS = [
     icon: LayoutDashboard,
   },
   {
-    href: "/verifikasi",
-    label: "Verifikasi",
-    icon: BadgeCheck,
+    href: "/permintaan",
+    label: "Permintaan Klien",
+    icon: ClipboardList,
+  },
+  {
+    href: "/distribusi",
+    label: "Distribusi Pekerjaan",
+    icon: Send,
   },
 ]
 
-export function VerifikatorNavbar({ session }: VerifikatorNavbarProps) {
+export function AdminNavbar({ session }: AdminNavbarProps) {
   const router = useRouter()
   const pathname = usePathname()
   const rolePrefix = getRolePrefix(session)
+  const roleName = getRoleName(session)
   const sessionUser = session?.user as SessionUser | undefined
+
   const [profile, setProfile] = useState<UserProfile | null>(null)
 
   const userId = sessionUser?.user_id ?? sessionUser?.id
@@ -77,13 +84,13 @@ export function VerifikatorNavbar({ session }: VerifikatorNavbarProps) {
     fetchProfile()
   }, [userId])
 
-  const displayName = profile?.full_name ?? sessionUser?.full_name ?? "Verifikator"
-  const roleLabel = profile?.role?.description ?? "Verifikator"
+  const displayName = profile?.full_name ?? sessionUser?.full_name ?? "Admin"
+  const roleLabel = profile?.role?.description ?? "Admin"
   const initials = displayName
     .split(" ")
     .map((name) => name[0])
     .join("")
-    .toUpperCase() || "V"
+    .toUpperCase() || "A"
 
   const isActive = (path: string) => {
     const fullPath = `${rolePrefix}${path}`
@@ -98,7 +105,7 @@ export function VerifikatorNavbar({ session }: VerifikatorNavbarProps) {
           <div className="min-w-0">
             <span className="block truncate text-lg font-bold tracking-tight text-gray-900">E-Kinerja</span>
             <span className="block truncate text-xs font-semibold uppercase tracking-[0.18em] text-blue-600">
-              Verifikator
+              {roleName ? ROLE_LABEL[roleName] : "Admin"}
             </span>
           </div>
         </div>

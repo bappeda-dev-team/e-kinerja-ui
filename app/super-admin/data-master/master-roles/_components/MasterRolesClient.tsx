@@ -339,6 +339,14 @@ export default function MasterRolesClient() {
       {/* Header */}
       <div className="flex items-center justify-between">
         <h1 className="text-3xl font-bold text-[#202224]">Master Roles</h1>
+        <span className="rounded-full border border-blue-100 bg-blue-50 px-3 py-1 text-xs font-semibold text-blue-700">
+          Read Only
+        </span>
+        {/*
+          Sementara role management dibuat read-only dulu.
+          Tombol tambah role disimpan di komentar agar mudah diaktifkan lagi.
+        */}
+        {/*
         <button
           onClick={() => setShowAdd(true)}
           className="inline-flex items-center gap-2 bg-primary text-primary-foreground px-4 py-2 rounded-xl text-sm font-semibold transition active:scale-95"
@@ -346,6 +354,7 @@ export default function MasterRolesClient() {
           <Plus className="h-4 w-4" />
           Tambah Role
         </button>
+        */}
       </div>
 
       {/* Table */}
@@ -373,7 +382,10 @@ export default function MasterRolesClient() {
                 <th className="px-5 py-3">Deskripsi</th>
                 <th className="px-5 py-3">Dibuat</th>
                 <th className="px-5 py-3">Diperbarui</th>
-                <th className="px-5 py-3 text-center">Aksi</th>
+                {/*
+                  Kolom aksi dimatikan sementara agar halaman ini read-only.
+                */}
+                {/* <th className="px-5 py-3 text-center">Aksi</th> */}
               </tr>
             </thead>
             <tbody>
@@ -391,6 +403,11 @@ export default function MasterRolesClient() {
                   <td className="px-5 py-3 text-[#797A7C]">{item.description || "-"}</td>
                   <td className="px-5 py-3 text-[#797A7C]">{formatDate(item.created_at)}</td>
                   <td className="px-5 py-3 text-[#797A7C]">{formatDate(item.updated_at)}</td>
+                  {/*
+                    Tombol edit/hapus disembunyikan sementara.
+                    Kalau role kembali boleh dikelola via UI, buka blok ini lagi.
+                  */}
+                  {/*
                   <td className="px-5 py-3">
                     <div className="flex items-center justify-center gap-2">
                       <button
@@ -409,6 +426,7 @@ export default function MasterRolesClient() {
                       </button>
                     </div>
                   </td>
+                  */}
                 </tr>
               ))}
             </tbody>
@@ -417,6 +435,11 @@ export default function MasterRolesClient() {
       </div>
 
       {/* Modals */}
+      {/*
+        Seluruh modal CUD disimpan dulu dalam komentar.
+        Nanti kalau perlu hidupkan CRUD lagi, blok ini bisa dibuka kembali.
+      */}
+      {/*
       {showAdd && (
         <AddModal
           onClose={() => setShowAdd(false)}
@@ -439,6 +462,7 @@ export default function MasterRolesClient() {
           onSaved={() => { setDeleteRoleItem(null); fetchData() }}
         />
       )}
+      */}
     </div>
   )
 }

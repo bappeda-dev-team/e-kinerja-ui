@@ -10,7 +10,6 @@ import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
-  DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
@@ -128,9 +127,6 @@ export function Header({ title, session }: HeaderProps) {
           </DropdownMenuTrigger>
 
           <DropdownMenuContent align="end" className="w-48">
-            <DropdownMenuLabel>{displayName}</DropdownMenuLabel>
-            <DropdownMenuSeparator />
-
             <DropdownMenuItem onClick={() => router.push(`${rolePrefix}/profile`)}>
               <User className="mr-2 h-4 w-4" />
               Profile

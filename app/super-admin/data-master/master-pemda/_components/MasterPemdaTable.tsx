@@ -37,6 +37,11 @@ export default function MasterPemdaTable({ data, showTable, onEdit, onDelete }: 
   const [deleteId, setDeleteId] = React.useState<string | null>(null)
 
   const totalPages = Math.max(1, Math.ceil(data.length / pageSize))
+
+  React.useEffect(() => {
+    setPageIndex((prev) => Math.min(prev, totalPages - 1))
+  }, [totalPages])
+
   const paginatedData = React.useMemo(() => {
     const start = pageIndex * pageSize
     return data.slice(start, start + pageSize)
@@ -72,9 +77,9 @@ export default function MasterPemdaTable({ data, showTable, onEdit, onDelete }: 
                   <tr>
                     <td colSpan={6} className="text-center py-12 text-sm text-[#202224]/40">Belum ada data.</td>
                   </tr>
-                ) : data.map((item, i) => (
+                ) : paginatedData.map((item, i) => (
                   <tr key={item.id} className="border-b border-gray-200 hover:bg-gray-50 transition-colors">
-                    <td className="px-4 py-3 text-xs text-[#202224]/50 font-medium">{i + 1}</td>
+                    <td className="px-4 py-3 text-xs text-[#202224]/50 font-medium">{pageIndex * pageSize + i + 1}</td>
                     <td className="px-4 py-3">
                       <div className="w-9 h-9 rounded-full overflow-hidden bg-gray-50 border border-gray-100 flex items-center justify-center p-1 shrink-0">
                         {item.logo ? (
@@ -155,8 +160,8 @@ export default function MasterPemdaTable({ data, showTable, onEdit, onDelete }: 
         </div>
       )}
 
-      {/* Pagination — hanya tampil di card view */}
-      {!showTable && (
+      {/* Pagination */}
+      {data.length > 0 && (
         <div className="flex items-center justify-between text-sm text-[#313131] border-t pt-4">
           <div className="flex items-center gap-2">
             <span className="text-xs text-gray-500">Baris per halaman:</span>
