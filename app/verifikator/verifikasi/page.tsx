@@ -1,5 +1,5 @@
-import VerifikasiClient from "./_components/VerifikasiClient"
+import VerifikasiPipelineClient from "./_components/VerifikasiPipelineClient"
 
 export default function VerifikatorVerifikasiPage() {
-  return <VerifikasiClient />
+  return <VerifikasiPipelineClient />
 }
