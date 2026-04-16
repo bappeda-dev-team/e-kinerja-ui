@@ -214,7 +214,7 @@ export default function AddLaporanKinerja({
                 <button
                   type="button"
                   className={cn(
-                    "group flex h-[56px] w-full items-center justify-between rounded-[10px] border bg-white px-4 text-left shadow-sm transition-all outline-none data-[state=open]:ring-2 data-[state=open]:ring-blue-500",
+                    "group flex h-[56px] w-full items-center justify-between rounded-xl border bg-white px-4 text-left shadow-sm transition-all outline-none data-[state=open]:ring-2 data-[state=open]:ring-blue-500",
                     showPermintaanError
                       ? "border-red-300 bg-red-50/40"
                       : "border-[#E2E8F0] hover:border-slate-300",
@@ -249,7 +249,7 @@ export default function AddLaporanKinerja({
               <PopoverContent
                 align="start"
                 sideOffset={8}
-                className="w-[var(--radix-popover-trigger-width)] rounded-[14px] border border-slate-200 bg-white p-2 shadow-lg transition-all duration-150 data-[state=closed]:scale-95 data-[state=open]:scale-100"
+                className="w-(--radix-popover-trigger-width) rounded-2xl border border-slate-200 bg-white p-2 shadow-lg transition-all duration-150 data-[state=closed]:scale-95 data-[state=open]:scale-100"
               >
                 <div className="max-h-64 space-y-1 overflow-y-auto pr-1">
                   {permintaanList.map((item) => {
@@ -329,7 +329,7 @@ export default function AddLaporanKinerja({
             <label className="text-[15px] font-bold text-[#202224]" style={ff}>
               Status Progress<span className="text-red-500">*</span>
             </label>
-            <div className="rounded-[14px] border border-slate-200 bg-slate-50 p-2">
+            <div className="rounded-2xl border border-slate-200 bg-slate-50 p-2">
               <div className="grid grid-cols-5 gap-2">
               {PROGRESS_OPTIONS.map((opt) => (
                 <button
@@ -340,7 +340,7 @@ export default function AddLaporanKinerja({
                     setTouched((prev) => ({ ...prev, status: true }))
                   }}
                     className={cn(
-                      "rounded-[10px] px-4 py-2.5 text-[14px] font-bold transition-all duration-300 active:scale-95",
+                      "rounded-xl px-4 py-2.5 text-[14px] font-bold transition-all duration-300 active:scale-95",
                       statusProgress === opt.value
                         ? cn("scale-[1.05]", opt.activeClassName)
                         : "bg-slate-200 text-slate-700 hover:bg-slate-300"

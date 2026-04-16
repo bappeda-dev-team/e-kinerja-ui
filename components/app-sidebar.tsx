@@ -126,8 +126,8 @@ export function AppSidebar({ session }: { session: Session | null }) {
         <Link href={buildPath("/data-master/master-user")} className="group/subitem flex items-center">
           <User className={`mr-2 h-4 w-4 transition-colors ${
             isActive("/data-master/master-user")
-              ? "!text-blue-600" 
-              : "!text-[#202224] group-hover/subitem:!text-blue-600"
+              ? "text-blue-600!"
+              : "text-[#202224]! group-hover/subitem:text-blue-600!"
           }`} />
           <span className={isActive("/data-master/master-user") ? "text-blue-600" : "text-[#202224] group-hover/subitem:text-blue-600"}>
             Master User
@@ -141,8 +141,8 @@ export function AppSidebar({ session }: { session: Session | null }) {
         <Link href={buildPath("/data-master/master-roles")} className="group/subitem flex items-center">
           <Shield className={`mr-2 h-4 w-4 transition-colors ${
             isActive("/data-master/master-roles")
-              ? "!text-blue-600" 
-              : "!text-[#202224] group-hover/subitem:!text-blue-600"
+              ? "text-blue-600!"
+              : "text-[#202224]! group-hover/subitem:text-blue-600!"
           }`} />
           <span className={isActive("/data-master/master-roles") ? "text-blue-600" : "text-[#202224] group-hover/subitem:text-blue-600"}>
             Master Roles
@@ -156,8 +156,8 @@ export function AppSidebar({ session }: { session: Session | null }) {
         <Link href={buildPath("/data-master/master-pemda")} className="group/subitem flex items-center">
           <Building2 className={`mr-2 h-4 w-4 transition-colors ${
             isActive("/data-master/master-pemda")
-              ? "!text-blue-600" 
-              : "!text-[#202224] group-hover/subitem:!text-blue-600"
+              ? "text-blue-600!"
+              : "text-[#202224]! group-hover/subitem:text-blue-600!"
           }`} />
           <span className={isActive("/data-master/master-pemda") ? "text-blue-600" : "text-[#202224] group-hover/subitem:text-blue-600"}>
             Master Pemda
@@ -171,8 +171,8 @@ export function AppSidebar({ session }: { session: Session | null }) {
         <Link href={buildPath("/data-master/master-aplikasi")} className="group/subitem flex items-center">
           <AppWindow className={`mr-2 h-4 w-4 transition-colors ${
             isActive("/data-master/master-aplikasi")
-              ? "!text-blue-600" 
-              : "!text-[#202224] group-hover/subitem:!text-blue-600"
+              ? "text-blue-600!"
+              : "text-[#202224]! group-hover/subitem:text-blue-600!"
           }`} />
           <span className={isActive("/data-master/master-aplikasi") ? "text-blue-600" : "text-[#202224] group-hover/subitem:text-blue-600"}>
             Master Aplikasi
