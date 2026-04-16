@@ -20,7 +20,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
-import { LogOut, Settings, User, ChevronDown, LayoutDashboard, ClipboardList, BriefcaseBusiness } from "lucide-react"
+import { LogOut, Settings, User, ChevronDown, LayoutDashboard, BriefcaseBusiness } from "lucide-react"
 
 interface ProgrammerNavbarProps {
   session: Session | null
@@ -105,17 +105,6 @@ export function ProgrammerNavbar({ session }: ProgrammerNavbarProps) {
           >
             <LayoutDashboard className="w-4 h-4" />
             Dashboard
-          </Link>
-          <Link
-            href={`${rolePrefix}/laporan`}
-            className={`flex items-center gap-2 px-4 py-2 rounded-full text-sm font-semibold transition-all duration-200 ${
-              isActive("/laporan") 
-                ? "bg-blue-50 text-blue-700" 
-                : "text-gray-500 hover:bg-gray-50 hover:text-gray-900"
-            }`}
-          >
-            <ClipboardList className="w-4 h-4" />
-            Laporan Kinerja
           </Link>
           <Link
             href={`${rolePrefix}/penugasan`}

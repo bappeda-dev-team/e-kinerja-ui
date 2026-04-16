@@ -12,7 +12,8 @@ import { PENUGASAN_ALL_READ_EVENT } from "@/hooks/use-penugasan-badge"
 
 import { getPenugasan, markAllPenugasanAsRead } from "../services"
 import { PenugasanItem, PenugasanResponse } from "../types"
-import PenugasanSlideOver from "./PenugasanSlideOver"
+import PenugasanDetailModal from "./modals/PenugasanDetailModal"
+import { MockLaporan, MOCK_LAPORAN, MOCK_DEADLINE_FALLBACK } from "@/app/programmer/laporan/data"
 
 type AssignmentFilter = "semua" | "ada-catatan" | "tanpa-catatan"
 
@@ -64,7 +65,8 @@ export default function PenugasanClient() {
   const [filter, setFilter] = useState<AssignmentFilter>("semua")
   const [currentPage, setCurrentPage] = useState(1)
   const [selectedItem, setSelectedItem] = useState<PenugasanItem | null>(null)
-  const [isSlideOpen, setIsSlideOpen] = useState(false)
+  const [isModalOpen, setIsModalOpen] = useState(false)
+  const [mockLaporan, setMockLaporan] = useState<MockLaporan[]>(MOCK_LAPORAN)
   const openFrameRef = useRef<number | null>(null)
   const closeTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null)
 
@@ -104,6 +106,7 @@ export default function PenugasanClient() {
         aplikasi: entityLabel(item.distribusi?.aplikasi),
         logo_pemda: entityLogo(item.distribusi?.pemda),
         komentar: item.distribusi?.komentar?.trim() ?? "",
+        tanggal_deadline: item.distribusi?.permintaan?.tanggal_deadline ?? MOCK_DEADLINE_FALLBACK,
         programmer_nama: item.programmer?.full_name ?? item.programmer?.username ?? "Programmer",
         programmer_username: item.programmer?.username ? `@${item.programmer.username}` : "-",
         is_read: item.is_read,
@@ -184,15 +187,12 @@ export default function PenugasanClient() {
     }
 
     setSelectedItem(item)
-    setIsSlideOpen(false)
-    openFrameRef.current = window.requestAnimationFrame(() => {
-      setIsSlideOpen(true)
-      openFrameRef.current = null
-    })
+    setIsModalOpen(true)
+    openFrameRef.current = null
   }
 
   const closeDetail = () => {
-    setIsSlideOpen(false)
+    setIsModalOpen(false)
     if (closeTimeoutRef.current !== null) {
       clearTimeout(closeTimeoutRef.current)
     }
@@ -200,6 +200,14 @@ export default function PenugasanClient() {
       setSelectedItem(null)
       closeTimeoutRef.current = null
     }, SLIDE_TRANSITION_MS)
+  }
+
+  const handleAddLaporan = (laporan: MockLaporan) => {
+    setMockLaporan((prev) => [laporan, ...prev])
+  }
+
+  const handleUpdateLaporan = (updated: MockLaporan) => {
+    setMockLaporan((prev) => prev.map((l) => (l.id === updated.id ? updated : l)))
   }
 
   const totalPages = Math.max(1, Math.ceil(filteredItems.length / ITEMS_PER_PAGE))
@@ -393,10 +401,13 @@ export default function PenugasanClient() {
         </div>
       )}
 
-      <PenugasanSlideOver
-        isOpen={isSlideOpen}
+      <PenugasanDetailModal
+        open={isModalOpen}
         onClose={closeDetail}
         item={selectedItem}
+        mockLaporan={mockLaporan}
+        onAddLaporan={handleAddLaporan}
+        onUpdateLaporan={handleUpdateLaporan}
       />
     </div>
   )

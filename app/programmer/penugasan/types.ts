@@ -4,11 +4,17 @@ export interface PenugasanNamedEntity {
   logo?: string
 }
 
+export interface PenugasanPermintaan {
+  id?: string
+  tanggal_deadline?: string
+}
+
 export interface PenugasanDistribusi {
   id?: string
   pemda?: string | PenugasanNamedEntity
   aplikasi?: string | PenugasanNamedEntity
   komentar?: string
+  permintaan?: PenugasanPermintaan
 }
 
 export interface PenugasanProgrammer {
@@ -36,6 +42,7 @@ export interface PenugasanItem {
   komentar: string
   programmer_nama: string
   programmer_username: string
+  tanggal_deadline?: string
   is_read?: boolean
   created_at?: string
   updated_at?: string

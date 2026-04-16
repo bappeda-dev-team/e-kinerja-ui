@@ -4,7 +4,7 @@
 
 import { useEffect, useMemo, useState } from "react"
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
-import { X, ChevronDown } from "lucide-react"
+import { ChevronDown, FileText, UploadCloud, X } from "lucide-react"
 import { toast } from "sonner"
 import type { LaporanKinerjaItem } from "../../types"
 
@@ -40,6 +40,7 @@ export default function AddLaporanKinerja({
   const [permintaanOpen, setPermintaanOpen] = useState(false)
   const [programmerOpen, setProgrammerOpen] = useState(false)
   const [loading, setLoading] = useState(false)
+  const [attachments, setAttachments] = useState<File[]>([])
 
   // Filter hanya programmer (sesuaikan dengan jabatan di database kamu)
   const programmerOptions = useMemo(
@@ -61,6 +62,7 @@ export default function AddLaporanKinerja({
       setSelectedProgrammer([])
       setStatusProgress(null)
     }
+    setAttachments([])
     setPermintaanOpen(false)
     setProgrammerOpen(false)
   }, [initialData, open])
@@ -74,6 +76,37 @@ export default function AddLaporanKinerja({
 
   const handleRemoveProgrammer = (id: string) => {
     setSelectedProgrammer((prev) => prev.filter((p) => p !== id))
+  }
+
+  const handleAttachmentChange = (files: FileList | null) => {
+    if (!files?.length) return
+
+    setAttachments((prev) => {
+      const nextFiles = Array.from(files).filter(
+        (file) =>
+          !prev.some(
+            (existing) =>
+              existing.name === file.name &&
+              existing.size === file.size &&
+              existing.lastModified === file.lastModified
+          )
+      )
+
+      return [...prev, ...nextFiles]
+    })
+  }
+
+  const handleRemoveAttachment = (fileToRemove: File) => {
+    setAttachments((prev) =>
+      prev.filter(
+        (file) =>
+          !(
+            file.name === fileToRemove.name &&
+            file.size === fileToRemove.size &&
+            file.lastModified === fileToRemove.lastModified
+          )
+      )
+    )
   }
 
   const handleSubmit = async () => {
@@ -119,27 +152,27 @@ export default function AddLaporanKinerja({
 
   return (
     <Dialog open={open} onOpenChange={onClose}>
-      <DialogContent className="sm:max-w-lg p-0 overflow-hidden rounded-[24px] border-none shadow-2xl">
-        <DialogHeader className="px-8 pt-8 pb-5 flex flex-row items-center justify-between">
-          <DialogTitle className="text-[24px] font-bold text-[#202224]" style={ff}>
+      <DialogContent className="sm:max-w-lg p-0 overflow-hidden rounded-[24px] border-none shadow-2xl max-h-[90vh] flex flex-col">
+        <DialogHeader className="px-6 pt-6 pb-4 flex flex-row items-center justify-between shrink-0">
+          <DialogTitle className="text-[20px] font-bold text-[#202224]" style={ff}>
             {initialData ? "Edit Laporan Kinerja" : "Tambah Laporan Kinerja"}
           </DialogTitle>
           <button onClick={onClose} className="text-gray-400 hover:text-gray-600 transition">
-            <X className="w-6 h-6" />
+            <X className="w-5 h-5" />
           </button>
         </DialogHeader>
 
-        <div className="px-8 pb-8 space-y-6">
+        <div className="px-6 pb-6 space-y-4 overflow-y-auto flex-1">
           {/* Permintaan */}
-          <div className="space-y-2">
-            <label className="text-[15px] font-bold text-[#202224]" style={ff}>
+          <div className="space-y-1.5">
+            <label className="text-[13px] font-bold text-[#202224]" style={ff}>
               Permintaan<span className="text-red-500">*</span>
             </label>
             <div className="relative">
               <button
                 type="button"
                 onClick={() => { setPermintaanOpen(!permintaanOpen); setProgrammerOpen(false) }}
-                className="w-full flex items-center justify-between px-4 py-3 bg-[#F5F6FA] border border-[#D5D5D5] rounded-xl text-[14px] text-left transition focus:border-[#4880FF]"
+                className="w-full flex items-center justify-between px-3 py-2 bg-[#F5F6FA] border border-[#D5D5D5] rounded-xl text-[13px] text-left transition focus:border-[#4880FF]"
                 style={ff}
               >
                 <span className={selectedPermintaanLabel ? "text-[#202224]" : "text-[#ABABAB]"}>
@@ -147,7 +180,7 @@ export default function AddLaporanKinerja({
                     ? `${selectedPermintaanLabel.pemda} - ${selectedPermintaanLabel.menu}`
                     : "Pilih permintaan pekerjaan"}
                 </span>
-                <ChevronDown className={`w-5 h-5 text-[#606060] transition-transform ${permintaanOpen ? 'rotate-180' : ''}`} />
+                <ChevronDown className={`w-4 h-4 text-[#606060] transition-transform ${permintaanOpen ? 'rotate-180' : ''}`} />
               </button>
 
               {permintaanOpen && (
@@ -170,21 +203,21 @@ export default function AddLaporanKinerja({
           </div>
 
           {/* Programmer */}
-          <div className="space-y-2">
-            <label className="text-[15px] font-bold text-[#202224]" style={ff}>
+          <div className="space-y-1.5">
+            <label className="text-[13px] font-bold text-[#202224]" style={ff}>
               Programmer<span className="text-red-500">*</span>
             </label>
             <div className="relative">
               <button
                 type="button"
                 onClick={() => { setProgrammerOpen(!programmerOpen); setPermintaanOpen(false) }}
-                className="w-full flex items-center justify-between px-4 py-3 bg-[#F5F6FA] border border-[#D5D5D5] rounded-xl text-[14px] text-left transition focus:border-[#4880FF]"
+                className="w-full flex items-center justify-between px-3 py-2 bg-[#F5F6FA] border border-[#D5D5D5] rounded-xl text-[13px] text-left transition focus:border-[#4880FF]"
                 style={ff}
               >
                 <span className="text-[#ABABAB]">
                   Pilih satu atau lebih programmer yang mengerjakan tugas ini
                 </span>
-                <ChevronDown className={`w-5 h-5 text-[#606060] transition-transform ${programmerOpen ? 'rotate-180' : ''}`} />
+                <ChevronDown className={`w-4 h-4 text-[#606060] transition-transform ${programmerOpen ? 'rotate-180' : ''}`} />
               </button>
 
               {programmerOpen && (
@@ -205,7 +238,7 @@ export default function AddLaporanKinerja({
             </div>
 
             {/* Selected Container (Grey Box as in Screenshot) */}
-            <div className="min-h-[48px] p-3 bg-white border border-[#D5D5D5] rounded-xl flex flex-wrap gap-2">
+            <div className="min-h-[36px] p-2 bg-white border border-[#D5D5D5] rounded-xl flex flex-wrap gap-1.5">
               {selectedProgrammer.length === 0 ? (
                 <span className="text-[14px] text-[#ABABAB] italic px-2">Tidak ada programmer</span>
               ) : (
@@ -223,33 +256,33 @@ export default function AddLaporanKinerja({
           </div>
 
           {/* Progress */}
-          <div className="space-y-2">
-            <label className="text-[15px] font-bold text-[#202224]" style={ff}>
+          <div className="space-y-1.5">
+            <label className="text-[13px] font-bold text-[#202224]" style={ff}>
               Progress<span className="text-red-500">*</span>
             </label>
             <textarea
               value={progress}
               onChange={(e) => setProgress(e.target.value)}
-              rows={3}
+              rows={2}
               placeholder="Tuliskan perkembangan pekerjaan saat ini..."
-              className="w-full bg-white border border-[#D5D5D5] rounded-xl px-4 py-3 text-[14px] text-[#202224] placeholder:text-[#ABABAB] focus:ring-2 focus:ring-[#4880FF]/10 focus:border-[#4880FF] resize-none outline-none transition"
+              className="w-full bg-white border border-[#D5D5D5] rounded-xl px-3 py-2 text-[13px] text-[#202224] placeholder:text-[#ABABAB] focus:ring-2 focus:ring-[#4880FF]/10 focus:border-[#4880FF] resize-none outline-none transition"
               style={ff}
             />
             <p className="text-[12px] text-red-500 font-medium" style={ff}>*Jelaskan progres pekerjaan yang sudah dilakukan</p>
           </div>
 
           {/* Status Progress Pills */}
-          <div className="space-y-3">
-            <label className="text-[15px] font-bold text-[#202224]" style={ff}>
+          <div className="space-y-1.5">
+            <label className="text-[13px] font-bold text-[#202224]" style={ff}>
               Status Progress<span className="text-red-500">*</span>
             </label>
-            <div className="flex items-center gap-3">
+            <div className="flex items-center gap-2">
               {PROGRESS_OPTIONS.map((opt) => (
                 <button
                   key={opt.value}
                   type="button"
                   onClick={() => setStatusProgress(opt.value)}
-                  className={`px-6 py-2 rounded-full text-[14px] font-bold transition-all active:scale-95 ${
+                  className={`px-4 py-1.5 rounded-full text-[13px] font-bold transition-all active:scale-95 ${
                     statusProgress === opt.value ? opt.active : opt.inactive
                   }`}
                   style={ff}
@@ -261,12 +294,74 @@ export default function AddLaporanKinerja({
             <p className="text-[12px] text-red-500 font-medium" style={ff}>*Pilih persentase progres penyelesaian pekerjaan</p>
           </div>
 
+          <div className="space-y-1.5">
+            <label className="text-[13px] font-bold text-[#202224]" style={ff}>
+              Lampiran<span className="text-red-500">*</span>
+            </label>
+
+            <label
+              htmlFor="super-admin-laporan-attachments"
+              className="flex cursor-pointer items-center gap-3 rounded-xl border-2 border-dashed border-[#C4CDD5] bg-[#F5F6FA] px-4 py-3 transition hover:bg-[#F0F2F5]"
+            >
+              <div className="rounded-full bg-[#DFE3E8] p-2 shrink-0">
+                <UploadCloud size={20} className="text-[#919EAB]" />
+              </div>
+              <div>
+                <p className="text-[13px] font-bold text-[#212B36]" style={ff}>Klik untuk unggah lampiran</p>
+                <p className="text-[11px] text-[#637381]" style={ff}>PDF, DOCX, XLSX, JPG up to 10MB</p>
+              </div>
+              <input
+                id="super-admin-laporan-attachments"
+                type="file"
+                multiple
+                className="hidden"
+                onChange={(event) => {
+                  handleAttachmentChange(event.target.files)
+                  event.target.value = ""
+                }}
+              />
+            </label>
+
+            {attachments.length > 0 && (
+              <div className="mt-2 grid grid-cols-1 gap-3 sm:grid-cols-2">
+                {attachments.map((file) => (
+                  <div
+                    key={`${file.name}-${file.lastModified}-${file.size}`}
+                    className="flex items-center justify-between rounded-lg border border-[#D5D5D5] bg-white p-3 shadow-sm"
+                  >
+                    <div className="flex items-center gap-3 overflow-hidden">
+                      <div className="shrink-0 rounded bg-blue-50 p-2 text-blue-600">
+                        <FileText size={18} />
+                      </div>
+                      <div className="min-w-0">
+                        <span className="block truncate text-xs font-semibold text-[#202224]" style={ff}>
+                          {file.name}
+                        </span>
+                        <span className="block text-[11px] text-[#8F96A3]" style={ff}>
+                          {(file.size / 1024).toFixed(1)} KB
+                        </span>
+                      </div>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => handleRemoveAttachment(file)}
+                      className="rounded-full p-1 text-red-500 transition hover:bg-red-50"
+                      aria-label={`Hapus ${file.name}`}
+                    >
+                      <X size={16} />
+                    </button>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+
           {/* Action Buttons */}
-          <div className="flex justify-end gap-4 pt-4">
+          <div className="flex justify-end gap-3 pt-2">
             <button
               type="button"
               onClick={onClose}
-              className="px-8 py-3 rounded-xl border border-[#D5D5D5] text-[15px] font-bold text-[#202224] hover:bg-gray-50 transition active:scale-95"
+              className="px-6 py-2 rounded-xl border border-[#D5D5D5] text-[13px] font-bold text-[#202224] hover:bg-gray-50 transition active:scale-95"
               style={ff}
             >
               Batal
@@ -275,7 +370,7 @@ export default function AddLaporanKinerja({
               type="button"
               onClick={handleSubmit}
               disabled={loading}
-              className="px-10 py-3 rounded-xl text-[15px] font-bold text-white transition active:scale-95 disabled:opacity-50"
+              className="px-8 py-2 rounded-xl text-[13px] font-bold text-white transition active:scale-95 disabled:opacity-50"
               style={{ backgroundColor: "#4880FF", ...ff }}
             >
               {loading ? "Menyimpan..." : "Simpan"}

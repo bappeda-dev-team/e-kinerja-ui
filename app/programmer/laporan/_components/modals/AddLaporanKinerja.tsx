@@ -6,7 +6,7 @@ import { useEffect, useMemo, useState } from "react"
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
 import { cn } from "@/lib/utils"
-import { Check, ChevronDown, X } from "lucide-react"
+import { Check, ChevronDown, FileText, UploadCloud, X } from "lucide-react"
 import { toast } from "sonner"
 import type { LaporanKinerjaItem } from "../../types"
 import { mapProgressToStatus, mapStatusToProgress } from "../../utils"
@@ -76,6 +76,7 @@ export default function AddLaporanKinerja({
   const [statusProgress, setStatusProgress] = useState<number | null>(null)
   const [permintaanOpen, setPermintaanOpen] = useState(false)
   const [loading, setLoading] = useState(false)
+  const [attachments, setAttachments] = useState<File[]>([])
   const [submitAttempted, setSubmitAttempted] = useState(false)
   const [touched, setTouched] = useState({
     permintaan: false,
@@ -98,6 +99,7 @@ export default function AddLaporanKinerja({
       setProgress("")
       setStatusProgress(null)
     }
+    setAttachments([])
     setPermintaanOpen(false)
     setSubmitAttempted(false)
     setTouched({
@@ -149,6 +151,37 @@ export default function AddLaporanKinerja({
     }
   }
 
+  const handleAttachmentChange = (files: FileList | null) => {
+    if (!files?.length) return
+
+    setAttachments((prev) => {
+      const nextFiles = Array.from(files).filter(
+        (file) =>
+          !prev.some(
+            (existing) =>
+              existing.name === file.name &&
+              existing.size === file.size &&
+              existing.lastModified === file.lastModified
+          )
+      )
+
+      return [...prev, ...nextFiles]
+    })
+  }
+
+  const handleRemoveAttachment = (fileToRemove: File) => {
+    setAttachments((prev) =>
+      prev.filter(
+        (file) =>
+          !(
+            file.name === fileToRemove.name &&
+            file.size === fileToRemove.size &&
+            file.lastModified === fileToRemove.lastModified
+          )
+      )
+    )
+  }
+
   const selectedPermintaan = useMemo(
     () => permintaanList.find((item) => item.id === permintaanId) ?? null,
     [permintaanId, permintaanList]
@@ -158,8 +191,6 @@ export default function AddLaporanKinerja({
   const showPermintaanError = submitAttempted && !permintaanId
   const showProgressError = (submitAttempted || touched.progress) && !progress.trim()
   const showStatusError = (submitAttempted || touched.status) && statusProgress === null
-  const activeProgressOption = PROGRESS_OPTIONS.find((option) => option.value === statusProgress) ?? PROGRESS_OPTIONS[0]
-
   return (
     <Dialog open={open} onOpenChange={onClose}>
       <DialogContent aria-describedby={undefined} className="sm:max-w-lg p-0 overflow-hidden rounded-[24px] border-none shadow-2xl [&>button]:hidden">
@@ -320,22 +351,72 @@ export default function AddLaporanKinerja({
                 </button>
               ))}
               </div>
-              <div className="mt-4">
-                <div className="mb-2 flex items-center justify-between text-[12px] font-semibold text-slate-500" style={ff}>
-                  <span>Tingkat penyelesaian</span>
-                  <span>{statusProgress ?? 0}%</span>
-                </div>
-                <div className="h-2 overflow-hidden rounded-full bg-slate-200">
-                  <div
-                    className={cn("h-full rounded-full transition-all duration-300", activeProgressOption.barClassName)}
-                    style={{ width: `${statusProgress ?? 0}%` }}
-                  />
-                </div>
-              </div>
             </div>
             <p className={`text-[12px] font-medium ${showStatusError ? "text-red-500" : "text-[#8F96A3]"}`} style={ff}>
               *Pilih persentase progres penyelesaian pekerjaan
             </p>
+          </div>
+
+          <div className="space-y-3">
+            <label className="text-[15px] font-bold text-[#202224]" style={ff}>
+              Lampiran<span className="text-red-500">*</span>
+            </label>
+
+            <label
+              htmlFor="programmer-laporan-attachments"
+              className="flex min-h-[220px] cursor-pointer flex-col items-center justify-center gap-3 rounded-xl border-2 border-dashed border-[#C4CDD5] bg-[#F5F6FA] p-8 transition hover:bg-[#F0F2F5]"
+            >
+              <div className="rounded-full bg-[#DFE3E8] p-3">
+                <UploadCloud size={28} className="text-[#919EAB]" />
+              </div>
+              <div className="text-center">
+                <p className="font-bold text-[#212B36]" style={ff}>Klik untuk unggah lampiran</p>
+                <p className="text-xs text-[#637381]" style={ff}>PDF, DOCX, XLSX, JPG up to 10MB</p>
+              </div>
+              <input
+                id="programmer-laporan-attachments"
+                type="file"
+                multiple
+                className="hidden"
+                onChange={(event) => {
+                  handleAttachmentChange(event.target.files)
+                  event.target.value = ""
+                }}
+              />
+            </label>
+
+            {attachments.length > 0 && (
+              <div className="mt-2 grid grid-cols-1 gap-3 sm:grid-cols-2">
+                {attachments.map((file) => (
+                  <div
+                    key={`${file.name}-${file.lastModified}-${file.size}`}
+                    className="flex items-center justify-between rounded-lg border border-[#D5D5D5] bg-white p-3 shadow-sm"
+                  >
+                    <div className="flex items-center gap-3 overflow-hidden">
+                      <div className="shrink-0 rounded bg-blue-50 p-2 text-blue-600">
+                        <FileText size={18} />
+                      </div>
+                      <div className="min-w-0">
+                        <span className="block truncate text-xs font-semibold text-[#202224]" style={ff}>
+                          {file.name}
+                        </span>
+                        <span className="block text-[11px] text-[#8F96A3]" style={ff}>
+                          {(file.size / 1024).toFixed(1)} KB
+                        </span>
+                      </div>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => handleRemoveAttachment(file)}
+                      className="rounded-full p-1 text-red-500 transition hover:bg-red-50"
+                      aria-label={`Hapus ${file.name}`}
+                    >
+                      <X size={16} />
+                    </button>
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
 
           {/* Action Buttons */}
