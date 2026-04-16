@@ -1,7 +1,7 @@
 import { useState } from "react"
 import { AlertCircle, ClipboardList } from "lucide-react"
-import type { ProgrammerTaskItem } from "./types"
-import { formatDate } from "./utils"
+import type { ProgrammerTaskItem } from "../types"
+import { formatDate } from "../utils"
 import { Pagination } from "./Pagination"
 
 const PER_PAGE = 4

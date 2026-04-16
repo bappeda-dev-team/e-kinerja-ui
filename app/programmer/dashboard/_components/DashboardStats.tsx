@@ -1,5 +1,5 @@
 import { AlertTriangle, BadgeCheck, Clock3, FileText } from "lucide-react"
-import type { DashboardSummary } from "./types"
+import type { DashboardSummary } from "../types"
 
 interface Props {
   summary: DashboardSummary

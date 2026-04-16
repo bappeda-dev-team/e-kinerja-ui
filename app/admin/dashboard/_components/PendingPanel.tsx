@@ -1,6 +1,6 @@
 import { useState } from "react"
 import { AlertCircle, ClipboardList } from "lucide-react"
-import type { AdminPermintaanItem } from "./types"
+import type { AdminPermintaanItem } from "../types"
 import { Pagination } from "@/app/programmer/dashboard/_components/Pagination"
 
 const PER_PAGE = 4

@@ -8,7 +8,7 @@ import {
   getDistribusi,
 } from "@/app/admin/permintaan/services"
 import type { PermintaanResponse, DistribusiResponse } from "@/app/super-admin/distribusi/types"
-import type { AdminPermintaanItem, AdminDashboardSummary } from "./types"
+import type { AdminPermintaanItem, AdminDashboardSummary } from "../types"
 import { AdminDashboardStats } from "./AdminDashboardStats"
 import { PendingPanel } from "./PendingPanel"
 import { RecentDistribusiPanel } from "./RecentDistribusiPanel"

@@ -1,6 +1,6 @@
 import { useState } from "react"
 import { ClipboardList } from "lucide-react"
-import type { AdminPermintaanItem } from "./types"
+import type { AdminPermintaanItem } from "../types"
 
 const PER_PAGE = 2
 

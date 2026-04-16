@@ -1,7 +1,7 @@
 import { useState } from "react"
 import { ClipboardList } from "lucide-react"
-import type { ProgrammerTaskItem } from "./types"
-import { formatRelativeTime } from "./utils"
+import type { ProgrammerTaskItem } from "../types"
+import { formatRelativeTime } from "../utils"
 
 const PER_PAGE = 2
 

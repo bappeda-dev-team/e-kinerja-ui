@@ -1,5 +1,5 @@
 import { ClipboardList, CheckCircle2, Clock } from "lucide-react"
-import type { AdminDashboardSummary } from "./types"
+import type { AdminDashboardSummary } from "../types"
 
 interface Props {
   summary: AdminDashboardSummary
