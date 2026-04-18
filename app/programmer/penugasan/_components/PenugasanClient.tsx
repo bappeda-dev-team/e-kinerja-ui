@@ -221,27 +221,29 @@ export default function PenugasanClient() {
   return (
     <div className="space-y-6">
       <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
-        <div className="relative grid w-full max-w-[520px] grid-cols-3 rounded-[28px] border border-gray-200 bg-[#f6f7fb] p-2 shadow-[inset_0_1px_0_rgba(255,255,255,0.9)]">
+        <div className="relative grid w-full max-w-[480px] grid-cols-3 rounded-xl border border-gray-200 bg-gray-100 p-1">
           <div
-            className="pointer-events-none absolute top-2 bottom-2 left-2 w-[calc((100%-1rem)/3)] rounded-[20px] border border-gray-200 bg-white shadow-[0_10px_25px_rgba(15,23,42,0.08)] transition-transform duration-300 ease-[cubic-bezier(0.22,1,0.36,1)]"
+            className="pointer-events-none absolute top-1 bottom-1 left-1 w-[calc((100%-0.5rem)/3)] rounded-[9px] bg-white shadow-sm transition-transform duration-200 ease-[cubic-bezier(0.22,1,0.36,1)]"
             style={{ transform: `translateX(calc(${activeFilterIndex} * 100%))` }}
           />
-          {FILTER_TABS.map((tab) => (
-            <button
-              key={tab.id}
-              onClick={() => setFilter(tab.id as AssignmentFilter)}
-              className={`relative z-10 flex items-center justify-center gap-2 rounded-[20px] px-4 py-3 text-sm font-semibold transition-colors ${
-                filter === tab.id
-                  ? "text-gray-900"
-                  : "text-gray-500 hover:text-gray-700"
-              }`}
-            >
-              {tab.label}
-              <span className={`rounded-xl px-2 py-0.5 text-[10px] font-bold transition-colors ${filter === tab.id ? "border border-gray-200 bg-gray-100 text-gray-700" : "bg-transparent text-gray-400"}`}>
-                {tab.id === "semua" ? summary.semua : tab.id === "ada-catatan" ? summary["ada-catatan"] : summary["tanpa-catatan"]}
-              </span>
-            </button>
-          ))}
+          {FILTER_TABS.map((tab) => {
+            const count = tab.id === "semua" ? summary.semua : tab.id === "ada-catatan" ? summary["ada-catatan"] : summary["tanpa-catatan"]
+            const isActive = filter === tab.id
+            return (
+              <button
+                key={tab.id}
+                onClick={() => setFilter(tab.id as AssignmentFilter)}
+                className={`relative z-10 flex items-center justify-center gap-2 rounded-[9px] px-3 py-2 text-[13px] font-semibold transition-colors ${
+                  isActive ? "text-gray-900" : "text-gray-500 hover:text-gray-700"
+                }`}
+              >
+                {tab.label}
+                <span className={`rounded-md px-1.5 py-0.5 text-[10px] font-bold transition-colors ${isActive ? "bg-gray-100 text-gray-700" : "text-gray-400"}`}>
+                  {count}
+                </span>
+              </button>
+            )
+          })}
         </div>
 
         <div className="flex items-center gap-3">
@@ -270,23 +272,26 @@ export default function PenugasanClient() {
             <table className="w-full whitespace-nowrap text-sm">
               <thead>
                 <tr className="border-b border-gray-100 bg-gray-50/50">
+                  <th className="w-[48px] px-6 py-4 text-left font-semibold text-gray-500">No.</th>
                   <th className="w-[280px] px-6 py-4 text-left font-semibold text-gray-500">Pemda / Aplikasi</th>
                   <th className="w-[360px] px-6 py-4 text-left font-semibold text-gray-500">Catatan Atasan</th>
                   <th className="w-[170px] px-6 py-4 text-left font-semibold text-gray-500">Programmer</th>
                   <th className="w-[150px] px-6 py-4 text-left font-semibold text-gray-500">Ditugaskan</th>
+                  <th className="w-[140px] px-6 py-4 text-left font-semibold text-gray-500">Deadline</th>
                   <th className="w-[120px] px-6 py-4 text-right font-semibold text-gray-500">Aksi</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-100">
                 {paginatedItems.length === 0 ? (
                   <tr>
-                    <td colSpan={5} className="py-12 text-center text-gray-500">
+                    <td colSpan={7} className="py-12 text-center text-gray-500">
                       Belum ada penugasan yang cocok dengan filter saat ini.
                     </td>
                   </tr>
                 ) : (
-                  paginatedItems.map((item) => {
+                  paginatedItems.map((item, index) => {
                     const hasKomentar = Boolean(item.komentar)
+                    const rowNumber = (currentPage - 1) * ITEMS_PER_PAGE + index + 1
 
                     return (
                       <tr
@@ -294,6 +299,10 @@ export default function PenugasanClient() {
                         className="group cursor-pointer transition-colors hover:bg-gray-50/50"
                         onClick={() => openDetail(item)}
                       >
+                        <td className="h-16 px-6">
+                          <span className="text-sm font-semibold text-gray-400">{rowNumber}</span>
+                        </td>
+
                         <td className="h-16 px-6">
                           <div className="flex items-center gap-3">
                             <div className="flex h-11 w-11 items-center justify-center overflow-hidden rounded-2xl bg-blue-50 text-sm font-bold text-blue-700">
@@ -335,6 +344,21 @@ export default function PenugasanClient() {
                           <span className="text-sm font-semibold text-gray-900">{formatDateTbl(item.created_at)}</span>
                         </td>
 
+                        <td className="h-16 px-6">
+                          {item.tanggal_deadline ? (() => {
+                            const diff = new Date(item.tanggal_deadline).getTime() - Date.now()
+                            const isOverdue = diff < 0
+                            const isNear = diff >= 0 && diff < 3 * 24 * 60 * 60 * 1000
+                            return (
+                              <span className={`text-sm font-semibold ${isOverdue ? "text-red-600" : isNear ? "text-amber-600" : "text-gray-900"}`}>
+                                {formatDateTbl(item.tanggal_deadline)}
+                              </span>
+                            )
+                          })() : (
+                            <span className="text-sm text-gray-400">-</span>
+                          )}
+                        </td>
+
                         <td className="h-16 px-6 text-right">
                           <div onClick={(event) => event.stopPropagation()}>
                             <Button
@@ -356,43 +380,38 @@ export default function PenugasanClient() {
             </table>
           </div>
 
-          {totalPages > 1 && (
-            <div className="flex items-center justify-between border-t border-gray-100 bg-gray-50/30 px-6 py-3">
-              <p className="text-xs text-gray-500">
-                Menampilkan {(currentPage - 1) * ITEMS_PER_PAGE + 1}–{Math.min(currentPage * ITEMS_PER_PAGE, filteredItems.length)} dari {filteredItems.length} penugasan
-              </p>
-
-              <div className="flex items-center gap-1">
+          <div className="flex items-center justify-between border-t border-gray-100 bg-gray-50/30 px-6 py-3">
+            <p className="text-xs text-gray-500">
+              Menampilkan {filteredItems.length === 0 ? 0 : (currentPage - 1) * ITEMS_PER_PAGE + 1}–{Math.min(currentPage * ITEMS_PER_PAGE, filteredItems.length)} dari {filteredItems.length} penugasan
+            </p>
+            <div className="flex items-center gap-1">
+              <button
+                onClick={() => setCurrentPage((page) => Math.max(1, page - 1))}
+                disabled={currentPage === 1}
+                className="flex h-8 w-8 items-center justify-center rounded-lg text-gray-500 transition-colors hover:bg-gray-100 disabled:cursor-not-allowed disabled:opacity-30"
+              >
+                <ChevronLeft className="h-4 w-4" />
+              </button>
+              {Array.from({ length: totalPages }, (_, index) => index + 1).map((page) => (
                 <button
-                  onClick={() => setCurrentPage((page) => Math.max(1, page - 1))}
-                  disabled={currentPage === 1}
-                  className="flex h-8 w-8 items-center justify-center rounded-lg text-gray-500 transition-colors hover:bg-gray-100 disabled:cursor-not-allowed disabled:opacity-30"
+                  key={page}
+                  onClick={() => setCurrentPage(page)}
+                  className={`flex h-8 w-8 items-center justify-center rounded-lg text-xs font-semibold transition-colors ${
+                    page === currentPage ? "bg-gray-900 text-white" : "text-gray-500 hover:bg-gray-100"
+                  }`}
                 >
-                  <ChevronLeft className="h-4 w-4" />
+                  {page}
                 </button>
-
-                {Array.from({ length: totalPages }, (_, index) => index + 1).map((page) => (
-                  <button
-                    key={page}
-                    onClick={() => setCurrentPage(page)}
-                    className={`flex h-8 w-8 items-center justify-center rounded-lg text-xs font-semibold transition-colors ${
-                      page === currentPage ? "bg-gray-900 text-white" : "text-gray-500 hover:bg-gray-100"
-                    }`}
-                  >
-                    {page}
-                  </button>
-                ))}
-
-                <button
-                  onClick={() => setCurrentPage((page) => Math.min(totalPages, page + 1))}
-                  disabled={currentPage === totalPages}
-                  className="flex h-8 w-8 items-center justify-center rounded-lg text-gray-500 transition-colors hover:bg-gray-100 disabled:cursor-not-allowed disabled:opacity-30"
-                >
-                  <ChevronRight className="h-4 w-4" />
-                </button>
-              </div>
+              ))}
+              <button
+                onClick={() => setCurrentPage((page) => Math.min(totalPages, page + 1))}
+                disabled={currentPage === totalPages}
+                className="flex h-8 w-8 items-center justify-center rounded-lg text-gray-500 transition-colors hover:bg-gray-100 disabled:cursor-not-allowed disabled:opacity-30"
+              >
+                <ChevronRight className="h-4 w-4" />
+              </button>
             </div>
-          )}
+          </div>
         </div>
       )}
 
