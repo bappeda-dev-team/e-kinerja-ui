@@ -50,6 +50,7 @@ export default function AddDistribusiModal({ onClose, onSave, loading }: Props) 
   const [selectedPermintaan, setSelectedPermintaan] = useState("")
   const [selectedProgrammerIds, setSelectedProgrammerIds] = useState<string[]>([])
   const [komentar, setKomentar] = useState("")
+  const [deadline, setDeadline] = useState("")
 
   useEffect(() => {
     let mounted = true
@@ -99,6 +100,7 @@ export default function AddDistribusiModal({ onClose, onSave, loading }: Props) 
       permintaan_id: selectedPermintaan,
       komentar: komentar.trim(),
       programmer_ids: selectedProgrammerIds,
+      deadline: deadline || undefined,
     })
   }
 
@@ -184,6 +186,17 @@ export default function AddDistribusiModal({ onClose, onSave, loading }: Props) 
                 )}
               </>
             )}
+          </div>
+
+          <div className="space-y-1.5">
+            <Label className="text-sm font-semibold text-[#202224]">Deadline (opsional)</Label>
+            <input
+              type="date"
+              value={deadline}
+              onChange={(e) => setDeadline(e.target.value)}
+              min={new Date().toISOString().split("T")[0]}
+              className="w-full border rounded-lg bg-[#F5F6FA] border-[#D5D5D5] px-4 py-2.5 text-sm focus:ring-[#4880FF] focus:border-[#4880FF] outline-none"
+            />
           </div>
 
           <div className="space-y-1.5">

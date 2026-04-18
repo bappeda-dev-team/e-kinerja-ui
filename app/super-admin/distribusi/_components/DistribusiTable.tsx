@@ -27,6 +27,17 @@ import {
 import type { DistribusiItem } from "./DistribusiClient"
 import { getStatusMeta, formatTgl } from "./DistribusiUtils"
 
+function initials(nama: string) {
+  return nama.split(" ").slice(0, 2).map((w) => w[0]).join("").toUpperCase()
+}
+
+function stringToColor(str: string) {
+  let hash = 0
+  for (let i = 0; i < str.length; i++) hash = str.charCodeAt(i) + ((hash << 5) - hash)
+  const h = Math.abs(hash) % 360
+  return `hsl(${h}, 55%, 48%)`
+}
+
 interface Props {
   distribusi: DistribusiItem[]
   onSelesai: (id: string) => void
@@ -105,8 +116,35 @@ export function DistribusiTable({ distribusi, onSelesai, onDelete, onShowKomenta
                 </TableCell>
                 <TableCell className="px-4 py-3 text-xs text-[#797A7C]">{row.aplikasi}</TableCell>
                 <TableCell className="px-4 py-3 text-xs text-[#797A7C]">{row.menu}</TableCell>
-                <TableCell className="px-4 py-3 text-xs text-[#797A7C]">
-                  {row.programmer.length === 0 ? "-" : row.programmer.map((p) => p.nama).join(", ")}
+                <TableCell className="px-4 py-3">
+                  {row.programmer.length === 0 ? (
+                    <span className="text-xs text-[#797A7C]">-</span>
+                  ) : row.programmer.length === 1 ? (
+                    <div className="flex items-center gap-2">
+                      <div className="w-7 h-7 rounded-full flex items-center justify-center text-[10px] font-bold text-white shrink-0" style={{ background: stringToColor(row.programmer[0].nama) }}>
+                        {initials(row.programmer[0].nama)}
+                      </div>
+                      <span className="text-xs font-medium text-[#202224]">{row.programmer[0].nama}</span>
+                    </div>
+                  ) : (
+                    <div className="flex items-center">
+                      {row.programmer.slice(0, 3).map((p, i) => (
+                        <div
+                          key={p.id}
+                          title={p.nama}
+                          className="w-7 h-7 rounded-full flex items-center justify-center text-[10px] font-bold text-white border-2 border-white shrink-0"
+                          style={{ background: stringToColor(p.nama), marginLeft: i === 0 ? 0 : -8 }}
+                        >
+                          {initials(p.nama)}
+                        </div>
+                      ))}
+                      {row.programmer.length > 3 && (
+                        <div className="w-7 h-7 rounded-full bg-gray-200 flex items-center justify-center text-[10px] font-bold text-gray-600 border-2 border-white shrink-0" style={{ marginLeft: -8 }}>
+                          +{row.programmer.length - 3}
+                        </div>
+                      )}
+                    </div>
+                  )}
                 </TableCell>
                 <TableCell className="px-4 py-3 text-xs text-[#797A7C]">
                   {row.komentar ? (
@@ -115,7 +153,18 @@ export function DistribusiTable({ distribusi, onSelesai, onDelete, onShowKomenta
                     </button>
                   ) : "-"}
                 </TableCell>
-                <TableCell className="px-4 py-3 text-xs font-semibold text-red-500">{formatTgl(row.deadline)}</TableCell>
+                <TableCell className="px-4 py-3">
+                  {row.deadline ? (() => {
+                    const daysLeft = Math.ceil((new Date(row.deadline).getTime() - Date.now()) / 86400000)
+                    const color = daysLeft < 3 ? "text-red-500" : daysLeft < 6 ? "text-amber-500" : "text-[#202224]"
+                    return (
+                      <div className={`text-xs font-semibold leading-tight ${color}`}>
+                        <div>{formatTgl(row.deadline)}</div>
+                        <div className="font-normal text-[11px] mt-0.5 text-gray-400">{daysLeft > 0 ? `${daysLeft} hari lagi` : daysLeft === 0 ? "Hari ini" : "Lewat deadline"}</div>
+                      </div>
+                    )
+                  })() : "-"}
+                </TableCell>
                 <TableCell className="px-4 py-3">
                   <DropdownMenu>
                     <DropdownMenuTrigger asChild>

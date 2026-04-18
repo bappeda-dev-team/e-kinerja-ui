@@ -64,6 +64,7 @@ export interface DistribusiItem {
   admin: string
   programmer: { id: string; nama: string; pelaksana_id: string }[]
   deadline: string
+  created_at: string
   status: "didistribusikan" | "pending" | "revision" | "approved"
   jumlah_komentar?: number
   komentar?: string
@@ -126,6 +127,7 @@ export default function DistribusiClient() {
           awal: item.permintaan?.kondisi_awal ?? "-",
           target: item.permintaan?.kondisi_diharapkan ?? "-",
           deadline: item.permintaan?.tanggal_deadline ?? "",
+          created_at: item.created_at ?? "",
           admin: item.admin?.full_name ?? "-",
           programmer: programmerList,
           status: mapDistribusiStatus(item),
@@ -173,7 +175,7 @@ export default function DistribusiClient() {
     }
   }
 
-  const handleEdit = async (id: string, val: { komentar: string; pelaksana: string[] }) => {
+  const handleEdit = async (id: string, val: { komentar: string; pelaksana: string[]; deadline?: string }) => {
     try {
       setSubmitLoading(true)
       const target = distribusi.find((item) => item.id === id)
@@ -183,6 +185,7 @@ export default function DistribusiClient() {
         permintaan_id: target.permintaan_id,
         komentar: val.komentar,
         pelaksana: val.pelaksana,
+        deadline: val.deadline,
       })
 
       if (res.status === 200 || res.status === 201) {

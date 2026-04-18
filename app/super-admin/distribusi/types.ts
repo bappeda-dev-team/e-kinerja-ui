@@ -35,12 +35,14 @@ export interface DistribusiRequest {
     komentar?: string;
     permintaan_id: string;
     programmer_ids: string[];
+    deadline?: string;
 }
 
 export interface UpdateDistribusiRequest {
     komentar?: string;
     permintaan_id: string;
     pelaksana: string[];
+    deadline?: string;
 }
 
 export interface DistribusiPermintaan {

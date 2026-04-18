@@ -17,13 +17,14 @@ interface Props {
   item: DistribusiItem
   users: UserResponse[]
   onClose: () => void
-  onSave: (id: string, val: { komentar: string; pelaksana: string[] }) => void
+  onSave: (id: string, val: { komentar: string; pelaksana: string[]; deadline?: string }) => void
   loading?: boolean
 }
 
 export default function EditPelaksanaModal({ item, users, onClose, onSave, loading }: Props) {
   const [selectedIds, setSelectedIds] = useState<string[]>(item.programmer.map((programmer) => programmer.id))
   const [komentar, setKomentar] = useState(item.komentar ?? "")
+  const [deadline, setDeadline] = useState(item.deadline ?? "")
 
   const handleToggle = (id: string) => {
     setSelectedIds((prev) =>
@@ -37,7 +38,7 @@ export default function EditPelaksanaModal({ item, users, onClose, onSave, loadi
       return
     }
 
-    onSave(item.id, { komentar: komentar.trim(), pelaksana: selectedIds })
+    onSave(item.id, { komentar: komentar.trim(), pelaksana: selectedIds, deadline: deadline || undefined })
   }
 
   const selectedUsers = users.filter((user) => selectedIds.includes(user.id))
@@ -95,6 +96,17 @@ export default function EditPelaksanaModal({ item, users, onClose, onSave, loadi
                 ))}
               </div>
             )}
+          </div>
+
+          <div className="space-y-1.5">
+            <Label className="text-sm font-semibold text-[#202224]">Deadline (opsional)</Label>
+            <input
+              type="date"
+              value={deadline}
+              onChange={(e) => setDeadline(e.target.value)}
+              min={new Date().toISOString().split("T")[0]}
+              className="w-full border rounded-lg bg-[#F5F6FA] border-[#D5D5D5] px-4 py-2.5 text-sm focus:ring-[#4880FF] focus:border-[#4880FF] outline-none"
+            />
           </div>
 
           <div className="space-y-1.5">
