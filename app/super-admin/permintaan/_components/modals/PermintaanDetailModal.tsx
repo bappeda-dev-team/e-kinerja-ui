@@ -1,15 +1,11 @@
 "use client"
 
 import { useState } from "react"
-import { X, FileText } from "lucide-react"
+import { X, FileText, Pencil, Trash2, ArrowRight, AlertTriangle } from "lucide-react"
 import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog"
 import { VisuallyHidden } from "@radix-ui/react-visually-hidden"
 import type { PermintaanResponse } from "../../types"
 
-function formatTgl(dateStr: string) {
-  if (!dateStr) return "-"
-  return new Date(dateStr).toLocaleDateString("id-ID", { day: "numeric", month: "long", year: "numeric" })
-}
 
 function getStatusMeta(status?: string) {
   if (status === "terverifikasi" || status === "approved") return { label: status === "approved" ? "Approved" : "Terverifikasi", cls: "bg-green-100 text-green-700 border-green-200" }
@@ -47,6 +43,8 @@ interface Props {
 }
 
 export default function PermintaanDetailModal({ item, onClose, onEdit, onDelete }: Props) {
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false)
+
   if (!item) return null
 
   const statusMeta = getStatusMeta(item.status)
@@ -72,45 +70,47 @@ export default function PermintaanDetailModal({ item, onClose, onEdit, onDelete 
                 </p>
               </div>
             </div>
-            <button onClick={onClose} className="rounded-full p-1.5 text-gray-400 hover:bg-gray-100 hover:text-gray-600 transition shrink-0">
-              <X className="w-4 h-4" />
-            </button>
+            <div className="flex items-center gap-1.5 shrink-0">
+              <button
+                onClick={() => { onEdit(item); onClose() }}
+                className="rounded-lg p-1.5 border border-gray-200 text-gray-500 hover:bg-gray-50 hover:text-gray-700 transition"
+              >
+                <Pencil className="w-4 h-4" />
+              </button>
+              <button
+                onClick={() => setShowDeleteConfirm(true)}
+                className="rounded-lg p-1.5 border border-red-200 text-red-500 hover:bg-red-50 transition"
+              >
+                <Trash2 className="w-4 h-4" />
+              </button>
+              <button onClick={onClose} className="rounded-full p-1.5 text-gray-400 hover:bg-gray-100 hover:text-gray-600 transition">
+                <X className="w-4 h-4" />
+              </button>
+            </div>
           </div>
         </div>
 
         {/* Body */}
         <div className="px-5 py-4 space-y-3 overflow-y-auto max-h-[65vh]">
-          <div className="grid grid-cols-2 gap-3">
+          <div className={`grid gap-3 ${item.pembuat ? "grid-cols-3" : "grid-cols-3"}`}>
             <div className="space-y-0.5">
               <p className="text-[10px] font-bold uppercase tracking-wide text-gray-400">Status</p>
               <span className={`inline-flex items-center rounded-full border px-3 py-1 text-xs font-semibold ${statusMeta.cls}`}>
                 {statusMeta.label}
               </span>
             </div>
-            {item.pembuat && (
-              <div className="space-y-0.5">
-                <p className="text-[10px] font-bold uppercase tracking-wide text-gray-400">Programmer</p>
-                <p className="text-sm font-semibold text-[#202224]">{item.pembuat.full_name || item.pembuat.username}</p>
-              </div>
-            )}
+            <div className="space-y-0.5">
+              <p className="text-[10px] font-bold uppercase tracking-wide text-gray-400">Tanggal Pesanan</p>
+              <p className="text-sm font-semibold text-[#202224]">{item.tanggal_pesanan ? new Date(item.tanggal_pesanan).toLocaleDateString("id-ID", { day: "numeric", month: "short", year: "numeric" }) : "-"}</p>
+            </div>
+            <div className="space-y-0.5">
+              <p className="text-[10px] font-bold uppercase tracking-wide text-gray-400">Deadline</p>
+              <p className={`text-sm font-semibold ${isDeadlineNear ? "text-red-500" : "text-[#202224]"}`}>
+                {item.tanggal_deadline ? new Date(item.tanggal_deadline).toLocaleDateString("id-ID", { day: "numeric", month: "short", year: "numeric" }) : "-"}
+              </p>
+            </div>
           </div>
 
-          <div className="grid grid-cols-2 gap-3">
-            {item.tanggal_pesanan && (
-              <div className="space-y-0.5">
-                <p className="text-[10px] font-bold uppercase tracking-wide text-gray-400">Tanggal Pesanan</p>
-                <p className="text-sm font-semibold text-[#202224]">{formatTgl(item.tanggal_pesanan)}</p>
-              </div>
-            )}
-            {item.tanggal_deadline && (
-              <div className="space-y-0.5">
-                <p className="text-[10px] font-bold uppercase tracking-wide text-gray-400">Deadline</p>
-                <p className={`text-sm font-semibold ${isDeadlineNear ? "text-red-500" : "text-[#202224]"}`}>
-                  {formatTgl(item.tanggal_deadline)}
-                </p>
-              </div>
-            )}
-          </div>
 
           <div className="rounded-xl bg-orange-50 px-3 py-2.5 space-y-0.5">
             <p className="text-[10px] font-bold uppercase tracking-wide text-orange-400">Kondisi Awal</p>
@@ -149,20 +149,46 @@ export default function PermintaanDetailModal({ item, onClose, onEdit, onDelete 
         </div>
 
         {/* Footer */}
-        <div className="px-5 py-3 border-t border-gray-100 flex justify-end gap-2">
+        <div className="px-5 py-3 border-t border-gray-100">
           <button
-            onClick={() => { onEdit(item); onClose() }}
-            className="px-5 py-2 rounded-xl border border-gray-200 text-sm font-semibold text-[#202224] hover:bg-gray-50 transition"
+            onClick={onClose}
+            className="w-full flex items-center justify-center gap-2 py-3 rounded-xl bg-[#4880FF] text-sm font-bold text-white hover:bg-blue-600 transition"
           >
-            Edit
-          </button>
-          <button
-            onClick={() => { onDelete(item.id); onClose() }}
-            className="px-5 py-2 rounded-xl bg-red-500 text-sm font-semibold text-white hover:bg-red-600 transition"
-          >
-            Hapus
+            <ArrowRight className="w-4 h-4" />
+            Distribusikan
           </button>
         </div>
+
+        {/* Delete confirmation overlay */}
+        {showDeleteConfirm && (
+          <div className="absolute inset-0 bg-black/40 backdrop-blur-[2px] flex items-center justify-center rounded-2xl z-10">
+            <div className="bg-white rounded-2xl shadow-xl mx-4 p-6 w-full max-w-xs space-y-4">
+              <div className="flex flex-col items-center gap-3 text-center">
+                <div className="w-12 h-12 rounded-full bg-red-100 flex items-center justify-center">
+                  <AlertTriangle className="w-6 h-6 text-red-500" />
+                </div>
+                <div>
+                  <p className="font-bold text-[#202224] text-base">Hapus Permintaan?</p>
+                  <p className="text-sm text-gray-500 mt-1">Tindakan ini tidak dapat dibatalkan.</p>
+                </div>
+              </div>
+              <div className="flex gap-2">
+                <button
+                  onClick={() => setShowDeleteConfirm(false)}
+                  className="flex-1 py-2.5 rounded-xl border border-gray-200 text-sm font-semibold text-[#202224] hover:bg-gray-50 transition"
+                >
+                  Batal
+                </button>
+                <button
+                  onClick={() => { onDelete(item.id); setShowDeleteConfirm(false); onClose() }}
+                  className="flex-1 py-2.5 rounded-xl bg-red-500 text-sm font-semibold text-white hover:bg-red-600 transition"
+                >
+                  Hapus
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
       </DialogContent>
     </Dialog>
   )

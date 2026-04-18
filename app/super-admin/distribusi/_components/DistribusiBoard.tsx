@@ -25,6 +25,7 @@ interface Props {
   onDelete: (id: string) => void
   onShowKomentar: (text: string) => void
   onEdit: (item: DistribusiItem) => void
+  onRowClick: (item: DistribusiItem) => void
 }
 
 type SortKey = "deadline-asc" | "deadline-desc" | "newest" | "oldest"
@@ -45,7 +46,7 @@ function sortItems(items: DistribusiItem[], sort: SortKey) {
   })
 }
 
-export default function DistribusiBoard({ distribusi, onSelesai, onDelete, onShowKomentar, onEdit }: Props) {
+export default function DistribusiBoard({ distribusi, onSelesai, onDelete, onShowKomentar, onEdit, onRowClick }: Props) {
   const [activeView, setActiveView] = useState<"table" | "permintaan" | "distribusi" | "selesai">("table")
   const [currentPage, setCurrentPage] = useState(1)
   const [sort, setSort] = useState<SortKey>("deadline-asc")
@@ -147,6 +148,7 @@ export default function DistribusiBoard({ distribusi, onSelesai, onDelete, onSho
           onDelete={onDelete}
           onShowKomentar={onShowKomentar}
           onEdit={onEdit}
+          onRowClick={onRowClick}
         />
       ) : (
         <>

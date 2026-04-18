@@ -5,12 +5,12 @@
 import * as React from "react"
 import { useEffect, useState } from "react"
 import { toast } from "sonner"
-import { Plus } from "lucide-react"
 
 import DistribusiBoard from "./DistribusiBoard"
 import KomentarModal from "./modals/KomentarModal"
 import AddDistribusiModal from "./modals/AddDistribusiModal"
 import EditPelaksanaModal from "./modals/EditPelaksanaModal"
+import DistribusiDetailModal from "./modals/DistribusiDetailModal"
 
 import {
   getDistribusi,
@@ -96,6 +96,7 @@ export default function DistribusiClient() {
   const [submitLoading, setSubmitLoading] = useState(false)
   const [selectedKomentar, setSelectedKomentar] = useState<string | null>(null)
   const [editTarget, setEditTarget] = useState<DistribusiItem | null>(null)
+  const [detailItem, setDetailItem] = useState<DistribusiItem | null>(null)
 
   const fetchAll = async () => {
     try {
@@ -213,14 +214,6 @@ export default function DistribusiClient() {
         <h2 className="font-nunito text-[2.1rem] leading-tight font-bold text-[#202224] sm:text-3xl">
           Distribusi Pekerjaan
         </h2>
-        <div className="flex w-full flex-col gap-3 sm:flex-row sm:flex-wrap lg:w-auto lg:justify-end">
-          <button 
-            onClick={() => setShowAdd(true)} 
-            className="inline-flex w-full items-center justify-center gap-2 rounded-xl bg-[#4880FF] px-5 py-3 text-sm font-bold text-white shadow-[0_4px_14px_0_rgba(72,128,255,0.39)] transition hover:bg-blue-600 active:scale-95 sm:w-auto sm:px-6 sm:py-2.5"
-          >
-            <Plus className="size-4" /> Tambah Distribusi
-          </button>
-        </div>
       </div>
 
       {loading ? <HybridLoader /> : (
@@ -230,6 +223,7 @@ export default function DistribusiClient() {
           onDelete={handleDelete}
           onShowKomentar={setSelectedKomentar}
           onEdit={setEditTarget}
+          onRowClick={setDetailItem}
         />
       )}
 
@@ -257,6 +251,15 @@ export default function DistribusiClient() {
           loading={submitLoading}
         />
       )}
+
+      <DistribusiDetailModal
+        item={detailItem}
+        onClose={() => setDetailItem(null)}
+        onEdit={(item) => { setDetailItem(null); setEditTarget(item) }}
+        onDelete={(id) => { setDetailItem(null); handleDelete(id) }}
+        onShowKomentar={(text) => { setDetailItem(null); setSelectedKomentar(text) }}
+        onSelesai={(id) => { setDetailItem(null); handleSelesai(id) }}
+      />
     </div>
   )
 }

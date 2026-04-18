@@ -44,9 +44,10 @@ interface Props {
   onDelete: (id: string) => void
   onShowKomentar: (text: string) => void
   onEdit: (item: DistribusiItem) => void
+  onRowClick: (item: DistribusiItem) => void
 }
 
-export function DistribusiTable({ distribusi, onSelesai, onDelete, onShowKomentar, onEdit }: Props) {
+export function DistribusiTable({ distribusi, onSelesai, onDelete, onShowKomentar, onEdit, onRowClick }: Props) {
   const [currentPage, setCurrentPage] = useState(1)
   const rowsPerPage = 7
   const didistribusikan = distribusi.filter((d) => d.status === "didistribusikan" || d.status === "pending" || d.status === "revision")
@@ -93,7 +94,7 @@ export function DistribusiTable({ distribusi, onSelesai, onDelete, onShowKomenta
             const statusMeta = getStatusMeta(row.status)
 
             return (
-              <TableRow key={row.id} className="border-b border-gray-200 hover:bg-gray-50 transition-colors">
+              <TableRow key={row.id} onClick={() => onRowClick(row)} className="border-b border-gray-200 hover:bg-gray-50 transition-colors cursor-pointer">
                 <TableCell className="px-4 py-3 text-xs text-[#202224]/40">{(currentPage - 1) * rowsPerPage + i + 1}</TableCell>
                 <TableCell className="px-4 py-3">
                   <span className={`px-2 py-0.5 rounded-full text-xs font-semibold ${statusMeta.badgeClass}`}>
@@ -165,7 +166,7 @@ export function DistribusiTable({ distribusi, onSelesai, onDelete, onShowKomenta
                     )
                   })() : "-"}
                 </TableCell>
-                <TableCell className="px-4 py-3">
+                <TableCell className="px-4 py-3" onClick={(e) => e.stopPropagation()}>
                   <DropdownMenu>
                     <DropdownMenuTrigger asChild>
                       <button className="rounded p-1 hover:bg-gray-100 transition">
