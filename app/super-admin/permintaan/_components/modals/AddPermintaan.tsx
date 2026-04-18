@@ -88,7 +88,7 @@ export default function AddPermintaan({ initialData, onClose, onSave }: Props) {
     onSave(cleanPayload, selectedFiles, initialData?.id)
   }
 
-  const fixedHeightClass = "bg-[#F5F6FA] border-[#D5D5D5] h-[52px] w-full rounded-[4px] px-4 flex items-center focus:ring-0"
+  const fixedHeightClass = "bg-[#F5F6FA] border-[#D5D5D5] h-[52px] w-full rounded-md px-4 flex items-center focus:ring-0"
 
   return (
     <Dialog open onOpenChange={onClose}>
@@ -99,31 +99,57 @@ export default function AddPermintaan({ initialData, onClose, onSave }: Props) {
           </DialogTitle>
         </DialogHeader>
 
-        <div className="flex-1 overflow-y-auto px-10 py-8">
-          <div className="grid grid-cols-2 gap-x-12 gap-y-6">
+        <div className="flex-1 overflow-y-auto px-10 py-8 space-y-6">
+          {/* Row 1: Pemda, Aplikasi, Menu */}
+          <div className="grid grid-cols-3 gap-6">
             <div className="space-y-2">
-              <Label className="text-[#606060] font-semibold">Pemda*</Label>
+              <Label className="text-[#606060] font-semibold">Pemda <span className="text-red-500">*</span></Label>
               <Select value={form.pemda_id} onValueChange={(val) => setForm({ ...form, pemda_id: val })}>
                 <SelectTrigger className={fixedHeightClass}><SelectValue placeholder="Pilih pemda" /></SelectTrigger>
                 <SelectContent>{pemdas.map((p) => (<SelectItem key={p.id} value={p.id!}>{p.name}</SelectItem>))}</SelectContent>
               </Select>
             </div>
-
             <div className="space-y-2">
-              <Label className="text-[#606060] font-semibold">Kondisi Harapan*</Label>
-              <Input className={fixedHeightClass} placeholder="Kondisi harapan" value={form.kondisi_diharapkan} onChange={(e) => setForm({...form, kondisi_diharapkan: e.target.value})} />
-            </div>
-
-            <div className="space-y-2">
-              <Label className="text-[#606060] font-semibold">Aplikasi*</Label>
+              <Label className="text-[#606060] font-semibold">Aplikasi <span className="text-red-500">*</span></Label>
               <Select value={form.aplikasi_id} onValueChange={(val) => setForm({ ...form, aplikasi_id: val })}>
                 <SelectTrigger className={fixedHeightClass}><SelectValue placeholder="Pilih aplikasi" /></SelectTrigger>
                 <SelectContent>{aplikasis.map((a) => (<SelectItem key={a.id} value={a.id!}>{a.name}</SelectItem>))}</SelectContent>
               </Select>
             </div>
-
             <div className="space-y-2">
-              <Label className="text-[#606060] font-semibold">Tanggal Pesanan*</Label>
+              <Label className="text-[#606060] font-semibold">Menu <span className="text-red-500">*</span></Label>
+              <Input className={fixedHeightClass} placeholder="Menu" value={form.menu} onChange={(e) => setForm({ ...form, menu: e.target.value })} />
+            </div>
+          </div>
+
+          {/* Row 2: Kondisi Awal, Kondisi Harapan */}
+          <div className="grid grid-cols-2 gap-6">
+            <div className="space-y-2">
+              <Label className="text-[#606060] font-semibold">Kondisi Awal <span className="text-red-500">*</span></Label>
+              <textarea
+                className="bg-[#F5F6FA] border border-[#D5D5D5] w-full rounded-md px-4 py-3 text-sm resize-none focus:outline-none focus:ring-1 focus:ring-[#5D87FF]"
+                rows={4}
+                placeholder="Kondisi awal saat ini..."
+                value={form.kondisi_awal}
+                onChange={(e) => setForm({ ...form, kondisi_awal: e.target.value })}
+              />
+            </div>
+            <div className="space-y-2">
+              <Label className="text-[#606060] font-semibold">Kondisi Harapan <span className="text-red-500">*</span></Label>
+              <textarea
+                className="bg-[#F5F6FA] border border-[#D5D5D5] w-full rounded-md px-4 py-3 text-sm resize-none focus:outline-none focus:ring-1 focus:ring-[#5D87FF]"
+                rows={4}
+                placeholder="Kondisi yang diharapkan..."
+                value={form.kondisi_diharapkan}
+                onChange={(e) => setForm({ ...form, kondisi_diharapkan: e.target.value })}
+              />
+            </div>
+          </div>
+
+          {/* Row 3: Tanggal Pesanan, Deadline, Lampiran */}
+          <div className="grid grid-cols-3 gap-6">
+            <div className="space-y-2">
+              <Label className="text-[#606060] font-semibold">Tanggal Pesanan <span className="text-red-500">*</span></Label>
               <Popover>
                 <PopoverTrigger asChild>
                   <Button variant="outline" className={cn(fixedHeightClass, "justify-start font-normal gap-3")}>
@@ -134,14 +160,8 @@ export default function AddPermintaan({ initialData, onClose, onSave }: Props) {
                 <PopoverContent className="w-auto p-0"><Calendar mode="single" selected={tanggalPesanan} onSelect={setTanggalPesanan} /></PopoverContent>
               </Popover>
             </div>
-
             <div className="space-y-2">
-              <Label className="text-[#606060] font-semibold">Menu*</Label>
-              <Input className={fixedHeightClass} placeholder="Menu" value={form.menu} onChange={(e) => setForm({...form, menu: e.target.value})} />
-            </div>
-
-            <div className="space-y-2">
-              <Label className="text-[#606060] font-semibold">Deadline*</Label>
+              <Label className="text-[#606060] font-semibold">Deadline <span className="text-red-500">*</span></Label>
               <Popover>
                 <PopoverTrigger asChild>
                   <Button variant="outline" className={cn(fixedHeightClass, "justify-start font-normal gap-3")}>
@@ -152,41 +172,35 @@ export default function AddPermintaan({ initialData, onClose, onSave }: Props) {
                 <PopoverContent className="w-auto p-0"><Calendar mode="single" selected={tanggalDeadline} onSelect={setTanggalDeadline} /></PopoverContent>
               </Popover>
             </div>
-
             <div className="space-y-2">
-              <Label className="text-[#606060] font-semibold">Kondisi Awal*</Label>
-              <Input className={fixedHeightClass} placeholder="Kondisi awal" value={form.kondisi_awal} onChange={(e) => setForm({...form, kondisi_awal: e.target.value})} />
-            </div>
-
-            {/* ATTACHMENT SECTION */}
-            <div className="col-span-2 space-y-3 mt-4">
-              <Label className="text-[#606060] font-semibold text-sm">Lampiran</Label>
-              <div 
-                className="border-2 border-dashed border-[#C4CDD5] bg-[#F5F6FA] rounded-xl p-8 flex flex-col items-center justify-center gap-3 hover:bg-[#F0F2F5] transition cursor-pointer"
+              <Label className="text-[#606060] font-semibold">Lampiran</Label>
+              <label
+                className="flex cursor-pointer items-center gap-3 rounded-md border border-dashed border-[#C4CDD5] bg-[#F5F6FA] px-4 h-[52px] hover:bg-[#F0F2F5] transition"
                 onClick={() => fileInputRef.current?.click()}
               >
+                <UploadCloud size={18} className="text-[#919EAB] shrink-0" />
+                <span className="text-sm text-[#637381] truncate">
+                  {selectedFiles.length > 0 ? `${selectedFiles.length} file dipilih` : "Pilih file..."}
+                </span>
                 <input type="file" ref={fileInputRef} className="hidden" multiple onChange={handleFileChange} />
-                <div className="bg-[#DFE3E8] p-3 rounded-full"><UploadCloud size={28} className="text-[#919EAB]" /></div>
-                <div className="text-center">
-                  <p className="font-bold text-[#212B36]">Klik untuk unggah lampiran</p>
-                  <p className="text-xs text-[#637381]">PDF, DOCX, XLSX, JPG up to 10MB</p>
-                </div>
-              </div>
-
-              {/* LIST FILE */}
-              <div className="grid grid-cols-2 gap-3 mt-2">
-                {selectedFiles.map((file, idx) => (
-                  <div key={idx} className="flex items-center justify-between bg-white border border-[#D5D5D5] p-3 rounded-lg shadow-sm">
-                    <div className="flex items-center gap-3 overflow-hidden">
-                      <div className="p-2 bg-blue-50 text-blue-600 rounded shrink-0"><FileText size={18} /></div>
-                      <span className="text-xs font-semibold text-[#202224] truncate">{file.name}</span>
-                    </div>
-                    <button onClick={(e) => { e.stopPropagation(); removeFile(idx); }} className="text-red-500 hover:bg-red-50 p-1 rounded-full"><X size={16} /></button>
-                  </div>
-                ))}
-              </div>
+              </label>
             </div>
           </div>
+
+          {/* File list */}
+          {selectedFiles.length > 0 && (
+            <div className="grid grid-cols-2 gap-3">
+              {selectedFiles.map((file, idx) => (
+                <div key={idx} className="flex items-center justify-between bg-white border border-[#D5D5D5] p-3 rounded-lg shadow-sm">
+                  <div className="flex items-center gap-3 overflow-hidden">
+                    <div className="p-2 bg-blue-50 text-blue-600 rounded shrink-0"><FileText size={18} /></div>
+                    <span className="text-xs font-semibold text-[#202224] truncate">{file.name}</span>
+                  </div>
+                  <button onClick={(e) => { e.stopPropagation(); removeFile(idx) }} className="text-red-500 hover:bg-red-50 p-1 rounded-full"><X size={16} /></button>
+                </div>
+              ))}
+            </div>
+          )}
         </div>
 
         <DialogFooter className="px-10 py-6 border-t shrink-0 flex gap-4">

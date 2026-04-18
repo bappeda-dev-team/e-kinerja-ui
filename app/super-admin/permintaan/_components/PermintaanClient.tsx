@@ -5,10 +5,11 @@
 import * as React from "react"
 import { useState, useEffect } from "react"
 import { toast } from "sonner"
-import { Plus, Table2 } from "lucide-react"
+import { Plus } from "lucide-react"
 
 import PermintaanTable from "./PermintaanTable"
 import AddPermintaan from "./modals/AddPermintaan"
+import PermintaanDetailModal from "./modals/PermintaanDetailModal"
 
 import type { PermintaanResponse, PermintaanRequest } from "../types"
 import {
@@ -54,9 +55,9 @@ export default function PermintaanClient() {
   const [data, setData] = useState<PermintaanResponse[]>([])
   const [loading, setLoading] = useState(true)
   const [actionLoading, setActionLoading] = useState(false)
-  const [showTable, setShowTable] = useState(true) // ✅ State untuk switch view
   const [showAdd, setShowAdd] = useState(false)
   const [editItem, setEditItem] = useState<PermintaanResponse | null>(null)
+  const [detailItem, setDetailItem] = useState<PermintaanResponse | null>(null)
 
   const loadData = async () => {
     try {
@@ -149,45 +150,38 @@ export default function PermintaanClient() {
         <h2 className="font-nunito text-[2.1rem] leading-tight font-bold text-[#202224] sm:text-3xl">
           Permintaan Klien
         </h2>
-        <div className="flex w-full flex-col gap-3 sm:flex-row sm:flex-wrap lg:w-auto lg:justify-end">
-          {/* ✅ Tombol Switch View persis seperti di Distribusi */}
-          <button
-            onClick={() => setShowTable(!showTable)}
-            className={`inline-flex w-full items-center justify-center gap-2 rounded-xl px-4 py-3 text-sm font-semibold transition active:scale-95 sm:w-auto sm:px-5 sm:py-2.5 ${
-              showTable
-                ? "bg-white text-[#202224] border border-gray-200 hover:border-[#4880FF] hover:text-[#4880FF]"
-                : "bg-[#4880FF] text-white shadow-md shadow-blue-200"
-            }`}
-          >
-            <Table2 className="size-4" />
-            {showTable ? "Lihat Board" : "Lihat Semua (Tabel)"}
-          </button>
-
-          <button 
-            onClick={() => setShowAdd(true)} 
-            className="inline-flex w-full items-center justify-center gap-2 rounded-xl bg-[#4880FF] px-5 py-3 text-sm font-bold text-white shadow-[0_4px_14px_0_rgba(72,128,255,0.39)] transition hover:bg-blue-600 active:scale-95 sm:w-auto sm:px-6 sm:py-2.5"
-          >
-            <Plus className="size-4" /> Tambah Permintaan
-          </button>
-        </div>
+        <button
+          onClick={() => setShowAdd(true)}
+          className="inline-flex w-full items-center justify-center gap-2 rounded-xl bg-[#4880FF] px-5 py-3 text-sm font-bold text-white shadow-[0_4px_14px_0_rgba(72,128,255,0.39)] transition hover:bg-blue-600 active:scale-95 sm:w-auto sm:px-6 sm:py-2.5"
+        >
+          <Plus className="size-4" /> Tambah Permintaan
+        </button>
       </div>
 
-{ (loading || actionLoading) ? <HybridLoader /> : (
-  <PermintaanTable 
-    data={data} 
-    showTable={showTable} 
-    onEdit={setEditItem} 
-    onDelete={handleDelete} 
-  />
-)}
-
-      {(showAdd || editItem) && (
-        <AddPermintaan 
-          initialData={editItem || undefined} 
-          onClose={() => { setShowAdd(false); setEditItem(null); }} 
-          onSave={editItem ? handleEdit : handleAdd} 
+      {(loading || actionLoading) ? <HybridLoader /> : (
+        <PermintaanTable
+          data={data}
+          showTable={false}
+          onEdit={setEditItem}
+          onDelete={handleDelete}
+          onCardClick={setDetailItem}
         />
       )}
+
+      {(showAdd || editItem) && (
+        <AddPermintaan
+          initialData={editItem || undefined}
+          onClose={() => { setShowAdd(false); setEditItem(null) }}
+          onSave={editItem ? handleEdit : handleAdd}
+        />
+      )}
+
+      <PermintaanDetailModal
+        item={detailItem}
+        onClose={() => setDetailItem(null)}
+        onEdit={(item) => { setDetailItem(null); setEditItem(item) }}
+        onDelete={(id) => { setDetailItem(null); handleDelete(id) }}
+      />
     </div>
   )
 }
