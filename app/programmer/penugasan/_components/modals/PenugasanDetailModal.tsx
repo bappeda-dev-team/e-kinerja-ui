@@ -188,6 +188,7 @@ export default function PenugasanDetailModal({
   function handleAddSave() {
     if (!addProgress.trim()) { toast.error("Jelaskan progres pekerjaan yang sudah dilakukan"); return }
     if (addStatusProgress === null) { toast.error("Pilih persentase progres penyelesaian"); return }
+    if (!item) return
 
     setAddLoading(true)
     const now = new Date().toISOString()
