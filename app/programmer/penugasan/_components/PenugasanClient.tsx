@@ -316,12 +316,7 @@ export default function PenugasanClient() {
 
                         <td className="h-16 px-6">
                           {hasKomentar ? (
-                            <div className="max-w-[360px]">
-                              <span className="inline-flex rounded-md bg-blue-50 px-2 py-1 text-xs font-semibold text-blue-700">
-                                Ada Catatan
-                              </span>
-                              <p className="mt-2 truncate text-sm text-gray-600">{item.komentar}</p>
-                            </div>
+                            <p className="max-w-[360px] truncate text-sm text-gray-600">{item.komentar}</p>
                           ) : (
                             <span className="inline-flex rounded-md bg-gray-100 px-2 py-1 text-xs font-semibold text-gray-500">
                               Tidak ada catatan
