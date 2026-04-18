@@ -4,7 +4,7 @@ import { useEffect } from "react"
 import { X, BriefcaseBusiness, CalendarDays, History, UserRound, MessageSquareText, Building2, Layers3 } from "lucide-react"
 import { PenugasanItem } from "../types"
 
-interface PenugasanSlideOverProps {
+interface PenugasanDetailPanelProps {
   isOpen: boolean
   onClose: () => void
   item: PenugasanItem | null
@@ -21,7 +21,7 @@ function formatDateTime(iso?: string) {
   })
 }
 
-export default function PenugasanSlideOver({ isOpen, onClose, item: itemProp }: PenugasanSlideOverProps) {
+export default function PenugasanDetailPanel({ isOpen, onClose, item: itemProp }: PenugasanDetailPanelProps) {
   useEffect(() => {
     document.body.style.overflow = isOpen ? "hidden" : "auto"
     return () => {
@@ -36,20 +36,17 @@ export default function PenugasanSlideOver({ isOpen, onClose, item: itemProp }: 
   return (
     <>
       <div
-        className={`fixed top-0 left-0 z-[100] h-[100vh] w-[100vw] bg-black/30 backdrop-blur-sm ${isOpen ? "pointer-events-auto opacity-100" : "pointer-events-none opacity-0"}`}
+        className={`fixed top-0 left-0 z-100 h-screen w-screen bg-black/30 backdrop-blur-sm ${isOpen ? "pointer-events-auto opacity-100" : "pointer-events-none opacity-0"}`}
         onClick={onClose}
       />
 
       <div
-        className={`fixed top-0 right-0 z-[110] flex h-[100vh] w-[420px] max-w-[92vw] transform-gpu flex-col border-l border-gray-200 bg-white will-change-transform transition-transform duration-300 ease-out ${isOpen ? "translate-x-0" : "translate-x-full"}`}
+        className={`fixed top-0 right-0 z-110 flex h-screen w-96 max-w-[92vw] transform-gpu flex-col border-l border-gray-200 bg-white will-change-transform transition-transform duration-300 ease-out ${isOpen ? "translate-x-0" : "translate-x-full"}`}
       >
         <div className="flex items-start justify-between border-b bg-gray-50/60 px-6 py-5">
           <div>
             <h2 className="text-xl font-bold leading-tight text-gray-900">{itemProp.nama_pemda}</h2>
             <p className="mt-0.5 text-sm font-medium text-gray-500">{itemProp.aplikasi}</p>
-            <div className={`mt-3 inline-flex items-center rounded-full px-2.5 py-1 text-xs font-bold ${hasKomentar ? "bg-blue-100 text-blue-700" : "bg-gray-100 text-gray-600"}`}>
-              {hasKomentar ? "Ada Catatan Atasan" : "Tanpa Catatan"}
-            </div>
           </div>
           <button
             onClick={onClose}

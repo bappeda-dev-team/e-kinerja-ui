@@ -21,13 +21,13 @@ function Avatar({ src, label }: { src?: string; label: string }) {
   const initials = label.split(" ").filter(Boolean).slice(0, 2).map((p) => p[0]?.toUpperCase()).join("") || "VL"
   if (src) {
     return (
-      <div className="flex h-[54px] w-[54px] shrink-0 items-center justify-center rounded-[14px] overflow-hidden bg-gray-100">
+      <div className="flex h-[54px] w-[54px] shrink-0 items-center justify-center rounded-2xl overflow-hidden bg-gray-100">
         <img src={src} alt={label} className="w-full h-full object-cover" />
       </div>
     )
   }
   return (
-    <div className="flex h-[54px] w-[54px] shrink-0 items-center justify-center rounded-[14px] bg-gradient-to-br from-[#58D5C9] to-[#4E7CF3] text-sm font-bold text-white">
+    <div className="flex h-[54px] w-[54px] shrink-0 items-center justify-center rounded-2xl bg-linear-to-br from-[#58D5C9] to-[#4E7CF3] text-sm font-bold text-white">
       {initials}
     </div>
   )
@@ -65,7 +65,7 @@ function CardMenu({ onVerify }: { onVerify: () => void }) {
 
 export function VerifikasiPermintaanCard({ item, onVerify }: { item: VerifikasiItem; onVerify: (item: VerifikasiItem) => void }) {
   return (
-    <div className="rounded-[22px] border border-[#F0F1F5] bg-white p-6 shadow-[6px_6px_54px_rgba(0,0,0,0.05)]">
+    <div className="rounded-4xl border border-[#F0F1F5] bg-white p-6 shadow-[6px_6px_54px_rgba(0,0,0,0.05)]">
       <div className="flex items-start gap-4">
         <OrgLogo src={item.pemda_logo} name={item.pemda_name} />
         <div className="min-w-0 flex-1">
