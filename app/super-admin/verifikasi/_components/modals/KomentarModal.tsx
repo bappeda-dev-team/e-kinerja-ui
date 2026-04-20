@@ -1,4 +1,4 @@
-// app/super-admin/distribusi/_components/modals/KomentarModal.tsx
+// app/super-admin/verifikasi/_components/modals/KomentarModal.tsx
 
 "use client"
 
@@ -31,11 +31,10 @@ const MOCK_COMMENTS = [
 ]
 
 interface Props {
-  komentar: string
   onClose: () => void
 }
 
-export default function KomentarModal({ komentar, onClose }: Props) {
+export default function KomentarModal({ onClose }: Props) {
   const [input, setInput] = useState("")
   const [comments, setComments] = useState(MOCK_COMMENTS)
 

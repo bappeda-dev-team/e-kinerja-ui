@@ -3,13 +3,7 @@
 "use client"
 
 import { Fragment, useMemo, useState } from "react"
-import { MoreVertical, User } from "lucide-react"
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu"
+import { User } from "lucide-react"
 import {
   Pagination,
   PaginationContent,
@@ -33,6 +27,7 @@ interface Props {
   data: VerifikasiItem[]
   onVerify: (item: VerifikasiItem) => void
 }
+
 
 function formatTanggal(value?: string) {
   if (!value) return "-"
@@ -92,13 +87,12 @@ export function VerifikasiTable({ data, onVerify }: Props) {
             <TableHead className="px-4 py-3 text-xs uppercase font-semibold text-gray-500">Programmer</TableHead>
             <TableHead className="px-4 py-3 text-xs uppercase font-semibold text-gray-500">Progress</TableHead>
             <TableHead className="px-4 py-3 text-xs uppercase font-semibold text-gray-500">Deadline</TableHead>
-            <TableHead className="px-4 py-3 text-xs uppercase font-semibold text-gray-500">Aksi</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
           {paginatedRows.length === 0 ? (
             <TableRow>
-              <TableCell colSpan={9} className="py-12 text-center text-sm text-[#202224]/40">
+              <TableCell colSpan={8} className="py-12 text-center text-sm text-[#202224]/40">
                 Belum ada data verifikasi.
               </TableCell>
             </TableRow>
@@ -106,7 +100,11 @@ export function VerifikasiTable({ data, onVerify }: Props) {
             paginatedRows.map((row, index) => {
               const sm = getStatusMeta(row.status)
               return (
-                <TableRow key={row.id} className="border-b border-gray-200 hover:bg-gray-50 transition-colors">
+                <TableRow
+                  key={row.id}
+                  onClick={() => onVerify(row)}
+                  className="border-b border-gray-200 hover:bg-blue-50/40 cursor-pointer transition-colors"
+                >
                   <TableCell className="px-4 py-3 text-xs text-[#202224]/40">
                     {(currentPage - 1) * rowsPerPage + index + 1}
                   </TableCell>
@@ -135,18 +133,6 @@ export function VerifikasiTable({ data, onVerify }: Props) {
                   </TableCell>
                   <TableCell className="px-4 py-3 text-xs text-[#797A7C] whitespace-nowrap">
                     {formatTanggal(row.tanggal_deadline)}
-                  </TableCell>
-                  <TableCell className="px-4 py-3">
-                    <DropdownMenu>
-                      <DropdownMenuTrigger asChild>
-                        <button className="rounded p-1 hover:bg-gray-100 transition">
-                          <MoreVertical className="size-4 text-gray-400" />
-                        </button>
-                      </DropdownMenuTrigger>
-                      <DropdownMenuContent align="end">
-                        <DropdownMenuItem onClick={() => onVerify(row)}>Proses Verifikasi</DropdownMenuItem>
-                      </DropdownMenuContent>
-                    </DropdownMenu>
                   </TableCell>
                 </TableRow>
               )

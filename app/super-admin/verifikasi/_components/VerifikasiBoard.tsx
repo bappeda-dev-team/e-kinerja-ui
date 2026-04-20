@@ -3,8 +3,7 @@
 "use client"
 
 import { Fragment, useMemo, useState } from "react"
-import { motion } from "framer-motion"
-import { LayoutGrid, Table2, AlignJustify, Inbox, ClipboardList, Check } from "lucide-react"
+import { LayoutGrid, AlignJustify, Inbox, ClipboardList, Check } from "lucide-react"
 
 import {
   Pagination,
@@ -64,7 +63,7 @@ export default function VerifikasiBoard({ data, onVerify }: Props) {
 
   return (
     <div className="space-y-6">
-      <div className="inline-flex items-center gap-1 overflow-x-auto rounded-full bg-gray-100 p-1.5 max-w-full">
+      <div className="inline-flex items-center gap-0.5 rounded-xl border border-gray-200 bg-gray-100 p-1">
         {tabs.map((tab) => {
           const isActive = activeView === tab.key
           const Icon = tab.icon ?? LayoutGrid
@@ -76,23 +75,14 @@ export default function VerifikasiBoard({ data, onVerify }: Props) {
                 setActiveView(tab.key)
                 setCurrentPage(1)
               }}
-              className={`relative inline-flex items-center justify-center whitespace-nowrap rounded-full px-5 py-2.5 text-[13px] font-semibold transition-colors duration-200 ${
-                isActive
-                  ? "text-gray-900"
-                  : "text-gray-500 hover:bg-gray-200/50 hover:text-gray-900"
+              className={`relative flex items-center gap-2 rounded-[9px] px-3 py-1.5 text-[13px] font-semibold transition-colors whitespace-nowrap ${
+                isActive ? "bg-white text-gray-900 shadow-sm" : "text-gray-500 hover:text-gray-700"
               }`}
             >
-              {isActive && (
-                <motion.div
-                  layoutId="activeVerifikasiTabPill"
-                  className="absolute inset-0 z-0 rounded-full bg-white shadow-sm"
-                  initial={false}
-                  transition={{ type: "spring", bounce: 0.2, duration: 0.6 }}
-                />
-              )}
-              <span className="relative z-10 flex items-center gap-2">
-                <Icon className="h-4 w-4" />
-                <span>{tab.key === "table" ? tab.label : `${tab.label} (${tab.count})`}</span>
+              <Icon className="h-4 w-4" />
+              <span>{tab.key === "table" ? tab.label : tab.label}</span>
+              <span className={`rounded-md px-1.5 py-0.5 text-[10px] font-bold transition-colors ${isActive ? "bg-gray-100 text-gray-700" : "text-gray-400"}`}>
+                {tab.count}
               </span>
             </button>
           )
