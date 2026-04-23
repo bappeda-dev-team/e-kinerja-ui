@@ -2,7 +2,7 @@
 
 "use client"
 
-import { useMemo, useState } from "react"
+import { useMemo, useState, useRef, useEffect } from "react"
 import { ListFilter, ChevronDown } from "lucide-react"
 
 import type { DistribusiItem } from "./DistribusiClient"
@@ -40,6 +40,8 @@ export default function DistribusiBoard({ distribusi, onSelesai, onDelete, onSho
   const [activeView, setActiveView] = useState<ViewType>("table")
   const [sort, setSort] = useState<SortKey>("deadline-asc")
   const [sortOpen, setSortOpen] = useState(false)
+  const [indicatorStyle, setIndicatorStyle] = useState({ width: 0, transform: "translateX(0)" })
+  const tabsRef = useRef<(HTMLButtonElement | null)[]>([])
 
   const didistribusikan = distribusi.filter((d) => d.status === "didistribusikan" || d.status === "pending" || d.status === "revision")
   const selesai = distribusi.filter((d) => d.status === "approved")
@@ -49,6 +51,23 @@ export default function DistribusiBoard({ distribusi, onSelesai, onDelete, onSho
     { key: "distribusi" as const, label: "Didistribusikan", count: didistribusikan.length },
     { key: "selesai" as const, label: "Selesai", count: selesai.length },
   ]
+
+  const handleTabChange = (newView: ViewType) => {
+    setActiveView(newView)
+  }
+
+  useEffect(() => {
+    const activeIndex = tabsRef.current.findIndex((_, i) => tabs[i]?.key === activeView)
+    const activeButton = tabsRef.current[activeIndex]
+
+    if (activeButton) {
+      const { offsetWidth, offsetLeft } = activeButton
+      setIndicatorStyle({
+        width: offsetWidth,
+        transform: `translateX(${offsetLeft}px)`,
+      })
+    }
+  }, [activeView])
 
   const activeItems = useMemo(() => {
     const base = activeView === "distribusi" ? didistribusikan : activeView === "selesai" ? selesai : distribusi
@@ -60,25 +79,40 @@ export default function DistribusiBoard({ distribusi, onSelesai, onDelete, onSho
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between gap-3 flex-wrap">
-        <div className="inline-flex items-center gap-0.5 rounded-xl border border-gray-200 bg-gray-100 p-1">
-          {tabs.map((tab) => {
+        <div className="inline-flex items-center gap-0.5 rounded-xl border border-gray-200 bg-gray-100 p-1 relative">
+          {tabs.map((tab, idx) => {
             const isActive = activeView === tab.key
+
             return (
               <button
                 key={tab.key}
+                ref={(el) => {
+                  if (el) tabsRef.current[idx] = el
+                }}
                 type="button"
-                onClick={() => setActiveView(tab.key)}
-                className={`flex items-center gap-2 rounded-[9px] px-3 py-1.5 text-[13px] font-semibold transition-colors whitespace-nowrap ${
-                  isActive ? "bg-white text-gray-900 shadow-sm" : "text-gray-500 hover:text-gray-700"
+                onClick={() => handleTabChange(tab.key)}
+                className={`flex items-center gap-2 rounded-[9px] px-3 py-1.5 text-[13px] font-semibold whitespace-nowrap relative z-10 transition-colors duration-300 ${
+                  isActive
+                    ? "text-gray-900"
+                    : "text-gray-500 hover:text-gray-700"
                 }`}
               >
                 {tab.label}
-                <span className={`rounded-md px-1.5 py-0.5 text-[10px] font-bold transition-colors ${isActive ? "bg-gray-100 text-gray-700" : "text-gray-400"}`}>
+                <span className={`rounded-md px-1.5 py-0.5 text-[10px] font-bold transition-all duration-300 ${isActive ? "bg-gray-100 text-gray-700" : "text-gray-400"}`}>
                   {tab.count}
                 </span>
               </button>
             )
           })}
+
+          {/* Sliding white background */}
+          <div
+            className="absolute top-1 bottom-1 rounded-[9px] bg-white shadow-sm pointer-events-none transition-all duration-300 ease-out"
+            style={{
+              width: `${indicatorStyle.width}px`,
+              transform: indicatorStyle.transform,
+            }}
+          />
         </div>
 
         {/* Sort dropdown */}

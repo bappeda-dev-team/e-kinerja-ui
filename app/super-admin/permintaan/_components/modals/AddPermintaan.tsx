@@ -83,6 +83,7 @@ export default function AddPermintaan({ initialData, onClose, onSave }: Props) {
       kondisi_diharapkan: form.kondisi_diharapkan,
       tanggal_pesanan: format(tanggalPesanan, "yyyy-MM-dd"),
       tanggal_deadline: format(tanggalDeadline, "yyyy-MM-dd"),
+      is_archived: initialData?.is_archived ?? false,
     }
 
     onSave(cleanPayload, selectedFiles, initialData?.id)

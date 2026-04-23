@@ -53,6 +53,11 @@ function mapReportStatus(status?: string): Exclude<ReportStatus, "semua"> {
   return "menunggu"
 }
 
+function getVerifikasiStatus(item: LaporanKinerjaItem): string | undefined {
+  const verifikasiObj = Array.isArray(item.verifikasi) ? item.verifikasi[0] : item.verifikasi
+  return verifikasiObj?.status_verified?.toLowerCase()
+}
+
 // Compact Table Row Height = ~48px
 // Format Date for Table
 function formatDateTbl(iso?: string) {
@@ -183,7 +188,8 @@ export default function LaporanKinerjaClient() {
   }
 
   const handleSubmitVerifikasi = async (item: LaporanKinerjaItem) => {
-    if (item.is_submitted_to_verified === true) {
+    const verifikasiStatus = getVerifikasiStatus(item)
+    if (item.is_submitted_to_verified === true && verifikasiStatus !== "revision") {
       toast.error("Laporan ini sudah diajukan untuk verifikasi")
       return
     }
@@ -327,7 +333,7 @@ export default function LaporanKinerjaClient() {
                     const progressColor = statusType === "terverifikasi" ? "bg-emerald-500" : statusType === "revisi" ? "bg-red-500" : "bg-amber-500"
                     const isNearDeadline = item.permintaan?.tanggal_deadline && new Date(item.permintaan.tanggal_deadline).getTime() - new Date().getTime() < 7 * 24 * 60 * 60 * 1000 ? true : false
 
-                    const isAlreadySubmitted = item.is_submitted_to_verified === true
+                    const isAlreadySubmitted = item.is_submitted_to_verified === true && getVerifikasiStatus(item) !== "revision"
                     const isDisabled = submittingId === item.id || isAlreadySubmitted
 
                     return (

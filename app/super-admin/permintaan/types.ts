@@ -15,6 +15,7 @@ export interface PermintaanPembuat {
   id: string
   username: string
   full_name: string
+  profile_picture?: string
 }
 
 export interface PermintaanResponse {
@@ -34,6 +35,7 @@ export interface PermintaanResponse {
   lampiran?: string[]
 
   status?: string
+  is_archived?: boolean
 
   pembuat?: PermintaanPembuat
 
@@ -53,5 +55,6 @@ export interface PermintaanRequest {
 
   tanggal_pesanan?: string
   tanggal_deadline?: string
+  is_archived?: boolean
 
 }

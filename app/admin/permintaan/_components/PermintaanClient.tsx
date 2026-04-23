@@ -1,15 +1,19 @@
+// app/admin/permintaan/_components/PermintaanClient.tsx
+
 "use client"
 
-import { useEffect, useMemo, useState, Fragment } from "react"
+import * as React from "react"
+import { useState, useEffect } from "react"
 import { toast } from "sonner"
-import { Send, Loader2, ClipboardList } from "lucide-react"
-import {
-  Pagination, PaginationContent, PaginationEllipsis, PaginationItem,
-  PaginationLink, PaginationNext, PaginationPrevious,
-} from "@/components/ui/pagination"
 
-import DistribusiModal from "./modals/DistribusiModal"
+import AdminPermintaanTable, { type PermintaanRow } from "./AdminPermintaanTable"
+import PermintaanDetailModal from "@/app/super-admin/permintaan/_components/modals/PermintaanDetailModal"
 import AddPermintaan from "@/app/super-admin/permintaan/_components/modals/AddPermintaan"
+import DistribusiModal from "./modals/DistribusiModal"
+import { NetworkError } from "@/components/network-error"
+
+import type { PermintaanResponse, PermintaanRequest } from "@/app/super-admin/permintaan/types"
+import type { DistribusiResponse } from "@/app/super-admin/distribusi/types"
 import {
   getPermintaan,
   getDistribusi,
@@ -19,102 +23,69 @@ import {
   deletePermintaan,
   uploadPermintaanAttachment,
 } from "../services"
-import type { PermintaanResponse, DistribusiResponse } from "@/app/super-admin/distribusi/types"
-import type { PermintaanRequest, PermintaanResponse as PermintaanResponseFull } from "@/app/super-admin/permintaan/types"
-import { NetworkError } from "@/components/network-error"
 
-function formatTgl(dateStr?: string) {
-  if (!dateStr) return "-"
-  return new Date(dateStr).toLocaleDateString("id-ID", {
-    day: "numeric", month: "short", year: "numeric",
-  })
-}
-
-function PemdaAvatar({ nama, logo }: { nama: string; logo?: string }) {
-  if (logo) {
-    return (
-      <div className="w-8 h-8 rounded-lg bg-white border border-gray-100 flex items-center justify-center shrink-0 overflow-hidden shadow-sm">
-        <img src={logo} alt={nama} className="w-full h-full object-contain p-0.5" />
-      </div>
-    )
-  }
-  const initials = nama?.slice(0, 2).toUpperCase() ?? "PE"
+const HybridLoader = () => {
+  const [progress, setProgress] = React.useState(0)
+  React.useEffect(() => {
+    const interval = setInterval(() => {
+      setProgress((prev) => (prev >= 90 ? prev : prev + Math.floor(Math.random() * 10)))
+    }, 200)
+    return () => clearInterval(interval)
+  }, [])
   return (
-    <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-teal-400 to-blue-500 flex items-center justify-center shrink-0 shadow-sm">
-      <span className="text-[10px] font-bold text-white">{initials}</span>
+    <div className="flex flex-col items-center justify-center py-12 space-y-4 min-h-[400px]">
+      <div className="relative flex items-center justify-center">
+        <svg className="w-24 h-24 transform -rotate-90">
+          <circle cx="48" cy="48" r="40" stroke="currentColor" strokeWidth="6" fill="transparent" className="text-blue-100" />
+          <circle cx="48" cy="48" r="40" stroke="currentColor" strokeWidth="6" fill="transparent"
+            strokeDasharray={251.2} strokeDashoffset={251.2 - (251.2 * progress) / 100}
+            className="text-[#4880FF] transition-all duration-300 ease-out" strokeLinecap="round" />
+        </svg>
+        <div className="absolute flex flex-col items-center">
+          <span className="text-[#4880FF] animate-bounce text-xl">⏳</span>
+          <span className="text-[10px] font-bold text-[#4880FF]">{progress}%</span>
+        </div>
+      </div>
+      <div className="text-center font-sans">
+        <p className="text-sm font-semibold text-[#202224]">Sedang memproses...</p>
+        <p className="text-[11px] text-[#202224]/50">Mohon tunggu sebentar</p>
+      </div>
     </div>
   )
 }
 
-function StatusBadge({ sudahDistribusi }: { sudahDistribusi: boolean }) {
-  if (sudahDistribusi) {
-    return (
-      <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold bg-emerald-50 text-emerald-700 border border-emerald-100">
-        <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
-        Sudah Didistribusikan
-      </span>
-    )
-  }
-  return (
-    <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold bg-amber-50 text-amber-700 border border-amber-100">
-      <span className="w-1.5 h-1.5 rounded-full bg-amber-400" />
-      Belum Didistribusikan
-    </span>
-  )
-}
-
-interface PermintaanRow {
-  id: string
-  nama_pemda: string
-  logo_pemda?: string
-  aplikasi: string
-  menu: string
-  kondisi_awal: string
-  kondisi_diharapkan: string
-  deadline: string
-  sudahDistribusi: boolean
-  distribusiId?: string
-  raw: PermintaanResponseFull
-}
-
 export default function AdminPermintaanClient() {
-  const [rows, setRows] = useState<PermintaanRow[]>([])
+  const [data, setData] = useState<PermintaanRow[]>([])
   const [loading, setLoading] = useState(true)
   const [networkError, setNetworkError] = useState(false)
   const [fetchKey, setFetchKey] = useState(0)
+  const [actionLoading, setActionLoading] = useState(false)
+  const [editItem, setEditItem] = useState<PermintaanRow | null>(null)
+  const [detailItem, setDetailItem] = useState<PermintaanRow | null>(null)
   const [distribusiTarget, setDistribusiTarget] = useState<PermintaanRow | null>(null)
-  const [editItem, setEditItem] = useState<PermintaanResponseFull | null>(null)
-  const [submitLoading, setSubmitLoading] = useState(false)
-  const [currentPage, setCurrentPage] = useState(1)
-  const rowsPerPage = 10
 
   const fetchAll = async () => {
     try {
       setLoading(true)
       setNetworkError(false)
       const [permRes, distRes] = await Promise.all([getPermintaan(), getDistribusi()])
+
       if (permRes.status === 0 || distRes.status === 0) {
         setNetworkError(true)
         return
       }
 
-      const distribusiMap = new Map<string, string>()
+      const distribusiMap = new Map<string, DistribusiResponse>()
       ;(distRes.data?.data ?? []).forEach((d: DistribusiResponse) => {
-        if (d.permintaan?.id) distribusiMap.set(d.permintaan.id, d.id)
+        if (d.permintaan?.id) distribusiMap.set(d.permintaan.id, d)
       })
 
       const mapped: PermintaanRow[] = (permRes.data?.data ?? []).map((p: PermintaanResponse) => ({
-        id: p.id,
-        nama_pemda: typeof p.pemda === "object" ? p.pemda?.name ?? "-" : (p.pemda as any) ?? "-",
-        logo_pemda: typeof p.pemda === "object" ? p.pemda?.logo : undefined,
-        aplikasi: typeof p.aplikasi === "object" ? p.aplikasi?.name ?? "-" : (p.aplikasi as any) ?? "-",
-        menu: p.menu ?? "-",
-        kondisi_awal: p.kondisi_awal ?? "-",
-        kondisi_diharapkan: p.kondisi_diharapkan ?? "-",
-        deadline: p.tanggal_deadline ?? "",
+        ...p,
         sudahDistribusi: distribusiMap.has(p.id),
-        distribusiId: distribusiMap.get(p.id),
-        raw: p as unknown as PermintaanResponseFull,
+        distribusiId: distribusiMap.get(p.id)?.id,
+        programmerIds: (distribusiMap.get(p.id)?.pelaksana ?? []).map((pelaksana) => pelaksana.id),
+        komentarDistribusi: distribusiMap.get(p.id)?.komentar ?? "",
       }))
 
       mapped.sort((a, b) => {
@@ -122,20 +93,20 @@ export default function AdminPermintaanClient() {
         return 0
       })
 
-      setRows(mapped)
+      setData(mapped)
     } catch {
       toast.error("Gagal memuat data permintaan")
     } finally {
-      setLoading(false)
+      setTimeout(() => setLoading(false), 500)
     }
   }
 
   useEffect(() => { fetchAll() }, [fetchKey])
 
-  const handleEditPermintaan = async (val: PermintaanRequest, files: File[], id?: string) => {
+  const handleEdit = async (val: PermintaanRequest, files: File[], id?: string) => {
     if (!id) return
     try {
-      setSubmitLoading(true)
+      setActionLoading(true)
       const res = await updatePermintaan(id, val)
       if (res.status === 200) {
         if (files.length > 0) {
@@ -145,12 +116,13 @@ export default function AdminPermintaanClient() {
         setEditItem(null)
         fetchAll()
       }
-    } catch (err: any) {
-      toast.error(err.message || "Gagal memperbarui permintaan")
-    } finally { setSubmitLoading(false) }
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : "Gagal memperbarui data"
+      toast.error(message)
+    } finally { setActionLoading(false) }
   }
 
-  const handleDeletePermintaan = async (id: string) => {
+  const handleDelete = async (id: string) => {
     try {
       await deletePermintaan(id)
       toast.success("Permintaan berhasil dihapus")
@@ -161,7 +133,7 @@ export default function AdminPermintaanClient() {
   const handleDistribusi = async (val: { programmer_ids: string[]; komentar: string }) => {
     if (!distribusiTarget) return
     try {
-      setSubmitLoading(true)
+      setActionLoading(true)
       let res
       if (distribusiTarget.distribusiId) {
         res = await updateDistribusi(distribusiTarget.distribusiId, {
@@ -176,46 +148,26 @@ export default function AdminPermintaanClient() {
           programmer_ids: val.programmer_ids,
         })
       }
-
       if (res.status === 200 || res.status === 201) {
-        toast.success(
-          distribusiTarget.distribusiId
-            ? "Distribusi berhasil diperbarui"
-            : "Distribusi pekerjaan berhasil dibuat"
-        )
+        toast.success(distribusiTarget.distribusiId ? "Distribusi berhasil diperbarui" : "Distribusi pekerjaan berhasil dibuat")
         setDistribusiTarget(null)
         fetchAll()
       } else {
         throw new Error("Gagal menyimpan distribusi")
       }
-    } catch (err: any) {
-      toast.error(err.message || "Gagal menyimpan distribusi")
-    } finally {
-      setSubmitLoading(false)
-    }
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : "Gagal menyimpan distribusi"
+      toast.error(message)
+    } finally { setActionLoading(false) }
   }
-
-  const totalPages = Math.max(1, Math.ceil(rows.length / rowsPerPage))
-
-  const paginatedRows = useMemo(() => {
-    const start = (currentPage - 1) * rowsPerPage
-    return rows.slice(start, start + rowsPerPage)
-  }, [rows, currentPage])
-
-  const visiblePages = useMemo(() => {
-    if (totalPages <= 5) return Array.from({ length: totalPages }, (_, i) => i + 1)
-    if (currentPage <= 3) return [1, 2, 3, 4, totalPages]
-    if (currentPage >= totalPages - 2) return [1, totalPages - 3, totalPages - 2, totalPages - 1, totalPages]
-    return [1, currentPage - 1, currentPage, currentPage + 1, totalPages]
-  }, [currentPage, totalPages])
 
   if (networkError) {
     return <NetworkError onRetry={() => setFetchKey((k) => k + 1)} />
   }
 
   return (
-    <div className="space-y-6">
-      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+    <div className="space-y-6 px-3 sm:px-4">
+      <div className="mb-4 flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
         <div>
           <h2 className="font-nunito text-[2.1rem] leading-tight font-bold text-[#202224] sm:text-3xl">
             Permintaan Klien
@@ -224,140 +176,48 @@ export default function AdminPermintaanClient() {
         </div>
       </div>
 
-      <div className="bg-white rounded-2xl border border-gray-200 shadow-[6px_6px_54px_rgba(0,0,0,0.05)] overflow-hidden">
-        {loading ? (
-          <div className="flex items-center justify-center py-24">
-            <Loader2 className="size-8 animate-spin text-[#4880FF]" />
-          </div>
-        ) : rows.length === 0 ? (
-          <div className="flex flex-col items-center justify-center py-24 text-sm text-[#202224]/40">
-            <ClipboardList className="size-10 text-gray-200 mb-3" />
-            Belum ada data permintaan.
-          </div>
-        ) : (
-          <>
-            <div className="overflow-x-auto">
-              <table className="w-full text-sm">
-                <thead>
-                  <tr className="bg-gray-50 border-b border-gray-200">
-                    <th className="text-left px-4 py-3 text-xs uppercase font-semibold text-gray-500 w-8">No.</th>
-                    <th className="text-left px-4 py-3 text-xs uppercase font-semibold text-gray-500">Pemda</th>
-                    <th className="text-left px-4 py-3 text-xs uppercase font-semibold text-gray-500">Aplikasi</th>
-                    <th className="text-left px-4 py-3 text-xs uppercase font-semibold text-gray-500">Menu</th>
-                    <th className="text-left px-4 py-3 text-xs uppercase font-semibold text-gray-500">Deadline</th>
-                    <th className="text-center px-4 py-3 text-xs uppercase font-semibold text-gray-500">Status</th>
-                    <th className="text-center px-4 py-3 text-xs uppercase font-semibold text-gray-500 w-[220px]">Aksi</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {paginatedRows.map((row, i) => (
-                    <tr key={row.id} className="border-b border-gray-100 hover:bg-gray-50/60 transition-colors">
-                      <td className="px-4 py-3.5 text-xs text-[#202224]/40">
-                        {(currentPage - 1) * rowsPerPage + i + 1}
-                      </td>
-                      <td className="px-4 py-3.5">
-                        <div className="flex items-center gap-2.5">
-                          <PemdaAvatar nama={row.nama_pemda} logo={row.logo_pemda} />
-                          <span className="font-semibold text-xs text-[#202224]">{row.nama_pemda}</span>
-                        </div>
-                      </td>
-                      <td className="px-4 py-3.5 text-xs text-[#797A7C]">{row.aplikasi}</td>
-                      <td className="px-4 py-3.5 text-xs text-[#797A7C] max-w-[200px]">
-                        <span className="line-clamp-2">{row.menu}</span>
-                      </td>
-                      <td className="px-4 py-3.5 text-xs font-semibold text-red-500">
-                        {formatTgl(row.deadline)}
-                      </td>
-                      <td className="px-4 py-3.5 text-center">
-                        <StatusBadge sudahDistribusi={row.sudahDistribusi} />
-                      </td>
-                      <td className="px-4 py-3.5">
-                        <div className="flex items-center justify-center gap-2">
-                          <button
-                            onClick={() => setEditItem(row.raw)}
-                            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold transition-all active:scale-95 bg-white border border-gray-200 text-gray-600 hover:border-gray-400 hover:text-gray-800"
-                          >
-                            Edit
-                          </button>
-                          <button
-                            onClick={() => handleDeletePermintaan(row.id)}
-                            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold transition-all active:scale-95 bg-white border border-red-100 text-red-500 hover:bg-red-50"
-                          >
-                            Hapus
-                          </button>
-                          <button
-                            onClick={() => setDistribusiTarget(row)}
-                            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold transition-all active:scale-95 bg-[#4880FF] text-white hover:bg-blue-600 shadow-[0_2px_8px_rgba(72,128,255,0.3)]"
-                          >
-                            <Send className="size-3" />
-                            {row.sudahDistribusi ? "Edit Distribusi" : "Distribusikan"}
-                          </button>
-                        </div>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-
-            <div className="flex flex-col gap-3 border-t border-gray-200 px-4 py-4 md:flex-row md:items-center md:justify-between">
-              <p className="text-sm text-[#202224]/60">
-                Menampilkan {(currentPage - 1) * rowsPerPage + 1}–{Math.min(currentPage * rowsPerPage, rows.length)} dari {rows.length} data
-              </p>
-              <Pagination className="mx-0 w-auto justify-start md:justify-end">
-                <PaginationContent>
-                  <PaginationItem>
-                    <PaginationPrevious
-                      href="#"
-                      onClick={(e) => { e.preventDefault(); if (currentPage > 1) setCurrentPage(currentPage - 1) }}
-                      className={currentPage === 1 ? "pointer-events-none opacity-50" : ""}
-                    />
-                  </PaginationItem>
-                  {visiblePages.map((page, index) => {
-                    const prev = visiblePages[index - 1]
-                    return (
-                      <Fragment key={page}>
-                        {prev && page - prev > 1 && <PaginationItem><PaginationEllipsis /></PaginationItem>}
-                        <PaginationItem>
-                          <PaginationLink
-                            href="#"
-                            isActive={currentPage === page}
-                            onClick={(e) => { e.preventDefault(); setCurrentPage(page) }}
-                          >
-                            {page}
-                          </PaginationLink>
-                        </PaginationItem>
-                      </Fragment>
-                    )
-                  })}
-                  <PaginationItem>
-                    <PaginationNext
-                      href="#"
-                      onClick={(e) => { e.preventDefault(); if (currentPage < totalPages) setCurrentPage(currentPage + 1) }}
-                      className={currentPage === totalPages ? "pointer-events-none opacity-50" : ""}
-                    />
-                  </PaginationItem>
-                </PaginationContent>
-              </Pagination>
-            </div>
-          </>
-        )}
-      </div>
-
-      {distribusiTarget && (
-        <DistribusiModal
-          item={distribusiTarget}
-          onClose={() => setDistribusiTarget(null)}
-          onSave={handleDistribusi}
-          loading={submitLoading}
+      {(loading || actionLoading) ? <HybridLoader /> : (
+        <AdminPermintaanTable
+          data={data}
+          onEdit={setEditItem}
+          onDelete={handleDelete}
+          onCardClick={setDetailItem}
+          onDistribusi={(item) => { setDetailItem(null); setDistribusiTarget(item) }}
         />
       )}
+
+      <PermintaanDetailModal
+        item={detailItem}
+        onClose={() => setDetailItem(null)}
+        onEdit={(item) => { setDetailItem(null); setEditItem(item) }}
+        onDelete={(id) => { setDetailItem(null); handleDelete(id) }}
+        onDistribusi={(item) => {
+          setDetailItem(null)
+          setDistribusiTarget(item as PermintaanRow)
+        }}
+      />
 
       {editItem && (
         <AddPermintaan
           initialData={editItem}
           onClose={() => setEditItem(null)}
-          onSave={handleEditPermintaan}
+          onSave={handleEdit}
+        />
+      )}
+
+      {distribusiTarget && (
+        <DistribusiModal
+          item={{
+            id: distribusiTarget.id,
+            nama_pemda: typeof distribusiTarget.pemda === "object" ? distribusiTarget.pemda?.name ?? "-" : distribusiTarget.pemda ?? "-",
+            aplikasi: typeof distribusiTarget.aplikasi === "object" ? distribusiTarget.aplikasi?.name ?? "-" : distribusiTarget.aplikasi ?? "-",
+            menu: distribusiTarget.menu ?? "-",
+            programmer_ids: distribusiTarget.programmerIds ?? [],
+            komentar: distribusiTarget.komentarDistribusi ?? "",
+          }}
+          onClose={() => setDistribusiTarget(null)}
+          onSave={handleDistribusi}
+          loading={actionLoading}
         />
       )}
     </div>

@@ -9,6 +9,7 @@ import { toast } from "sonner"
 import DistribusiBoard from "./DistribusiBoard"
 import KomentarModal from "@/app/super-admin/distribusi/_components/modals/KomentarModal"
 import EditDistribusiModal from "./modals/EditDistribusiModal"
+import DistribusiDetailModal from "@/app/super-admin/distribusi/_components/modals/DistribusiDetailModal"
 import { NetworkError } from "@/components/network-error"
 
 import {
@@ -62,6 +63,7 @@ export interface DistribusiItem {
   admin: string
   programmer: { id: string; nama: string; pelaksana_id: string }[]
   deadline: string
+  created_at: string
   status: "didistribusikan" | "pending" | "revision" | "approved"
   jumlah_komentar?: number
   komentar?: string
@@ -88,6 +90,7 @@ export default function AdminDistribusiClient() {
   const [submitLoading, setSubmitLoading] = useState(false)
   const [selectedKomentar, setSelectedKomentar] = useState<string | null>(null)
   const [editTarget, setEditTarget] = useState<DistribusiItem | null>(null)
+  const [detailItem, setDetailItem] = useState<DistribusiItem | null>(null)
 
   const fetchAll = async () => {
     try {
@@ -125,6 +128,7 @@ export default function AdminDistribusiClient() {
           awal: item.permintaan?.kondisi_awal ?? "-",
           target: item.permintaan?.kondisi_diharapkan ?? "-",
           deadline: item.permintaan?.tanggal_deadline ?? "",
+          created_at: item.created_at ?? "",
           admin: item.admin?.full_name ?? "-",
           programmer: programmerList,
           status: mapDistribusiStatus(item),
@@ -203,6 +207,7 @@ export default function AdminDistribusiClient() {
           onDelete={handleDelete}
           onShowKomentar={setSelectedKomentar}
           onEdit={setEditTarget}
+          onRowClick={setDetailItem}
         />
       )}
 
@@ -222,6 +227,15 @@ export default function AdminDistribusiClient() {
           loading={submitLoading}
         />
       )}
+
+      <DistribusiDetailModal
+        item={detailItem}
+        onClose={() => setDetailItem(null)}
+        onEdit={(item) => { setDetailItem(null); setEditTarget(item) }}
+        onDelete={(id) => { setDetailItem(null); handleDelete(id) }}
+        onShowKomentar={(text) => { setDetailItem(null); setSelectedKomentar(text) }}
+        onSelesai={(id) => { setDetailItem(null); handleSelesai(id) }}
+      />
     </div>
   )
 }

@@ -11,6 +11,7 @@ export interface PenugasanPermintaan {
 
 export interface PenugasanDistribusi {
   id?: string
+  permintaan_id?: string
   pemda?: string | PenugasanNamedEntity
   aplikasi?: string | PenugasanNamedEntity
   komentar?: string
@@ -36,6 +37,7 @@ export interface PenugasanResponse {
 export interface PenugasanItem {
   id: string
   distribusi_id: string
+  permintaan_id: string
   nama_pemda: string
   aplikasi: string
   logo_pemda: string

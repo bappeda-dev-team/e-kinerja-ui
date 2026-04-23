@@ -17,15 +17,26 @@ import {
 import type { DistribusiItem } from "./DistribusiClient"
 import { getStatusMeta, formatTgl } from "@/app/super-admin/distribusi/_components/DistribusiUtils"
 
+function initials(nama: string) {
+  return nama.split(" ").slice(0, 2).map((w) => w[0]).join("").toUpperCase()
+}
+
+function stringToColor(str: string) {
+  let hash = 0
+  for (let i = 0; i < str.length; i++) hash = str.charCodeAt(i) + ((hash << 5) - hash)
+  return `hsl(${Math.abs(hash) % 360}, 55%, 48%)`
+}
+
 interface Props {
   distribusi: DistribusiItem[]
   onSelesai: (id: string) => void
   onDelete: (id: string) => void
   onShowKomentar: (text: string) => void
   onEdit: (item: DistribusiItem) => void
+  onRowClick: (item: DistribusiItem) => void
 }
 
-export function DistribusiTable({ distribusi, onSelesai, onDelete, onShowKomentar, onEdit }: Props) {
+export function DistribusiTable({ distribusi, onSelesai, onDelete, onShowKomentar, onEdit, onRowClick }: Props) {
   const [currentPage, setCurrentPage] = useState(1)
   const rowsPerPage = 7
 
@@ -76,7 +87,11 @@ export function DistribusiTable({ distribusi, onSelesai, onDelete, onShowKomenta
           ) : paginatedRows.map((row, i) => {
             const statusMeta = getStatusMeta(row.status)
             return (
-              <TableRow key={row.id} className="border-b border-gray-200 hover:bg-gray-50 transition-colors">
+              <TableRow
+                key={row.id}
+                onClick={() => onRowClick(row)}
+                className="border-b border-gray-200 hover:bg-gray-50 transition-colors cursor-pointer"
+              >
                 <TableCell className="px-4 py-3 text-xs text-[#202224]/40">{(currentPage - 1) * rowsPerPage + i + 1}</TableCell>
                 <TableCell className="px-4 py-3">
                   <span className={`px-2 py-0.5 rounded-full text-xs font-semibold ${statusMeta.badgeClass}`}>
@@ -90,7 +105,7 @@ export function DistribusiTable({ distribusi, onSelesai, onDelete, onShowKomenta
                         <img src={row.logo_pemda} alt={row.nama_pemda} className="w-full h-full object-contain p-0.5" />
                       </div>
                     ) : (
-                      <div className="w-7 h-7 rounded-lg bg-gradient-to-br from-teal-400 to-blue-500 flex items-center justify-center shrink-0">
+                      <div className="w-7 h-7 rounded-lg bg-linear-to-br from-teal-400 to-blue-500 flex items-center justify-center shrink-0">
                         <span className="text-[10px] font-bold text-white">{row.nama_pemda.slice(0, 2).toUpperCase()}</span>
                       </div>
                     )}
@@ -101,18 +116,61 @@ export function DistribusiTable({ distribusi, onSelesai, onDelete, onShowKomenta
                 <TableCell className="px-4 py-3 text-xs text-[#797A7C] max-w-[160px]">
                   <span className="line-clamp-2">{row.menu}</span>
                 </TableCell>
-                <TableCell className="px-4 py-3 text-xs text-[#797A7C]">
-                  {row.programmer.length === 0 ? "-" : row.programmer.map((p) => p.nama).join(", ")}
+                <TableCell className="px-4 py-3">
+                  {row.programmer.length === 0 ? (
+                    <span className="text-xs text-[#797A7C]">-</span>
+                  ) : row.programmer.length === 1 ? (
+                    <div className="flex items-center gap-2">
+                      <div className="w-7 h-7 rounded-full flex items-center justify-center text-[10px] font-bold text-white shrink-0" style={{ background: stringToColor(row.programmer[0].nama) }}>
+                        {initials(row.programmer[0].nama)}
+                      </div>
+                      <span className="text-xs font-medium text-[#202224]">{row.programmer[0].nama}</span>
+                    </div>
+                  ) : (
+                    <div className="flex items-center">
+                      {row.programmer.slice(0, 3).map((p, i) => (
+                        <div
+                          key={p.id}
+                          title={p.nama}
+                          className="w-7 h-7 rounded-full flex items-center justify-center text-[10px] font-bold text-white border-2 border-white shrink-0"
+                          style={{ background: stringToColor(p.nama), marginLeft: i === 0 ? 0 : -8 }}
+                        >
+                          {initials(p.nama)}
+                        </div>
+                      ))}
+                      {row.programmer.length > 3 && (
+                        <div className="w-7 h-7 rounded-full bg-gray-200 flex items-center justify-center text-[10px] font-bold text-gray-600 border-2 border-white shrink-0" style={{ marginLeft: -8 }}>
+                          +{row.programmer.length - 3}
+                        </div>
+                      )}
+                    </div>
+                  )}
                 </TableCell>
                 <TableCell className="px-4 py-3 text-xs text-[#797A7C]">
                   {row.komentar ? (
-                    <button onClick={() => onShowKomentar(row.komentar!)} className="font-medium text-blue-600 hover:underline">
+                    <button
+                      onClick={(e) => { e.stopPropagation(); onShowKomentar(row.komentar!) }}
+                      className="font-medium text-blue-600 hover:underline"
+                    >
                       Lihat komentar
                     </button>
                   ) : "-"}
                 </TableCell>
-                <TableCell className="px-4 py-3 text-xs font-semibold text-red-500">{formatTgl(row.deadline)}</TableCell>
                 <TableCell className="px-4 py-3">
+                  {row.deadline ? (() => {
+                    const daysLeft = Math.ceil((new Date(row.deadline).getTime() - Date.now()) / 86400000)
+                    const color = daysLeft < 3 ? "text-red-500" : daysLeft < 6 ? "text-amber-500" : "text-[#202224]"
+                    return (
+                      <div className={`text-xs font-semibold leading-tight ${color}`}>
+                        <div>{formatTgl(row.deadline)}</div>
+                        <div className="font-normal text-[11px] mt-0.5 text-gray-400">
+                          {daysLeft > 0 ? `${daysLeft} hari lagi` : daysLeft === 0 ? "Hari ini" : "Lewat deadline"}
+                        </div>
+                      </div>
+                    )
+                  })() : "-"}
+                </TableCell>
+                <TableCell className="px-4 py-3" onClick={(e) => e.stopPropagation()}>
                   <DropdownMenu>
                     <DropdownMenuTrigger asChild>
                       <button className="rounded p-1 hover:bg-gray-100 transition">

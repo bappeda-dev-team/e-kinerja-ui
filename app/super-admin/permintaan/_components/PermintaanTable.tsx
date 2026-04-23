@@ -4,7 +4,7 @@
 
 import * as React from "react"
 import { useState, useMemo, Fragment } from "react"
-import { MoreVertical, Pencil, Trash2, X, FileText } from "lucide-react"
+import { MoreVertical, Pencil, Trash2, X, FileText, Archive } from "lucide-react"
 import {
   DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
@@ -28,6 +28,7 @@ interface Props {
   showTable: boolean
   onEdit: (item: PermintaanResponse) => void
   onDelete: (id: string) => void
+  onArchive: (item: PermintaanResponse) => void
   onCardClick?: (item: PermintaanResponse) => void
 }
 
@@ -60,6 +61,16 @@ function InlineBadge({ label, color }: { label: string; color: "orange" | "green
   return (
     <span className={`inline-flex items-center px-2 py-0.5 rounded text-xs font-semibold shrink-0 ${styles[color]}`}>
       {label}
+    </span>
+  )
+}
+
+function ArchiveBadge({ isArchived }: { isArchived?: boolean }) {
+  if (!isArchived) return null
+
+  return (
+    <span className="inline-flex items-center rounded-full border border-slate-200 bg-slate-100 px-2 py-0.5 text-[11px] font-semibold text-slate-600">
+      Diarsipkan
     </span>
   )
 }
@@ -131,11 +142,12 @@ function LampiranSection({ lampiran }: { lampiran: string[] }) {
 }
 
 function PermintaanCard({
-  item, onEdit, onDelete, onClick,
+  item, onEdit, onDelete, onArchive, onClick,
 }: {
   item: PermintaanResponse
   onEdit: (item: PermintaanResponse) => void
   onDelete: (id: string) => void
+  onArchive: (item: PermintaanResponse) => void
   onClick: () => void
 }) {
   return (
@@ -152,6 +164,9 @@ function PermintaanCard({
             <span className="mx-1">·</span>
             <span>{item.menu}</span>
           </p>
+          <div className="mt-2">
+            <ArchiveBadge isArchived={item.is_archived} />
+          </div>
         </div>
         <div onClick={(e) => e.stopPropagation()}>
           <DropdownMenu>
@@ -163,6 +178,9 @@ function PermintaanCard({
             <DropdownMenuContent align="end" className="w-32">
               <DropdownMenuItem onClick={() => onEdit(item)}>
                 <Pencil className="size-3.5 mr-2" /> Edit
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => onArchive(item)}>
+                <Archive className="size-3.5 mr-2" /> {item.is_archived ? "Batal Arsip" : "Arsipkan"}
               </DropdownMenuItem>
               <DropdownMenuItem onClick={() => onDelete(item.id)} className="text-red-500">
                 <Trash2 className="size-3.5 mr-2" /> Hapus
@@ -199,7 +217,7 @@ function PermintaanCard({
   )
 }
 
-export default function PermintaanTable({ data, showTable, onEdit, onDelete, onCardClick }: Props) {
+export default function PermintaanTable({ data, showTable, onEdit, onDelete, onArchive, onCardClick }: Props) {
   const [deleteId, setDeleteId] = useState<string | null>(null)
   const [currentPage, setCurrentPage] = useState(1)
   const rowsPerPage = showTable ? 7 : 6
@@ -257,8 +275,11 @@ export default function PermintaanTable({ data, showTable, onEdit, onDelete, onC
                     <TableCell className="px-4 py-3 text-xs text-[#797A7C] max-w-xs truncate">{item.kondisi_awal || "-"}</TableCell>
                     <TableCell className="px-4 py-3 text-xs text-[#797A7C] max-w-xs truncate">{item.kondisi_diharapkan || "-"}</TableCell>
                     <TableCell className="px-4 py-3">
-                      <div className="text-xs font-semibold text-[#202224]">
-                        {formatTgl(item.tanggal_deadline || "")}
+                      <div className="space-y-1">
+                        <div className="text-xs font-semibold text-[#202224]">
+                          {formatTgl(item.tanggal_deadline || "")}
+                        </div>
+                        <ArchiveBadge isArchived={item.is_archived} />
                       </div>
                     </TableCell>
                     <TableCell className="px-4 py-3" onClick={(e) => e.stopPropagation()}>
@@ -271,6 +292,9 @@ export default function PermintaanTable({ data, showTable, onEdit, onDelete, onC
                         <DropdownMenuContent align="end" className="w-32">
                           <DropdownMenuItem onClick={() => onEdit(item)}>
                             <Pencil className="size-3.5 mr-2" /> Edit
+                          </DropdownMenuItem>
+                          <DropdownMenuItem onClick={() => onArchive(item)}>
+                            <Archive className="size-3.5 mr-2" /> {item.is_archived ? "Batal Arsip" : "Arsipkan"}
                           </DropdownMenuItem>
                           <DropdownMenuItem onClick={() => setDeleteId(item.id)} className="text-red-500">
                             <Trash2 className="size-3.5 mr-2" /> Hapus
@@ -371,6 +395,7 @@ export default function PermintaanTable({ data, showTable, onEdit, onDelete, onC
               item={item}
               onEdit={onEdit}
               onDelete={(id) => setDeleteId(id)}
+              onArchive={onArchive}
               onClick={() => onCardClick?.(item)}
             />
           ))}

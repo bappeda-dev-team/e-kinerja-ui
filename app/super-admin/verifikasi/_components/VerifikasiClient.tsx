@@ -8,7 +8,7 @@ import { toast } from "sonner"
 import VerifikasiBoard from "./VerifikasiBoard"
 import VerifikasiModal from "./modals/VerifikasiModal"
 import { getVerifikasi, updateVerifikasi } from "../services"
-import type { VerifikasiRequest } from "../types"
+import type { VerifikasiRequest, VerifikasiResponse } from "../types"
 
 const HybridLoader = () => {
   const [progress, setProgress] = React.useState(0)
@@ -43,6 +43,8 @@ const HybridLoader = () => {
 export interface VerifikasiItem {
   id: string
   id_laporan: string
+  id_permintaan: string
+  programmer_id: string
   // Permintaan
   pemda_name: string
   pemda_logo?: string
@@ -75,16 +77,11 @@ export default function VerifikasiClient() {
     try {
       setLoading(true)
       const verifikasiRes = await getVerifikasi()
-      const rawData = verifikasiRes.data?.data || []
+      const rawData: VerifikasiResponse[] = verifikasiRes.data?.data || []
 
-      const mapped: VerifikasiItem[] = rawData.map((item: any) => {
-        const laporan = item.laporan || {}
-        const permintaan = item.permintaan || {}
-        const pemda = permintaan.pemda || {}
-        const aplikasi = permintaan.aplikasi || {}
-
-        const programmer = laporan.programmer?.full_name || laporan.programmer?.username || "Belum ada programmer"
-        const laporanId = laporan.id || item.id
+      const mapped: VerifikasiItem[] = rawData.map((item: VerifikasiResponse) => {
+        const programmer = item.laporan?.programmer?.full_name || item.laporan?.programmer?.username || "Belum ada programmer"
+        const laporanId = item.laporan?.id || item.id
 
         let uiStatus: "menunggu" | "revisi" | "terverifikasi" = "menunggu"
         if (item.status_verified === "approved") uiStatus = "terverifikasi"
@@ -93,19 +90,21 @@ export default function VerifikasiClient() {
         return {
           id: item.id,
           id_laporan: laporanId,
+          id_permintaan: item.permintaan?.id || "",
+          programmer_id: item.laporan?.programmer?.id || "",
           // Permintaan
-          pemda_name: pemda.name || "-",
-          pemda_logo: pemda.logo || "",
-          aplikasi_name: aplikasi.name || "",
-          aplikasi_logo: aplikasi.logo || "",
-          menu: permintaan.menu || "",
-          tanggal_deadline: permintaan.tanggal_deadline || "",
+          pemda_name: item.permintaan?.pemda?.name || "-",
+          pemda_logo: item.permintaan?.pemda?.logo || "",
+          aplikasi_name: item.permintaan?.aplikasi?.name || "",
+          aplikasi_logo: item.permintaan?.aplikasi?.logo || "",
+          menu: item.permintaan?.menu || "",
+          tanggal_deadline: item.permintaan?.tanggal_deadline || "",
           // Laporan
-          progres_deskripsi: laporan.laporan_progress || "",
-          laporan_status: laporan.status || "",
+          progres_deskripsi: item.laporan?.laporan_progress || "",
+          laporan_status: item.laporan?.status || "",
           // Programmer
           programmer,
-          programmer_avatar: laporan.programmer?.profile_picture || "",
+          programmer_avatar: item.laporan?.programmer?.profile_picture || "",
           // Verifikator
           verifikator: item.verifikator?.full_name || "",
           verifikator_avatar: item.verifikator?.profile_picture || "",
@@ -117,7 +116,7 @@ export default function VerifikasiClient() {
         }
       })
       setData(mapped)
-    } catch (err: any) {
+    } catch {
       toast.error("Gagal memuat data")
     } finally {
       setTimeout(() => setLoading(false), 500)
@@ -138,12 +137,16 @@ export default function VerifikasiClient() {
         komentar: updated.komentar ?? "",
       }
 
-      await updateVerifikasi(updated.id, payload)
+      const response = await updateVerifikasi(updated.id, payload)
+      if (response.status < 200 || response.status >= 300) {
+        throw new Error(response.data?.message || "Gagal memperbarui verifikasi")
+      }
+
       await fetchData()
       toast.success("Berhasil diupdate!")
       setSelected(null)
-    } catch (err: any) {
-      toast.error("Gagal menyimpan!")
+    } catch (err: unknown) {
+      toast.error(err instanceof Error ? err.message : "Gagal menyimpan!")
     }
   }
 
@@ -155,7 +158,7 @@ export default function VerifikasiClient() {
 
       {loading ? <HybridLoader /> : <VerifikasiBoard data={data} onVerify={setSelected} />}
 
-      {selected && <VerifikasiModal data={selected} onClose={() => setSelected(null)} onSave={handleSave} />}
+      {selected && <VerifikasiModal key={selected.id} data={selected} onClose={() => setSelected(null)} onSave={handleSave} />}
     </div>
   )
 }

@@ -3,19 +3,20 @@
 'use client'
 
 import * as React from "react"
+import { Fragment } from "react"
 import { toast } from "sonner"
 import { MoreHorizontal, Pencil, Trash2, AppWindow } from "lucide-react"
 import {
   DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 import {
-  Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
-} from "@/components/ui/select"
-import {
   AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
   AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogDescription,
 } from "@/components/ui/alert-dialog"
-import { Button } from "@/components/ui/button"
+import {
+  Pagination, PaginationContent, PaginationEllipsis, PaginationItem,
+  PaginationLink, PaginationNext, PaginationPrevious,
+} from "@/components/ui/pagination"
 import type { MasterAplikasiItem } from "./MasterAplikasiClient"
 
 interface Props {
@@ -30,11 +31,10 @@ function formatTanggal(dateStr: string) {
   return new Date(dateStr).toLocaleDateString("id-ID", { day: "numeric", month: "short", year: "numeric" })
 }
 
-const PAGE_SIZE_OPTIONS = [7, 14, 21]
+const PAGE_SIZE = 7
 
 export default function MasterAplikasiTable({ data, showTable, onEdit, onDelete }: Props) {
-  const [pageSize, setPageSize] = React.useState(7)
-  const [pageIndex, setPageIndex] = React.useState(0)
+  const [currentPage, setCurrentPage] = React.useState(1)
   const [deleteId, setDeleteId] = React.useState<string | null>(null)
 
   const handleOpenLink = (link?: string) => {
@@ -45,14 +45,18 @@ export default function MasterAplikasiTable({ data, showTable, onEdit, onDelete 
     }
   }
 
-  const totalPages = Math.max(1, Math.ceil(data.length / pageSize))
+  const totalPages = Math.max(1, Math.ceil(data.length / PAGE_SIZE))
   const paginatedData = React.useMemo(() => {
-    const start = pageIndex * pageSize
-    return data.slice(start, start + pageSize)
-  }, [data, pageIndex, pageSize])
+    const start = (currentPage - 1) * PAGE_SIZE
+    return data.slice(start, start + PAGE_SIZE)
+  }, [data, currentPage])
 
-  const start = pageIndex * pageSize + 1
-  const end = Math.min((pageIndex + 1) * pageSize, data.length)
+  const visiblePages = React.useMemo(() => {
+    if (totalPages <= 5) return Array.from({ length: totalPages }, (_, i) => i + 1)
+    if (currentPage <= 3) return [1, 2, 3, 4, totalPages]
+    if (currentPage >= totalPages - 2) return [1, totalPages - 3, totalPages - 2, totalPages - 1, totalPages]
+    return [1, currentPage - 1, currentPage, currentPage + 1, totalPages]
+  }, [currentPage, totalPages])
 
   return (
     <div className="space-y-6">
@@ -87,7 +91,7 @@ export default function MasterAplikasiTable({ data, showTable, onEdit, onDelete 
                     onClick={() => handleOpenLink(item.link)}
                     className="border-b border-gray-200 hover:bg-gray-50 transition-colors cursor-pointer"
                   >
-                    <td className="px-4 py-3 text-xs text-[#202224]/50 font-medium">{start + i}</td>
+                    <td className="px-4 py-3 text-xs text-[#202224]/50 font-medium">{(currentPage - 1) * PAGE_SIZE + i + 1}</td>
                     <td className="px-4 py-3">
                       <div className="w-10 h-10 rounded-full overflow-hidden bg-white border border-gray-200 flex items-center justify-center shrink-0 p-1.5 shadow-sm">
                         {item.logo ? (
@@ -171,33 +175,37 @@ export default function MasterAplikasiTable({ data, showTable, onEdit, onDelete 
         </div>
       )}
 
-      {/* Pagination dipindahkan ke bawah dan berlaku untuk kedua tampilan */}
-      {data.length > 0 && (
-        <div className="flex items-center justify-between text-sm text-[#313131] mt-4">
-          <div className="flex items-center gap-2">
-            <span className="text-xs text-gray-500">Jumlah per halaman</span>
-            <Select value={String(pageSize)} onValueChange={(val) => { setPageSize(Number(val)); setPageIndex(0) }}>
-              <SelectTrigger className="h-8 w-16">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                {PAGE_SIZE_OPTIONS.map((n) => (
-                  <SelectItem key={n} value={String(n)}>{n}</SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-
-          <span className="text-xs font-medium text-gray-500">{start}-{end} dari {data.length}</span>
-
-          <div className="flex items-center gap-1">
-            <Button variant="outline" size="icon" className="h-8 w-8" onClick={() => setPageIndex(0)} disabled={pageIndex === 0}>«</Button>
-            <Button variant="outline" size="icon" className="h-8 w-8" onClick={() => setPageIndex(p => Math.max(0, p - 1))} disabled={pageIndex === 0}>‹</Button>
-            <Button variant="outline" size="icon" className="h-8 w-8" onClick={() => setPageIndex(p => Math.min(totalPages - 1, p + 1))} disabled={pageIndex >= totalPages - 1}>›</Button>
-            <Button variant="outline" size="icon" className="h-8 w-8" onClick={() => setPageIndex(totalPages - 1)} disabled={pageIndex >= totalPages - 1}>»</Button>
-          </div>
-        </div>
-      )}
+      <div className="flex flex-col gap-3 border-t border-gray-200 px-4 py-4 md:flex-row md:items-center md:justify-between">
+        <p className="text-sm text-[#202224]/60">
+          Menampilkan {data.length === 0 ? "0" : (currentPage - 1) * PAGE_SIZE + 1}–{Math.min(currentPage * PAGE_SIZE, data.length)} dari {data.length} data
+        </p>
+        <Pagination className="mx-0 w-auto justify-start md:justify-end">
+          <PaginationContent>
+            <PaginationItem>
+              <PaginationPrevious href="#" onClick={(e) => { e.preventDefault(); if (currentPage > 1) setCurrentPage(currentPage - 1) }}
+                className={currentPage === 1 ? "pointer-events-none opacity-50" : ""} />
+            </PaginationItem>
+            {visiblePages.map((page, index) => {
+              const prev = visiblePages[index - 1]
+              return (
+                <Fragment key={page}>
+                  {prev && page - prev > 1 && <PaginationItem><PaginationEllipsis /></PaginationItem>}
+                  <PaginationItem>
+                    <PaginationLink href="#" isActive={currentPage === page}
+                      onClick={(e) => { e.preventDefault(); setCurrentPage(page) }}>
+                      {page}
+                    </PaginationLink>
+                  </PaginationItem>
+                </Fragment>
+              )
+            })}
+            <PaginationItem>
+              <PaginationNext href="#" onClick={(e) => { e.preventDefault(); if (currentPage < totalPages) setCurrentPage(currentPage + 1) }}
+                className={currentPage === totalPages ? "pointer-events-none opacity-50" : ""} />
+            </PaginationItem>
+          </PaginationContent>
+        </Pagination>
+      </div>
 
       {/* Konfirmasi Hapus */}
       <AlertDialog open={!!deleteId} onOpenChange={(open) => { if (!open) setDeleteId(null) }}>

@@ -5,6 +5,7 @@ export type { ApiResponse } from "@/types/api"
 export interface LaporanRequest {
   laporan_progress: string
   permintaan_id: string
+  programmer_id?: string
   status?: string
   verifikasi_id?: string
   status_verified?: string

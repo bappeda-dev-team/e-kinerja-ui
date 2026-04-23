@@ -1,6 +1,3 @@
-import Link from "next/link"
-import { ArrowRight } from "lucide-react"
-
 import {
   formatDateLabel,
   formatDateTimeLabel,
@@ -18,24 +15,17 @@ interface AttentionListProps {
 export default function AttentionList({ items, loading }: AttentionListProps) {
   return (
     <div className="rounded-[20px] bg-white p-6 shadow-[6px_6px_54px_rgba(0,0,0,0.05)]">
-      <div className="mb-5 flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+      <div className="mb-5">
         <div>
           <h2 className="text-2xl font-bold text-[#202224]">Perlu Perhatian Segera</h2>
-          <p className="text-sm text-[#202224]/55">Prioritas verifikasi berdasarkan status revisi, deadline, dan pembaruan terbaru.</p>
+          <p className="text-sm text-[#202224]/55">Menampilkan verifikasi yang belum selesai dan sudah melewati deadline.</p>
         </div>
-        <Link
-          href="/verifikator/verifikasi"
-          className="inline-flex items-center gap-2 self-start rounded-full bg-[#202224] px-4 py-2 text-sm font-semibold text-white transition hover:bg-[#111827]"
-        >
-          Buka Halaman Verifikasi
-          <ArrowRight className="h-4 w-4" />
-        </Link>
       </div>
 
       {loading ? (
         <EmptyState label="Memuat daftar prioritas..." />
       ) : items.length === 0 ? (
-        <EmptyState label="Belum ada item yang perlu perhatian segera." />
+        <EmptyState label="Belum ada verifikasi yang melewati deadline." />
       ) : (
         <div className="space-y-4">
           {items.map((item) => {

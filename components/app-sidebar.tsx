@@ -240,9 +240,7 @@ export function AppSidebar({ session }: { session: Session | null }) {
         </SidebarGroup>
       </SidebarContent>
 
-      <SidebarFooter className="px-4 py-2 text-xs text-muted-foreground">
-        <span className="hidden group-data-[state=expanded]:block">© 2026 E-Kinerja</span>
-      </SidebarFooter>
+      <SidebarFooter />
 
       <SidebarRail />
     </Sidebar>

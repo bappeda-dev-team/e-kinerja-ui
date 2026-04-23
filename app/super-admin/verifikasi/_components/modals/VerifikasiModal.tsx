@@ -3,11 +3,11 @@
 "use client"
 
 import { useState } from "react"
-import { X, CheckCircle, RotateCcw, Clock, MessageSquare } from "lucide-react"
+import { X, CheckCircle, RotateCcw } from "lucide-react"
 import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog"
 import { VisuallyHidden } from "@radix-ui/react-visually-hidden"
 import type { VerifikasiItem } from "../VerifikasiClient"
-import KomentarModal from "./KomentarModal"
+import { Textarea } from "@/components/ui/textarea"
 
 function formatTanggal(value?: string) {
   if (!value) return "-"
@@ -36,22 +36,20 @@ function PemdaAvatar({ nama, logo }: { nama: string; logo?: string }) {
   )
 }
 
-
-const STATUS_OPTIONS: { value: VerifikasiItem["status"]; label: string; icon: typeof CheckCircle; activeClass: string; ringClass: string }[] = [
-  { value: "terverifikasi", label: "Terverifikasi", icon: CheckCircle, activeClass: "bg-teal-50 border-teal-400 text-teal-700", ringClass: "border-teal-400 bg-teal-400" },
-  { value: "revisi", label: "Revisi", icon: RotateCcw, activeClass: "bg-red-50 border-red-400 text-red-600", ringClass: "border-red-400 bg-red-400" },
-  { value: "menunggu", label: "Menunggu", icon: Clock, activeClass: "bg-amber-50 border-amber-400 text-amber-700", ringClass: "border-amber-400 bg-amber-400" },
-]
-
 export default function VerifikasiModal({ data, onClose, onSave }: {
   data: VerifikasiItem
   onClose: () => void
   onSave: (i: VerifikasiItem) => void
 }) {
-  const [status, setStatus] = useState(data.status)
-  const [komentarOpen, setKomentarOpen] = useState(false)
+  const [komentar, setKomentar] = useState(data.komentar ?? "")
+  const isVerified = data.status === "terverifikasi"
 
   const statusMeta = getStatusMeta(data.status)
+
+  function handleSave(status: VerifikasiItem["status"]) {
+    if (status === "revisi" && !komentar.trim()) return
+    onSave({ ...data, status, komentar: komentar.trim() })
+  }
 
   return (
     <Dialog open onOpenChange={onClose}>
@@ -72,16 +70,6 @@ export default function VerifikasiModal({ data, onClose, onSave }: {
               </div>
             </div>
             <div className="flex items-center gap-2 shrink-0">
-              <button
-                type="button"
-                onClick={() => setKomentarOpen(true)}
-                className="relative rounded-xl border border-gray-200 p-2.5 text-gray-500 hover:bg-gray-50 hover:text-gray-700 transition"
-              >
-                <MessageSquare className="w-4 h-4" />
-                <span className="absolute -top-1.5 -right-1.5 flex h-4 w-4 items-center justify-center rounded-full bg-[#4880FF] text-[10px] font-bold text-white">
-                  3
-                </span>
-              </button>
               <button onClick={onClose} className="rounded-full p-1.5 text-gray-400 hover:text-gray-600 transition">
                 <X className="w-4 h-4" />
               </button>
@@ -122,28 +110,18 @@ export default function VerifikasiModal({ data, onClose, onSave }: {
             </div>
           )}
 
-          {/* Tindakan verifikasi */}
           <div className="border-t border-dashed border-gray-200 pt-3 space-y-3">
-            <p className="text-[10px] font-bold uppercase tracking-wide text-gray-400">Tindakan Verifikasi</p>
-            <div className="grid grid-cols-3 gap-2">
-              {STATUS_OPTIONS.map((opt) => {
-                const Icon = opt.icon
-                const isActive = status === opt.value
-                return (
-                  <button
-                    key={opt.value}
-                    type="button"
-                    onClick={() => setStatus(opt.value)}
-                    className={`flex flex-col items-center gap-1.5 rounded-xl border-2 px-2 py-2.5 text-xs font-semibold transition ${
-                      isActive ? opt.activeClass : "border-gray-200 text-gray-500 hover:border-gray-300 hover:bg-gray-50"
-                    }`}
-                  >
-                    <Icon className="w-4 h-4" />
-                    {opt.label}
-                  </button>
-                )
-              })}
-            </div>
+            <p className="text-[10px] font-bold uppercase tracking-wide text-gray-400">
+              Komentar <span className="normal-case font-medium text-gray-300">(wajib untuk revisi)</span>
+            </p>
+            <Textarea
+              value={komentar}
+              onChange={(event) => setKomentar(event.target.value)}
+              rows={4}
+              disabled={isVerified}
+              placeholder="Tulis komentar atau catatan untuk programmer..."
+              className="min-h-[104px] resize-none rounded-xl border-gray-200 bg-white text-sm text-[#202224] placeholder:text-gray-300"
+            />
           </div>
         </div>
 
@@ -155,16 +133,37 @@ export default function VerifikasiModal({ data, onClose, onSave }: {
           >
             Batal
           </button>
-          <button
-            onClick={() => onSave({ ...data, status })}
-            className="flex-1 flex items-center justify-center gap-2 py-2.5 rounded-xl bg-[#4880FF] text-sm font-bold text-white hover:bg-blue-600 transition"
-          >
-            <CheckCircle className="w-4 h-4" />
-            Simpan
-          </button>
+          {!isVerified ? (
+            <>
+              <button
+                type="button"
+                onClick={() => handleSave("revisi")}
+                disabled={!komentar.trim()}
+                className="flex-1 flex items-center justify-center gap-2 rounded-xl border border-amber-300 bg-amber-50 py-2.5 text-sm font-bold text-amber-700 transition hover:bg-amber-100 disabled:opacity-50"
+              >
+                <RotateCcw className="w-4 h-4" />
+                Revisi
+              </button>
+              <button
+                type="button"
+                onClick={() => handleSave("terverifikasi")}
+                className="flex-1 flex items-center justify-center gap-2 rounded-xl bg-[#4880FF] py-2.5 text-sm font-bold text-white hover:bg-blue-600 transition"
+              >
+                <CheckCircle className="w-4 h-4" />
+                Verifikasi
+              </button>
+            </>
+          ) : (
+            <button
+              type="button"
+              disabled
+              className="flex-1 flex items-center justify-center gap-2 rounded-xl bg-gray-100 py-2.5 text-sm font-bold text-gray-400"
+            >
+              <CheckCircle className="w-4 h-4" />
+              Sudah Diverifikasi
+            </button>
+          )}
         </div>
-
-        {komentarOpen && <KomentarModal onClose={() => setKomentarOpen(false)} />}
       </DialogContent>
     </Dialog>
   )

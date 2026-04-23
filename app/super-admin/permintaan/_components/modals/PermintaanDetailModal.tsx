@@ -1,7 +1,7 @@
 "use client"
 
 import { useState } from "react"
-import { X, FileText, Pencil, Trash2, ArrowRight, AlertTriangle } from "lucide-react"
+import { X, FileText, Pencil, Trash2, ArrowRight, AlertTriangle, Archive } from "lucide-react"
 import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog"
 import { VisuallyHidden } from "@radix-ui/react-visually-hidden"
 import type { PermintaanResponse } from "../../types"
@@ -40,16 +40,19 @@ interface Props {
   onClose: () => void
   onEdit: (item: PermintaanResponse) => void
   onDelete: (id: string) => void
+  onArchive?: (item: PermintaanResponse) => void
+  onDistribusi?: (item: PermintaanResponse) => void
 }
 
-export default function PermintaanDetailModal({ item, onClose, onEdit, onDelete }: Props) {
+export default function PermintaanDetailModal({ item, onClose, onEdit, onDelete, onArchive, onDistribusi }: Props) {
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false)
+  const [openedAt] = useState(() => Date.now())
 
   if (!item) return null
 
   const statusMeta = getStatusMeta(item.status)
   const isDeadlineNear = item.tanggal_deadline
-    ? new Date(item.tanggal_deadline).getTime() - Date.now() < 3 * 24 * 60 * 60 * 1000
+    ? new Date(item.tanggal_deadline).getTime() - openedAt < 3 * 24 * 60 * 60 * 1000
     : false
 
   return (
@@ -77,6 +80,15 @@ export default function PermintaanDetailModal({ item, onClose, onEdit, onDelete 
               >
                 <Pencil className="w-4 h-4" />
               </button>
+              {onArchive && (
+                <button
+                  onClick={() => { onArchive(item); onClose() }}
+                  className="rounded-lg p-1.5 border border-slate-200 text-slate-500 hover:bg-slate-50 hover:text-slate-700 transition"
+                  title={item.is_archived ? "Batalkan arsip" : "Arsipkan"}
+                >
+                  <Archive className="w-4 h-4" />
+                </button>
+              )}
               <button
                 onClick={() => setShowDeleteConfirm(true)}
                 className="rounded-lg p-1.5 border border-red-200 text-red-500 hover:bg-red-50 transition"
@@ -95,9 +107,16 @@ export default function PermintaanDetailModal({ item, onClose, onEdit, onDelete 
           <div className={`grid gap-3 ${item.pembuat ? "grid-cols-3" : "grid-cols-3"}`}>
             <div className="space-y-0.5">
               <p className="text-[10px] font-bold uppercase tracking-wide text-gray-400">Status</p>
-              <span className={`inline-flex items-center rounded-full border px-3 py-1 text-xs font-semibold ${statusMeta.cls}`}>
-                {statusMeta.label}
-              </span>
+              <div className="flex flex-wrap items-center gap-2">
+                <span className={`inline-flex items-center rounded-full border px-3 py-1 text-xs font-semibold ${statusMeta.cls}`}>
+                  {statusMeta.label}
+                </span>
+                {item.is_archived && (
+                  <span className="inline-flex items-center rounded-full border border-slate-200 bg-slate-100 px-3 py-1 text-xs font-semibold text-slate-600">
+                    Diarsipkan
+                  </span>
+                )}
+              </div>
             </div>
             <div className="space-y-0.5">
               <p className="text-[10px] font-bold uppercase tracking-wide text-gray-400">Tanggal Pesanan</p>
@@ -151,7 +170,13 @@ export default function PermintaanDetailModal({ item, onClose, onEdit, onDelete 
         {/* Footer */}
         <div className="px-5 py-3 border-t border-gray-100">
           <button
-            onClick={onClose}
+            onClick={() => {
+              if (onDistribusi) {
+                onDistribusi(item)
+                return
+              }
+              onClose()
+            }}
             className="w-full flex items-center justify-center gap-2 py-3 rounded-xl bg-[#4880FF] text-sm font-bold text-white hover:bg-blue-600 transition"
           >
             <ArrowRight className="w-4 h-4" />

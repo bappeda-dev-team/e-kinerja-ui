@@ -3,7 +3,7 @@
 'use client'
 
 import { useEffect, useState } from "react"
-import { Plus, Table2, LayoutGrid } from "lucide-react"
+import { Plus } from "lucide-react"
 import { toast } from "sonner"
 
 import MasterUserTable from "./MasterUserTable"
@@ -32,7 +32,6 @@ function getErrorMessage(payload: any, fallback: string) {
 export default function MasterUserClient() {
   const [data, setData] = useState<UserResponse[]>([])
   const [loading, setLoading] = useState(true)
-  const [showTable, setShowTable] = useState(true)
   const [showAdd, setShowAdd] = useState(false)
   const [editId, setEditId] = useState<string | null>(null)
 
@@ -105,20 +104,6 @@ export default function MasterUserClient() {
         <h1 className="text-3xl font-bold text-[#202224]">Master User</h1>
 
         <div className="flex items-center gap-2">
-          {/* Toggle Card/Table */}
-          {!loading && (
-            <button
-              onClick={() => setShowTable(prev => !prev)}
-              className={`flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-semibold transition active:scale-95 ${showTable
-                ? "bg-white text-[#202224] border border-gray-200 hover:border-blue-300 hover:text-blue-600"
-                : "bg-blue-600 text-white"
-                }`}
-            >
-              {showTable ? <LayoutGrid className="size-4" /> : <Table2 className="size-4" />}
-              {showTable ? "Lihat Grid" : "Lihat Tabel"}
-            </button>
-          )}
-
           <button
             onClick={() => setShowAdd(true)}
             className="inline-flex items-center gap-2 bg-primary hover:bg-primary/90 text-primary-foreground px-4 py-2 rounded-md font-bold text-sm transition"
@@ -132,7 +117,7 @@ export default function MasterUserClient() {
       <MasterUserTable
         data={data}
         loading={loading}
-        showTable={showTable} // ✅
+        showTable={true}
         onEdit={setEditId}
         onDelete={handleDelete}
       />

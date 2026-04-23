@@ -21,6 +21,13 @@ export const getPermintaan = async () => {
   });
 };
 
+export const getArchivedPermintaan = async () => {
+  return fetchApi<ApiResponse<PermintaanResponse[]>>({
+    url: "/permintaan/archived",
+    method: "GET",
+  });
+};
+
 export const createPermintaan = async (data: PermintaanRequest) => {
   return fetchApi<ApiResponse<PermintaanResponse>>({
     url: "/permintaan",
@@ -34,6 +41,32 @@ export const updatePermintaan = async (id: string, data: PermintaanRequest) => {
     url: `/permintaan/${id}`,
     method: "PUT", 
     body: data 
+  });
+};
+
+export const toggleArchivePermintaan = async (item: PermintaanResponse, isArchived: boolean) => {
+  const formData = new FormData();
+
+  formData.append("pemda_id", item.pemda?.id || "");
+  formData.append("aplikasi_id", item.aplikasi?.id || "");
+  formData.append("menu", item.menu || "");
+  formData.append("kondisi_awal", item.kondisi_awal || "");
+  formData.append("kondisi_diharapkan", item.kondisi_diharapkan || "");
+
+  if (item.tanggal_pesanan) {
+    formData.append("tanggal_pesanan", item.tanggal_pesanan.slice(0, 10));
+  }
+
+  if (item.tanggal_deadline) {
+    formData.append("tanggal_deadline", item.tanggal_deadline.slice(0, 10));
+  }
+
+  formData.append("is_archived", String(isArchived));
+
+  return fetchApi<ApiResponse<PermintaanResponse>>({
+    url: `/permintaan/${item.id}`,
+    method: "PUT",
+    body: formData,
   });
 };
 

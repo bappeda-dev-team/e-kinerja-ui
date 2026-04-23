@@ -4,7 +4,7 @@
 
 import * as React from "react"
 import { useEffect, useState } from "react"
-import { Plus, Table2, LayoutGrid } from "lucide-react"
+import { Plus } from "lucide-react"
 import { toast } from "sonner"
 
 import MasterAplikasiTable from "./MasterAplikasiTable"
@@ -59,7 +59,6 @@ export interface MasterAplikasiItem {
 export default function MasterAplikasiClient() {
   const [data, setData] = useState<MasterAplikasiItem[]>([])
   const [loading, setLoading] = useState(true)
-  const [showTable, setShowTable] = useState(true) // ✅
   const [showAdd, setShowAdd] = useState(false)
   const [editId, setEditId] = useState<string | null>(null)
 
@@ -135,20 +134,6 @@ export default function MasterAplikasiClient() {
         <h1 className="text-3xl font-bold text-[#202224]">Master Aplikasi</h1>
 
         <div className="flex items-center gap-2">
-          {/* Toggle Card/Table */}
-          {!loading && (
-            <button
-              onClick={() => setShowTable(prev => !prev)}
-              className={`flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-semibold transition active:scale-95 ${showTable
-                ? "bg-white text-[#202224] border border-gray-200 hover:border-blue-300 hover:text-blue-600"
-                : "bg-blue-600 text-white"
-                }`}
-            >
-              {showTable ? <LayoutGrid className="size-4" /> : <Table2 className="size-4" />}
-              {showTable ? "Lihat Grid" : "Lihat Tabel"}
-            </button>
-          )}
-
           <button
             onClick={() => setShowAdd(true)}
             className="inline-flex items-center gap-2 bg-primary hover:bg-primary/90 text-primary-foreground px-4 py-2 rounded-md font-bold text-sm transition active:scale-95"
@@ -164,7 +149,7 @@ export default function MasterAplikasiClient() {
       ) : (
         <MasterAplikasiTable
           data={data}
-          showTable={showTable} // 
+          showTable={true} 
           onEdit={setEditId}
           onDelete={handleDelete}
         />

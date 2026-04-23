@@ -23,13 +23,15 @@ import {
 } from "lucide-react"
 import { toast } from "sonner"
 import { PenugasanItem } from "../../types"
+import { createPenugasanLaporan } from "../../services"
+import { ajukanVerifikasi, updateLaporan } from "@/app/programmer/laporan/services"
 import {
   MockLaporan,
   MockPermintaan,
   LaporanStatus,
   getLaporanByPenugasan,
-  getPermintaanByPenugasan,
 } from "@/app/programmer/laporan/data"
+import type { LaporanResponse } from "@/app/programmer/laporan/types"
 
 interface Props {
   open: boolean
@@ -75,6 +77,32 @@ const PROGRESS_OPTIONS = [
 
 type View = "penugasan" | "laporan-detail" | "laporan-edit" | "laporan-add"
 
+function mapProgressToApiStatus(progress: number) {
+  if (progress >= 100) return "hijau"
+  if (progress >= 50) return "kuning"
+  if (progress >= 25) return "merah"
+  return "putih"
+}
+
+function mapCreatedLaporanToMock(
+  response: LaporanResponse,
+  penugasanId: string,
+  fallbackPermintaanId: string,
+  fallbackStatusProgress: number
+): MockLaporan {
+  return {
+    id: response.id,
+    penugasan_id: penugasanId,
+    permintaan_id: response.permintaan?.id ?? fallbackPermintaanId,
+    laporan_progress: response.laporan_progress,
+    status_progress: fallbackStatusProgress,
+    status: "pending",
+    is_sent: false,
+    created_at: response.created_at ?? new Date().toISOString(),
+    updated_at: response.updated_at ?? response.created_at ?? new Date().toISOString(),
+  }
+}
+
 export default function PenugasanDetailModal({
   open,
   onClose,
@@ -85,6 +113,7 @@ export default function PenugasanDetailModal({
 }: Props) {
   const [view, setView] = useState<View>("penugasan")
   const [selectedLaporan, setSelectedLaporan] = useState<MockLaporan | null>(null)
+  const [submitLoading, setSubmitLoading] = useState(false)
 
   // Edit form state
   const [editProgress, setEditProgress] = useState("")
@@ -99,7 +128,14 @@ export default function PenugasanDetailModal({
 
   if (!item) return null
 
-  const permintaan: MockPermintaan | undefined = getPermintaanByPenugasan(item.id)
+  const permintaan: MockPermintaan = {
+    id: item.permintaan_id || "",
+    pemda: item.nama_pemda,
+    aplikasi: item.aplikasi,
+    menu: "-",
+    tanggal_deadline: item.tanggal_deadline ?? "",
+  }
+  const permintaanId = item.permintaan_id || permintaan?.id || ""
   const laporanList = getLaporanByPenugasan(item.id, mockLaporan)
   const hasKomentar = Boolean(item.komentar?.trim())
 
@@ -140,25 +176,40 @@ export default function PenugasanDetailModal({
     setView("laporan-edit")
   }
 
-  function handleEditSave() {
+  async function handleEditSave() {
     if (!editProgress.trim()) { toast.error("Jelaskan progres pekerjaan"); return }
     if (editStatusProgress === null) { toast.error("Pilih persentase progres"); return }
     if (!selectedLaporan) return
+    if (!selectedLaporan.permintaan_id) { toast.error("Permintaan laporan tidak ditemukan"); return }
 
-    setEditLoading(true)
-    setTimeout(() => {
+    try {
+      setEditLoading(true)
+
+      const response = await updateLaporan(selectedLaporan.id, {
+        laporan_progress: editProgress.trim(),
+        permintaan_id: selectedLaporan.permintaan_id,
+        status: mapProgressToApiStatus(editStatusProgress),
+        is_submitted_to_verified: selectedLaporan.is_sent,
+      })
+      if (response.status < 200 || response.status >= 300) {
+        throw new Error(response.data?.message || "Gagal memperbarui laporan")
+      }
+
       const updated: MockLaporan = {
         ...selectedLaporan,
-        laporan_progress: editProgress,
+        laporan_progress: editProgress.trim(),
         status_progress: editStatusProgress,
         updated_at: new Date().toISOString(),
       }
       onUpdateLaporan(updated)
       setSelectedLaporan(updated)
       toast.success("Laporan berhasil diperbarui")
-      setEditLoading(false)
       setView("laporan-detail")
-    }, 400)
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : "Gagal memperbarui laporan")
+    } finally {
+      setEditLoading(false)
+    }
   }
 
   function handleAddAttachmentChange(files: FileList | null) {
@@ -185,46 +236,87 @@ export default function PenugasanDetailModal({
     )
   }
 
-  function handleAddSave() {
+  async function handleAddSave() {
     if (!addProgress.trim()) { toast.error("Jelaskan progres pekerjaan yang sudah dilakukan"); return }
     if (addStatusProgress === null) { toast.error("Pilih persentase progres penyelesaian"); return }
+    if (!permintaanId) { toast.error("Permintaan untuk penugasan ini tidak ditemukan"); return }
     if (!item) return
 
-    setAddLoading(true)
-    const now = new Date().toISOString()
-    const newLaporan: MockLaporan = {
-      id: `laporan-${crypto.randomUUID()}`,
-      penugasan_id: item.id,
-      permintaan_id: permintaan?.id ?? "",
-      laporan_progress: addProgress,
-      status_progress: addStatusProgress,
-      status: "pending",
-      is_sent: false,
-      created_at: now,
-      updated_at: now,
-    }
+    try {
+      setAddLoading(true)
 
-    setTimeout(() => {
+      const formData = new FormData()
+      formData.append("permintaan_id", permintaanId)
+      formData.append("laporan_progress", addProgress.trim())
+      formData.append("status", mapProgressToApiStatus(addStatusProgress))
+      addAttachments.forEach((file) => formData.append("lampiran", file))
+
+      const response = await createPenugasanLaporan(formData)
+      if (response.status < 200 || response.status >= 300) {
+        throw new Error(response.data?.message || "Gagal menambahkan laporan")
+      }
+
+      const created = response.data?.data
+      if (!created) {
+        throw new Error("Respons laporan dari server tidak lengkap")
+      }
+
+      const newLaporan = mapCreatedLaporanToMock(created, item.id, permintaanId, addStatusProgress)
       onAddLaporan(newLaporan)
       toast.success("Laporan berhasil ditambahkan")
       resetAddForm()
-      setAddLoading(false)
       setView("penugasan")
-    }, 400)
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : "Gagal menambahkan laporan")
+    } finally {
+      setAddLoading(false)
+    }
   }
 
   const canEdit =
     selectedLaporan?.status !== "approved" &&
     (!selectedLaporan?.is_sent || selectedLaporan?.status === "revision")
+  const canSubmitVerifikasi =
+    !!selectedLaporan &&
+    selectedLaporan.status !== "approved" &&
+    (!selectedLaporan.is_sent || selectedLaporan.status === "revision")
+
+  async function handleSubmitVerifikasi() {
+    if (!selectedLaporan) return
+    if (!canSubmitVerifikasi) return
+
+    try {
+      setSubmitLoading(true)
+      const response = await ajukanVerifikasi(selectedLaporan.id)
+      if (response.status < 200 || response.status >= 300) {
+        throw new Error(response.data?.message || "Gagal mengajukan verifikasi")
+      }
+
+      const updated: MockLaporan = {
+        ...selectedLaporan,
+        status: "pending",
+        is_sent: true,
+        catatan_revisor: undefined,
+        updated_at: new Date().toISOString(),
+      }
+
+      onUpdateLaporan(updated)
+      setSelectedLaporan(updated)
+      toast.success("Laporan berhasil diajukan ke verifikator")
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : "Gagal mengajukan verifikasi")
+    } finally {
+      setSubmitLoading(false)
+    }
+  }
 
   // ─── Header title & subtitle per view ───────────────────────────────────────
   let headerTitle = item.nama_pemda
   let headerSub: string | null = item.aplikasi
 
   if (view === "laporan-detail" && selectedLaporan) {
-    const lp = getPermintaanByPenugasan(selectedLaporan.penugasan_id)
-    headerTitle = lp?.pemda ?? "Detail Laporan"
-    headerSub = lp ? `${lp.aplikasi} — ${lp.menu}` : null
+    headerTitle = permintaan.pemda ?? "Detail Laporan"
+    headerSub = `${permintaan.aplikasi}${permintaan.menu && permintaan.menu !== "-" ? ` — ${permintaan.menu}` : ""}`
   } else if (view === "laporan-edit") {
     headerTitle = "Edit Laporan"
     headerSub = null
@@ -330,7 +422,7 @@ export default function PenugasanDetailModal({
                     </div>
                   </div>
                 </div>
-                {permintaan && (
+                {permintaan.menu && permintaan.menu !== "-" && (
                   <div className="flex items-start gap-3 mt-3 pt-3 border-t border-gray-100">
                     <div className="rounded-lg bg-purple-50 p-2 text-purple-600 shrink-0">
                       <BriefcaseBusiness className="h-4 w-4" />
@@ -430,7 +522,6 @@ export default function PenugasanDetailModal({
 
           {/* ── VIEW: Laporan Detail ───────────────────────────────────────────── */}
           {view === "laporan-detail" && selectedLaporan && (() => {
-            const lp = getPermintaanByPenugasan(selectedLaporan.penugasan_id)
             const progressInfo = PROGRESS_LABEL[selectedLaporan.status_progress] ?? PROGRESS_LABEL[0]
             const statusCfg = STATUS_CONFIG[selectedLaporan.status]
 
@@ -473,10 +564,10 @@ export default function PenugasanDetailModal({
                     <p className="text-[10px] font-medium uppercase tracking-wide text-gray-400 mb-1" style={ff}>Diperbarui</p>
                     <p className="text-[13px] font-bold text-gray-900" style={ff}>{formatDate(selectedLaporan.updated_at)}</p>
                   </div>
-                  {lp?.tanggal_deadline && (
+                  {permintaan.tanggal_deadline && (
                     <div className="col-span-2 rounded-xl border border-gray-100 bg-gray-50/60 p-3">
                       <p className="text-[10px] font-medium uppercase tracking-wide text-gray-400 mb-1" style={ff}>Deadline Permintaan</p>
-                      <p className="text-[13px] font-bold text-gray-900" style={ff}>{formatDate(lp.tanggal_deadline)}</p>
+                      <p className="text-[13px] font-bold text-gray-900" style={ff}>{formatDate(permintaan.tanggal_deadline)}</p>
                     </div>
                   )}
                 </div>
@@ -509,8 +600,19 @@ export default function PenugasanDetailModal({
                   </div>
                 )}
 
-                {canEdit && (
-                  <div className="flex justify-end pt-1">
+                {(canEdit || canSubmitVerifikasi) && (
+                  <div className="flex justify-end gap-3 pt-1">
+                    {canSubmitVerifikasi && (
+                      <button
+                        type="button"
+                        onClick={() => void handleSubmitVerifikasi()}
+                        disabled={submitLoading}
+                        className="px-5 py-2 rounded-xl border border-emerald-200 bg-emerald-50 text-[13px] font-bold text-emerald-700 transition hover:bg-emerald-100 active:scale-95 disabled:opacity-50"
+                        style={ff}
+                      >
+                        {submitLoading ? "Mengajukan..." : "Ajukan Verifikasi"}
+                      </button>
+                    )}
                     <button
                       type="button"
                       onClick={openLaporanEdit}
@@ -518,7 +620,7 @@ export default function PenugasanDetailModal({
                       style={{ backgroundColor: "#4880FF", ...ff }}
                     >
                       <Pencil className="w-3.5 h-3.5" />
-                      Edit Laporan
+                      {selectedLaporan.status === "revision" ? "Perbaiki Laporan" : "Edit Laporan"}
                     </button>
                   </div>
                 )}
@@ -535,12 +637,7 @@ export default function PenugasanDetailModal({
                   className="w-full flex items-center px-3 py-2 bg-gray-100 border border-[#D5D5D5] rounded-xl text-[13px] text-[#606060] cursor-not-allowed select-none"
                   style={ff}
                 >
-                  {(() => {
-                    const lp = getPermintaanByPenugasan(selectedLaporan.penugasan_id)
-                    return lp
-                      ? `${lp.pemda} — ${lp.aplikasi} (${lp.menu})`
-                      : "Tidak ada permintaan terkait"
-                  })()}
+                  {`${permintaan.pemda} — ${permintaan.aplikasi}${permintaan.menu && permintaan.menu !== "-" ? ` (${permintaan.menu})` : ""}`}
                 </div>
               </div>
 
@@ -613,8 +710,8 @@ export default function PenugasanDetailModal({
                   style={ff}
                 >
                   {permintaan
-                    ? `${permintaan.pemda} — ${permintaan.aplikasi} (${permintaan.menu})`
-                    : "Tidak ada permintaan terkait"}
+                    ? `${permintaan.pemda} — ${permintaan.aplikasi}${permintaan.menu && permintaan.menu !== "-" ? ` (${permintaan.menu})` : ""}`
+                    : `${item.nama_pemda} — ${item.aplikasi}`}
                 </div>
                 <p className="text-[11px] text-gray-400" style={ff}>
                   Permintaan otomatis diisi dari penugasan ini

@@ -52,7 +52,7 @@ function OrgCell({ logo, name }: { logo?: string; name: string }) {
           <User className="size-3.5 text-gray-400" />
         </div>
       )}
-      <span className="truncate font-semibold text-[#202224]">{name}</span>
+      <span className="font-semibold text-[#202224] text-xs">{name}</span>
     </div>
   )
 }
@@ -111,10 +111,10 @@ export function VerifikasiTable({ data, onVerify }: Props) {
                   <TableCell className="px-4 py-3">
                     <span className={`rounded-full px-2 py-0.5 text-xs font-semibold ${sm.cls}`}>{sm.label}</span>
                   </TableCell>
-                  <TableCell className="px-4 py-3 max-w-[160px]">
+                  <TableCell className="px-4 py-3 min-w-[200px]">
                     <OrgCell logo={row.pemda_logo} name={row.pemda_name} />
                   </TableCell>
-                  <TableCell className="px-4 py-3 max-w-[140px]">
+                  <TableCell className="px-4 py-3 min-w-[180px]">
                     <OrgCell logo={row.aplikasi_logo} name={row.aplikasi_name || "-"} />
                   </TableCell>
                   <TableCell className="px-4 py-3 text-xs text-[#797A7C] max-w-[120px]">

@@ -2,17 +2,10 @@
 
 "use client"
 
-import { Fragment, useMemo, useState } from "react"
-import { motion } from "framer-motion"
-import { LayoutGrid, AlignJustify, Inbox, ClipboardList, Check } from "lucide-react"
-
-import {
-  Pagination, PaginationContent, PaginationEllipsis, PaginationItem,
-  PaginationLink, PaginationNext, PaginationPrevious,
-} from "@/components/ui/pagination"
+import { useMemo, useState, useRef, useEffect } from "react"
+import { ListFilter, ChevronDown } from "lucide-react"
 
 import type { DistribusiItem } from "./DistribusiClient"
-import { DistribusiCard, DistribusiPermintaanCard, SelesaiCard } from "./DistribusiCard"
 import { DistribusiTable } from "./DistribusiTable"
 
 interface Props {
@@ -21,135 +14,129 @@ interface Props {
   onDelete: (id: string) => void
   onShowKomentar: (text: string) => void
   onEdit: (item: DistribusiItem) => void
+  onRowClick: (item: DistribusiItem) => void
 }
 
-export default function DistribusiBoard({ distribusi, onSelesai, onDelete, onShowKomentar, onEdit }: Props) {
-  const [activeView, setActiveView] = useState<"table" | "permintaan" | "distribusi" | "selesai">("table")
-  const [currentPage, setCurrentPage] = useState(1)
-  const cardPerPage = 7
+type SortKey = "deadline-asc" | "deadline-desc" | "newest" | "oldest"
+type ViewType = "table" | "distribusi" | "selesai"
+
+const SORT_OPTIONS: { key: SortKey; label: string }[] = [
+  { key: "deadline-asc", label: "Deadline terdekat" },
+  { key: "deadline-desc", label: "Deadline terjauh" },
+  { key: "newest", label: "Terbaru ditambahkan" },
+  { key: "oldest", label: "Terlama ditambahkan" },
+]
+
+function sortItems(items: DistribusiItem[], sort: SortKey) {
+  return [...items].sort((a, b) => {
+    if (sort === "deadline-asc") return new Date(a.deadline || "9999-12-31").getTime() - new Date(b.deadline || "9999-12-31").getTime()
+    if (sort === "deadline-desc") return new Date(b.deadline || "1970-01-01").getTime() - new Date(a.deadline || "1970-01-01").getTime()
+    if (sort === "newest") return new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
+    return new Date(a.created_at).getTime() - new Date(b.created_at).getTime()
+  })
+}
+
+export default function DistribusiBoard({ distribusi, onSelesai, onDelete, onShowKomentar, onEdit, onRowClick }: Props) {
+  const [activeView, setActiveView] = useState<ViewType>("table")
+  const [sort, setSort] = useState<SortKey>("deadline-asc")
+  const [sortOpen, setSortOpen] = useState(false)
+  const [indicatorStyle, setIndicatorStyle] = useState({ width: 0, transform: "translateX(0)" })
+  const tabsRef = useRef<(HTMLButtonElement | null)[]>([])
 
   const didistribusikan = distribusi.filter((d) => d.status === "didistribusikan" || d.status === "pending" || d.status === "revision")
   const selesai = distribusi.filter((d) => d.status === "approved")
 
   const tabs = [
-    { key: "table" as const, label: "Lihat Semua", count: distribusi.length, icon: AlignJustify },
-    { key: "permintaan" as const, label: "Permintaan", count: distribusi.length, icon: Inbox },
-    { key: "distribusi" as const, label: "Didistribusikan", count: didistribusikan.length, icon: ClipboardList },
-    { key: "selesai" as const, label: "Selesai", count: selesai.length, icon: Check },
+    { key: "table" as const, label: "Semua", count: distribusi.length },
+    { key: "distribusi" as const, label: "Didistribusikan", count: didistribusikan.length },
+    { key: "selesai" as const, label: "Selesai", count: selesai.length },
   ]
 
+  useEffect(() => {
+    const activeIndex = tabs.findIndex((t) => t.key === activeView)
+    const activeButton = tabsRef.current[activeIndex]
+    if (activeButton) {
+      setIndicatorStyle({
+        width: activeButton.offsetWidth,
+        transform: `translateX(${activeButton.offsetLeft}px)`,
+      })
+    }
+  }, [activeView])
+
   const activeItems = useMemo(() => {
-    if (activeView === "distribusi") return didistribusikan
-    if (activeView === "selesai") return selesai
-    return distribusi
-  }, [activeView, didistribusikan, distribusi, selesai])
+    const base = activeView === "distribusi" ? didistribusikan : activeView === "selesai" ? selesai : distribusi
+    return sortItems(base, sort)
+  }, [activeView, didistribusikan, distribusi, selesai, sort])
 
-  const totalPages = Math.max(1, Math.ceil(activeItems.length / cardPerPage))
-  const paginatedItems = useMemo(() => {
-    const startIndex = (currentPage - 1) * cardPerPage
-    return activeItems.slice(startIndex, startIndex + cardPerPage)
-  }, [activeItems, currentPage])
-
-  const visiblePages = useMemo(() => {
-    if (totalPages <= 5) return Array.from({ length: totalPages }, (_, i) => i + 1)
-    if (currentPage <= 3) return [1, 2, 3, 4, totalPages]
-    if (currentPage >= totalPages - 2) return [1, totalPages - 3, totalPages - 2, totalPages - 1, totalPages]
-    return [1, currentPage - 1, currentPage, currentPage + 1, totalPages]
-  }, [currentPage, totalPages])
+  const activeSortLabel = SORT_OPTIONS.find((o) => o.key === sort)?.label ?? ""
 
   return (
-    <div className="space-y-6">
-      <div className="inline-flex items-center gap-1 overflow-x-auto rounded-full bg-gray-100 p-1.5 max-w-full">
-        {tabs.map((tab) => {
-          const isActive = activeView === tab.key
-          const Icon = tab.icon ?? LayoutGrid
-          return (
-            <button
-              key={tab.key}
-              type="button"
-              onClick={() => { setActiveView(tab.key); setCurrentPage(1) }}
-              className={`relative inline-flex items-center justify-center whitespace-nowrap rounded-full px-5 py-2.5 text-[13px] font-semibold transition-colors duration-200 ${
-                isActive ? "text-gray-900" : "text-gray-500 hover:bg-gray-200/50 hover:text-gray-900"
-              }`}
-            >
-              {isActive && (
-                <motion.div
-                  layoutId="adminDistribusiActiveTab"
-                  className="absolute inset-0 z-0 rounded-full bg-white shadow-sm"
-                  initial={false}
-                  transition={{ type: "spring", bounce: 0.2, duration: 0.6 }}
-                />
-              )}
-              <span className="relative z-10 flex items-center gap-2">
-                <Icon className="h-4 w-4" />
-                <span>{tab.key === "table" ? tab.label : `${tab.label} (${tab.count})`}</span>
-              </span>
-            </button>
-          )
-        })}
+    <div className="space-y-4">
+      <div className="flex items-center justify-between gap-3 flex-wrap">
+        <div className="inline-flex items-center gap-0.5 rounded-xl border border-gray-200 bg-gray-100 p-1 relative">
+          {tabs.map((tab, idx) => {
+            const isActive = activeView === tab.key
+            return (
+              <button
+                key={tab.key}
+                ref={(el) => { if (el) tabsRef.current[idx] = el }}
+                type="button"
+                onClick={() => setActiveView(tab.key)}
+                className={`flex items-center gap-2 rounded-[9px] px-3 py-1.5 text-[13px] font-semibold whitespace-nowrap relative z-10 transition-colors duration-300 ${
+                  isActive ? "text-gray-900" : "text-gray-500 hover:text-gray-700"
+                }`}
+              >
+                {tab.label}
+                <span className={`rounded-md px-1.5 py-0.5 text-[10px] font-bold transition-all duration-300 ${isActive ? "bg-gray-100 text-gray-700" : "text-gray-400"}`}>
+                  {tab.count}
+                </span>
+              </button>
+            )
+          })}
+          <div
+            className="absolute top-1 bottom-1 rounded-[9px] bg-white shadow-sm pointer-events-none transition-all duration-300 ease-out"
+            style={{ width: `${indicatorStyle.width}px`, transform: indicatorStyle.transform }}
+          />
+        </div>
+
+        <div className="relative">
+          <button
+            type="button"
+            onClick={() => setSortOpen((v) => !v)}
+            className="inline-flex items-center gap-2 rounded-xl border border-gray-200 bg-white px-3.5 py-2 text-sm font-semibold text-gray-600 shadow-sm hover:bg-gray-50 transition"
+          >
+            <ListFilter className="size-4 text-gray-400" />
+            {activeSortLabel}
+            <ChevronDown className={`size-3.5 text-gray-400 transition-transform ${sortOpen ? "rotate-180" : ""}`} />
+          </button>
+          {sortOpen && (
+            <div className="absolute right-0 z-50 mt-2 w-52 rounded-2xl border border-gray-100 bg-white py-1.5 shadow-xl">
+              {SORT_OPTIONS.map((opt) => (
+                <button
+                  key={opt.key}
+                  type="button"
+                  onClick={() => { setSort(opt.key); setSortOpen(false) }}
+                  className="flex w-full items-center gap-3 px-4 py-2.5 text-sm font-medium text-gray-700 hover:bg-gray-50 transition"
+                >
+                  <span className={`flex h-4 w-4 items-center justify-center rounded-full border-2 transition ${sort === opt.key ? "border-blue-500" : "border-gray-300"}`}>
+                    {sort === opt.key && <span className="h-2 w-2 rounded-full bg-blue-500" />}
+                  </span>
+                  {opt.label}
+                </button>
+              ))}
+            </div>
+          )}
+        </div>
       </div>
 
-      {activeView === "table" ? (
-        <DistribusiTable
-          distribusi={distribusi}
-          onSelesai={onSelesai}
-          onDelete={onDelete}
-          onShowKomentar={onShowKomentar}
-          onEdit={onEdit}
-        />
-      ) : (
-        <>
-          <div className="grid grid-cols-1 gap-5 lg:grid-cols-2 xl:grid-cols-3">
-            {paginatedItems.map((item) => {
-              if (activeView === "permintaan") return <DistribusiPermintaanCard key={item.id} item={item} />
-              if (activeView === "selesai") return <SelesaiCard key={item.id} item={item} onDelete={onDelete} />
-              return (
-                <DistribusiCard
-                  key={item.id}
-                  item={item}
-                  onSelesai={onSelesai}
-                  onDelete={onDelete}
-                  onShowKomentar={onShowKomentar}
-                  onEdit={onEdit}
-                />
-              )
-            })}
-          </div>
-
-          <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
-            <div className="flex items-center gap-3 text-[15px] text-[#202224]">
-              <span>Jumlah per halaman</span>
-              <div className="inline-flex items-center rounded-md bg-white px-4 py-2 font-semibold shadow-[0_4px_18px_rgba(0,0,0,0.06)]">
-                {cardPerPage}
-              </div>
-            </div>
-            <p className="text-[15px] text-[#202224]/80">
-              {activeItems.length === 0 ? "0-0" : `${(currentPage - 1) * cardPerPage + 1}-${Math.min(currentPage * cardPerPage, activeItems.length)}`} dari {activeItems.length}
-            </p>
-            <Pagination className="mx-0 w-auto justify-start md:justify-end">
-              <PaginationContent>
-                <PaginationItem>
-                  <PaginationPrevious href="#" onClick={(e) => { e.preventDefault(); if (currentPage > 1) setCurrentPage(currentPage - 1) }} className={currentPage === 1 ? "pointer-events-none opacity-50" : ""} />
-                </PaginationItem>
-                {visiblePages.map((page, index) => {
-                  const prev = visiblePages[index - 1]
-                  return (
-                    <Fragment key={page}>
-                      {prev && page - prev > 1 && <PaginationItem><PaginationEllipsis /></PaginationItem>}
-                      <PaginationItem>
-                        <PaginationLink href="#" isActive={currentPage === page} onClick={(e) => { e.preventDefault(); setCurrentPage(page) }}>{page}</PaginationLink>
-                      </PaginationItem>
-                    </Fragment>
-                  )
-                })}
-                <PaginationItem>
-                  <PaginationNext href="#" onClick={(e) => { e.preventDefault(); if (currentPage < totalPages) setCurrentPage(currentPage + 1) }} className={currentPage === totalPages ? "pointer-events-none opacity-50" : ""} />
-                </PaginationItem>
-              </PaginationContent>
-            </Pagination>
-          </div>
-        </>
-      )}
+      <DistribusiTable
+        distribusi={activeItems}
+        onSelesai={onSelesai}
+        onDelete={onDelete}
+        onShowKomentar={onShowKomentar}
+        onEdit={onEdit}
+        onRowClick={onRowClick}
+      />
     </div>
   )
 }

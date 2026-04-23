@@ -2,18 +2,21 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react"
 import { useSession } from "next-auth/react"
-import { Search, ChevronLeft, ChevronRight, BriefcaseBusiness, ArrowRight } from "lucide-react"
+import { Search, ChevronLeft, ChevronRight, BriefcaseBusiness, ArrowRight, AlertTriangle } from "lucide-react"
 import { toast } from "sonner"
 
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
 import { NetworkError } from "@/components/network-error"
 import { PENUGASAN_ALL_READ_EVENT } from "@/hooks/use-penugasan-badge"
+import { getLaporan } from "@/app/programmer/laporan/services"
+import { mapStatusToProgress } from "@/app/programmer/laporan/utils"
 
 import { getPenugasan, markAllPenugasanAsRead } from "../services"
 import { PenugasanItem, PenugasanResponse } from "../types"
 import PenugasanDetailModal from "./modals/PenugasanDetailModal"
-import { MockLaporan, MOCK_LAPORAN, MOCK_DEADLINE_FALLBACK } from "@/app/programmer/laporan/data"
+import { MockLaporan, MOCK_DEADLINE_FALLBACK } from "@/app/programmer/laporan/data"
+import type { LaporanResponse } from "@/app/programmer/laporan/types"
 
 type AssignmentFilter = "semua" | "ada-catatan" | "tanpa-catatan"
 
@@ -66,7 +69,7 @@ export default function PenugasanClient() {
   const [currentPage, setCurrentPage] = useState(1)
   const [selectedItem, setSelectedItem] = useState<PenugasanItem | null>(null)
   const [isModalOpen, setIsModalOpen] = useState(false)
-  const [mockLaporan, setMockLaporan] = useState<MockLaporan[]>(MOCK_LAPORAN)
+  const [mockLaporan, setMockLaporan] = useState<MockLaporan[]>([])
   const openFrameRef = useRef<number | null>(null)
   const closeTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null)
 
@@ -75,12 +78,23 @@ export default function PenugasanClient() {
     return user?.user_id ?? user?.id ?? ""
   }, [session])
 
+  const mapVerifikasiStatus = (laporan: LaporanResponse): MockLaporan["status"] => {
+    const verifikasi = Array.isArray(laporan.verifikasi)
+      ? laporan.verifikasi[0]
+      : laporan.verifikasi
+
+    const verificationStatus = verifikasi?.status_verified?.toLowerCase()
+    if (verificationStatus === "approved") return "approved"
+    if (verificationStatus === "revision") return "revision"
+    return "pending"
+  }
+
   const fetchData = useCallback(async () => {
     try {
       setLoading(true)
       setNetworkError(false)
 
-      const res = await getPenugasan()
+      const [res, laporanRes] = await Promise.all([getPenugasan(), getLaporan()])
 
       if (res.status === 0) {
         setNetworkError(true)
@@ -102,6 +116,7 @@ export default function PenugasanClient() {
       const mapped = filteredByUser.map((item: PenugasanResponse) => ({
         id: item.id,
         distribusi_id: item.distribusi?.id ?? "",
+        permintaan_id: item.distribusi?.permintaan_id ?? item.distribusi?.permintaan?.id ?? "",
         nama_pemda: entityLabel(item.distribusi?.pemda),
         aplikasi: entityLabel(item.distribusi?.aplikasi),
         logo_pemda: entityLogo(item.distribusi?.pemda),
@@ -121,6 +136,53 @@ export default function PenugasanClient() {
       })
 
       setData(mapped)
+
+      if (laporanRes.status === 200) {
+        const penugasanByPermintaanId = new Map(
+          mapped
+            .filter((assignment) => assignment.permintaan_id)
+            .map((assignment) => [assignment.permintaan_id, assignment])
+        )
+
+        const mappedLaporan: MockLaporan[] = (laporanRes.data?.data ?? [])
+          .filter((laporan: LaporanResponse) => {
+            const programmerId = laporan.programmer?.id ?? ""
+            return currentUserId ? programmerId === currentUserId : true
+          })
+          .map((laporan: LaporanResponse): MockLaporan | null => {
+            const permintaanId = laporan.permintaan?.id ?? ""
+            const matchedPenugasan = penugasanByPermintaanId.get(permintaanId)
+            if (!matchedPenugasan) return null
+
+            const verifikasi = Array.isArray(laporan.verifikasi)
+              ? laporan.verifikasi[0]
+              : laporan.verifikasi
+
+            const catatanRevisor =
+              verifikasi?.status_verified === "revision" && verifikasi?.komentar
+                ? verifikasi.komentar
+                : undefined
+
+            return {
+              id: laporan.id,
+              penugasan_id: matchedPenugasan.id,
+              permintaan_id: permintaanId,
+              laporan_progress: laporan.laporan_progress,
+              status_progress: mapStatusToProgress(laporan.status),
+              status: mapVerifikasiStatus(laporan),
+              is_sent: laporan.is_submitted_to_verified ?? false,
+              created_at: laporan.created_at ?? new Date().toISOString(),
+              updated_at: laporan.updated_at ?? laporan.created_at ?? new Date().toISOString(),
+              ...(catatanRevisor ? { catatan_revisor: catatanRevisor } : {}),
+            }
+          })
+          .filter((laporan): laporan is MockLaporan => laporan !== null)
+          .sort((a, b) => new Date(b.updated_at).getTime() - new Date(a.updated_at).getTime())
+
+        setMockLaporan(mappedLaporan)
+      } else {
+        setMockLaporan([])
+      }
 
       markAllPenugasanAsRead().catch(() => {})
       window.dispatchEvent(new CustomEvent(PENUGASAN_ALL_READ_EVENT))
@@ -176,6 +238,33 @@ export default function PenugasanClient() {
       }
     }
   }, [])
+
+  const revisionInfoByPenugasan = useMemo(() => {
+    const revisionMap = new Map<string, { count: number; latestUpdatedAt: string }>()
+
+    for (const laporan of mockLaporan) {
+      if (laporan.status !== "revision") continue
+
+      const current = revisionMap.get(laporan.penugasan_id)
+      if (!current) {
+        revisionMap.set(laporan.penugasan_id, {
+          count: 1,
+          latestUpdatedAt: laporan.updated_at,
+        })
+        continue
+      }
+
+      revisionMap.set(laporan.penugasan_id, {
+        count: current.count + 1,
+        latestUpdatedAt:
+          new Date(laporan.updated_at).getTime() > new Date(current.latestUpdatedAt).getTime()
+            ? laporan.updated_at
+            : current.latestUpdatedAt,
+      })
+    }
+
+    return revisionMap
+  }, [mockLaporan])
 
   const openDetail = (item: PenugasanItem) => {
     if (closeTimeoutRef.current !== null) {
@@ -292,11 +381,13 @@ export default function PenugasanClient() {
                   paginatedItems.map((item, index) => {
                     const hasKomentar = Boolean(item.komentar)
                     const rowNumber = (currentPage - 1) * ITEMS_PER_PAGE + index + 1
+                    const revisionInfo = revisionInfoByPenugasan.get(item.id)
+                    const hasRevision = Boolean(revisionInfo)
 
                     return (
                       <tr
                         key={item.id}
-                        className="group cursor-pointer transition-colors hover:bg-gray-50/50"
+                        className={`group cursor-pointer transition-colors ${hasRevision ? "bg-red-50/20 hover:bg-red-50/40" : "hover:bg-gray-50/50"}`}
                         onClick={() => openDetail(item)}
                       >
                         <td className="h-16 px-6">
@@ -318,7 +409,15 @@ export default function PenugasanClient() {
                             </div>
                             <div className="min-w-0">
                               <span className="block truncate font-bold text-gray-900">{item.nama_pemda}</span>
-                              <span className="block truncate text-xs font-medium text-gray-500">{item.aplikasi}</span>
+                              <div className="mt-0.5 flex items-center gap-2">
+                                <span className="block truncate text-xs font-medium text-gray-500">{item.aplikasi}</span>
+                                {hasRevision ? (
+                                  <span className="inline-flex shrink-0 items-center gap-1 rounded-full bg-red-100 px-2 py-0.5 text-[10px] font-bold text-red-600">
+                                    <AlertTriangle className="h-3 w-3" />
+                                    {revisionInfo?.count && revisionInfo.count > 1 ? `Perlu revisi (${revisionInfo.count})` : "Perlu revisi"}
+                                  </span>
+                                ) : null}
+                              </div>
                             </div>
                           </div>
                         </td>
@@ -326,6 +425,10 @@ export default function PenugasanClient() {
                         <td className="h-16 px-6">
                           {hasKomentar ? (
                             <p className="max-w-[360px] truncate text-sm text-gray-600">{item.komentar}</p>
+                          ) : hasRevision ? (
+                            <span className="inline-flex rounded-md bg-red-50 px-2 py-1 text-xs font-semibold text-red-600">
+                              Ada revisi dari verifikator
+                            </span>
                           ) : (
                             <span className="inline-flex rounded-md bg-gray-100 px-2 py-1 text-xs font-semibold text-gray-500">
                               Tidak ada catatan
@@ -364,10 +467,10 @@ export default function PenugasanClient() {
                             <Button
                               variant="ghost"
                               size="sm"
-                              className="rounded-lg font-semibold text-blue-600 hover:bg-blue-50 hover:text-blue-700"
+                              className={`rounded-lg font-semibold ${hasRevision ? "text-red-600 hover:bg-red-50 hover:text-red-700" : "text-blue-600 hover:bg-blue-50 hover:text-blue-700"}`}
                               onClick={() => openDetail(item)}
                             >
-                              Detail
+                              {hasRevision ? "Tinjau Revisi" : "Detail"}
                               <ArrowRight className="h-4 w-4" />
                             </Button>
                           </div>

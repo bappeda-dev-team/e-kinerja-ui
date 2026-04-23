@@ -13,11 +13,23 @@ import { Badge } from "@/components/ui/badge"
 import { getUsers } from "@/app/super-admin/distribusi/services"
 import type { UserResponse } from "@/app/super-admin/distribusi/types"
 
+function isProgrammer(user: UserResponse) {
+  const roleName =
+    typeof user.role === "string"
+      ? user.role
+      : user.role?.name || user.role?.description || ""
+
+  if (!roleName) return true
+  return roleName.toLowerCase().includes("programmer")
+}
+
 interface PermintaanItem {
   id: string
   nama_pemda: string
   aplikasi: string
   menu: string
+  programmer_ids?: string[]
+  komentar?: string
 }
 
 interface Props {
@@ -30,8 +42,8 @@ interface Props {
 export default function DistribusiModal({ item, onClose, onSave, loading }: Props) {
   const [users, setUsers] = useState<UserResponse[]>([])
   const [fetching, setFetching] = useState(true)
-  const [selectedIds, setSelectedIds] = useState<string[]>([])
-  const [komentar, setKomentar] = useState("")
+  const [selectedIds, setSelectedIds] = useState<string[]>(item.programmer_ids ?? [])
+  const [komentar, setKomentar] = useState(item.komentar ?? "")
 
   useEffect(() => {
     let mounted = true
@@ -39,9 +51,8 @@ export default function DistribusiModal({ item, onClose, onSave, loading }: Prop
       try {
         const res = await getUsers()
         if (mounted && res.data?.data) {
-          // Filter only programmers
           const programmers = res.data.data.filter(
-            (u) => u.is_active
+            (u) => u.is_active && isProgrammer(u)
           )
           setUsers(programmers)
         }
@@ -66,7 +77,7 @@ export default function DistribusiModal({ item, onClose, onSave, loading }: Prop
       toast.error("Pilih minimal satu programmer")
       return
     }
-    onSave({ programmer_ids: selectedIds, komentar })
+    onSave({ programmer_ids: selectedIds, komentar: komentar.trim() })
   }
 
   const selectedUsers = users.filter((u) => selectedIds.includes(u.id))
@@ -80,9 +91,17 @@ export default function DistribusiModal({ item, onClose, onSave, loading }: Prop
         </DialogHeader>
 
         <div className="px-6 py-5 space-y-4">
-          <div className="rounded-xl bg-blue-50/60 border border-blue-100 px-4 py-3 text-sm">
-            <p className="font-bold text-[#202224]">{item.nama_pemda}</p>
-            <p className="text-[#797A7C] mt-0.5">{item.aplikasi} · {item.menu}</p>
+          <div className="space-y-1.5">
+            <Label className="text-sm font-semibold text-[#202224]">Permintaan*</Label>
+            <select
+              value={item.id}
+              disabled
+              className="w-full cursor-not-allowed rounded-lg border border-[#D5D5D5] bg-[#EEF2F7] px-4 py-2.5 text-sm text-[#202224] outline-none disabled:opacity-100"
+            >
+              <option value={item.id}>
+                {item.nama_pemda} — {item.aplikasi} ({item.menu})
+              </option>
+            </select>
           </div>
 
           <div className="space-y-1.5">
@@ -97,6 +116,7 @@ export default function DistribusiModal({ item, onClose, onSave, loading }: Prop
                   className="w-full border rounded-lg bg-[#F5F6FA] border-[#D5D5D5] px-4 py-2.5 text-sm focus:ring-[#4880FF] focus:border-[#4880FF] outline-none"
                   value=""
                   onChange={(e) => { if (e.target.value) handleToggle(e.target.value) }}
+                  disabled={loading}
                 >
                   <option value="">Pilih programmer...</option>
                   {unselectedUsers.map((u) => (
@@ -113,7 +133,9 @@ export default function DistribusiModal({ item, onClose, onSave, loading }: Prop
                       >
                         {u.full_name || u.username}
                         <button
+                          type="button"
                           onClick={() => handleToggle(u.id)}
+                          disabled={loading}
                           className="ml-0.5 hover:text-red-500 transition-colors"
                         >
                           <X className="size-3" />
@@ -134,6 +156,7 @@ export default function DistribusiModal({ item, onClose, onSave, loading }: Prop
               placeholder="Tambahkan catatan untuk programmer..."
               className="w-full bg-[#F5F6FA] border-[#D5D5D5] rounded-lg px-4 py-3 text-sm focus-visible:ring-[#4880FF]"
               rows={3}
+              disabled={loading}
             />
           </div>
         </div>

@@ -20,8 +20,8 @@ export interface PermintaanResponse {
     pemda: NamedEntity;          // { id, name }
     aplikasi: NamedEntity;       // { id, name }
     menu: string;
-    kondisi_awal?: string;
-    kondisi_diharapkan?: string;
+    kondisi_awal: string;
+    kondisi_diharapkan: string;
     tanggal_pesanan?: string;
     tanggal_deadline?: string;
     lampiran?: string[];

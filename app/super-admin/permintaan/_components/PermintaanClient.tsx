@@ -3,20 +3,23 @@
 "use client"
 
 import * as React from "react"
-import { useState, useEffect } from "react"
+import { useState, useEffect, useMemo } from "react"
 import { toast } from "sonner"
-import { Plus } from "lucide-react"
+import { Archive, Plus } from "lucide-react"
 
 import PermintaanTable from "./PermintaanTable"
 import AddPermintaan from "./modals/AddPermintaan"
 import PermintaanDetailModal from "./modals/PermintaanDetailModal"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 
 import type { PermintaanResponse, PermintaanRequest } from "../types"
 import {
   getPermintaan,
+  getArchivedPermintaan,
   createPermintaan,
   updatePermintaan,
   deletePermintaan,
+  toggleArchivePermintaan,
   uploadPermintaanAttachment,
   getMasterPemda // ✅ Fungsi service baru untuk ambil logo
 } from "../services"
@@ -51,6 +54,26 @@ const HybridLoader = () => {
   );
 };
 
+function getMonthKey(item: PermintaanResponse) {
+  const rawDate = item.tanggal_pesanan || item.created_at
+  if (!rawDate) return ""
+
+  const date = new Date(rawDate)
+  if (Number.isNaN(date.getTime())) return ""
+
+  return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}`
+}
+
+function formatMonthLabel(monthKey: string) {
+  const [year, month] = monthKey.split("-").map(Number)
+  const date = new Date(year, (month || 1) - 1, 1)
+
+  return date.toLocaleDateString("id-ID", {
+    month: "long",
+    year: "numeric",
+  })
+}
+
 export default function PermintaanClient() {
   const [data, setData] = useState<PermintaanResponse[]>([])
   const [loading, setLoading] = useState(true)
@@ -58,13 +81,14 @@ export default function PermintaanClient() {
   const [showAdd, setShowAdd] = useState(false)
   const [editItem, setEditItem] = useState<PermintaanResponse | null>(null)
   const [detailItem, setDetailItem] = useState<PermintaanResponse | null>(null)
+  const [showArchived, setShowArchived] = useState(false)
+  const [selectedMonth, setSelectedMonth] = useState("all")
 
   const loadData = async () => {
     try {
       setLoading(true)
-      // ✅ Ambil data permintaan dan master pemda secara paralel
       const [resPermintaan, resPemda] = await Promise.all([
-        getPermintaan(),
+        showArchived ? getArchivedPermintaan() : getPermintaan(),
         getMasterPemda()
       ])
 
@@ -92,7 +116,37 @@ export default function PermintaanClient() {
     }
   }
 
-  useEffect(() => { loadData() }, [])
+  useEffect(() => { loadData() }, [showArchived])
+
+  const archivedMonthOptions = useMemo(() => {
+    const monthMap = new Map<string, string>()
+
+    data.forEach((item) => {
+      const monthKey = getMonthKey(item)
+      if (!monthKey || monthMap.has(monthKey)) return
+      monthMap.set(monthKey, formatMonthLabel(monthKey))
+    })
+
+    return Array.from(monthMap.entries())
+      .sort(([a], [b]) => b.localeCompare(a))
+      .map(([value, label]) => ({ value, label }))
+  }, [data])
+
+  const filteredData = useMemo(() => {
+    if (!showArchived || selectedMonth === "all") return data
+    return data.filter((item) => getMonthKey(item) === selectedMonth)
+  }, [data, selectedMonth, showArchived])
+
+  useEffect(() => {
+    if (!showArchived) {
+      setSelectedMonth("all")
+      return
+    }
+
+    if (selectedMonth !== "all" && !archivedMonthOptions.some((option) => option.value === selectedMonth)) {
+      setSelectedMonth("all")
+    }
+  }, [archivedMonthOptions, selectedMonth, showArchived])
 
   const handleAdd = async (val: PermintaanRequest, files: File[]) => {
     try {
@@ -144,26 +198,75 @@ export default function PermintaanClient() {
     }
   }
 
+  const handleArchive = async (item: PermintaanResponse) => {
+    const nextArchived = !item.is_archived
+
+    try {
+      setActionLoading(true)
+      const res = await toggleArchivePermintaan(item, nextArchived)
+
+      if (res.status === 200) {
+        toast.success(nextArchived ? "Permintaan berhasil diarsipkan" : "Permintaan berhasil dikembalikan dari arsip")
+        if (detailItem?.id === item.id) {
+          setDetailItem(null)
+        }
+        await loadData()
+      }
+    } catch (err: any) {
+      toast.error(err.message || "Gagal mengubah status arsip")
+    } finally {
+      setActionLoading(false)
+    }
+  }
+
   return (
     <div className="space-y-6 px-3 sm:px-4">
       <div className="mb-4 flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
         <h2 className="font-nunito text-[2.1rem] leading-tight font-bold text-[#202224] sm:text-3xl">
           Permintaan Klien
         </h2>
-        <button
-          onClick={() => setShowAdd(true)}
-          className="inline-flex w-full items-center justify-center gap-2 rounded-xl bg-[#4880FF] px-5 py-3 text-sm font-bold text-white shadow-[0_4px_14px_0_rgba(72,128,255,0.39)] transition hover:bg-blue-600 active:scale-95 sm:w-auto sm:px-6 sm:py-2.5"
-        >
-          <Plus className="size-4" /> Tambah Permintaan
-        </button>
+        <div className="flex w-full flex-col gap-3 sm:w-auto sm:flex-row">
+          {showArchived && (
+            <Select value={selectedMonth} onValueChange={setSelectedMonth}>
+              <SelectTrigger className="h-auto w-full rounded-xl border-[#D6D9E2] bg-white px-4 py-3 text-sm font-semibold text-[#202224] shadow-none sm:w-[220px]">
+                <SelectValue placeholder="Filter bulan" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">Semua Bulan</SelectItem>
+                {archivedMonthOptions.map((option) => (
+                  <SelectItem key={option.value} value={option.value}>
+                    {option.label}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          )}
+          <button
+            onClick={() => setShowArchived((prev) => !prev)}
+            className={`inline-flex w-full items-center justify-center gap-2 rounded-xl border px-5 py-3 text-sm font-bold transition active:scale-95 sm:w-auto sm:px-6 sm:py-2.5 ${
+              showArchived
+                ? "border-[#4880FF] bg-[#EAF1FF] text-[#4880FF]"
+                : "border-[#D6D9E2] bg-white text-[#202224] hover:border-[#4880FF] hover:text-[#4880FF]"
+            }`}
+          >
+            <Archive className="size-4" /> Arsip
+          </button>
+          <button
+            onClick={() => setShowAdd(true)}
+            className="inline-flex w-full items-center justify-center gap-2 rounded-xl bg-[#4880FF] px-5 py-3 text-sm font-bold text-white shadow-[0_4px_14px_0_rgba(72,128,255,0.39)] transition hover:bg-blue-600 active:scale-95 sm:w-auto sm:px-6 sm:py-2.5"
+          >
+            <Plus className="size-4" /> Tambah Permintaan
+          </button>
+        </div>
       </div>
 
       {(loading || actionLoading) ? <HybridLoader /> : (
         <PermintaanTable
-          data={data}
+          data={filteredData}
           showTable={true}
           onEdit={setEditItem}
           onDelete={handleDelete}
+          onArchive={handleArchive}
           onCardClick={setDetailItem}
         />
       )}
@@ -181,6 +284,7 @@ export default function PermintaanClient() {
         onClose={() => setDetailItem(null)}
         onEdit={(item) => { setDetailItem(null); setEditItem(item) }}
         onDelete={(id) => { setDetailItem(null); handleDelete(id) }}
+        onArchive={(item) => handleArchive(item)}
       />
     </div>
   )

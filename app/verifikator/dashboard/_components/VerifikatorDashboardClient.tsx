@@ -52,8 +52,14 @@ export default function VerifikatorDashboardClient() {
 
   const attentionItems = useMemo(() => {
     const priority = { revisi: 0, menunggu: 1, terverifikasi: 2 }
+    const now = Date.now()
+
     return items
       .filter((item) => item.status !== "terverifikasi")
+      .filter((item) => {
+        const deadlineTime = getDeadlineTime(item.tanggalDeadline)
+        return Number.isFinite(deadlineTime) && deadlineTime < now
+      })
       .sort((a, b) => {
         const priorityDiff = priority[a.status] - priority[b.status]
         if (priorityDiff !== 0) return priorityDiff
