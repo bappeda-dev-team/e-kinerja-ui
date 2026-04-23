@@ -94,7 +94,7 @@ export default function VerifikasiBoard({ data, onVerify }: Props) {
       ) : (
         <>
           {paginatedItems.length === 0 ? (
-            <div className="rounded-[22px] border border-dashed border-[#D6D9E2] bg-white px-6 py-16 text-center text-sm text-[#202224]/50 shadow-[6px_6px_54px_rgba(0,0,0,0.05)]">
+            <div className="rounded-4xl border border-dashed border-[#D6D9E2] bg-white px-6 py-16 text-center text-sm text-[#202224]/50 shadow-[6px_6px_54px_rgba(0,0,0,0.05)]">
               Belum ada data pada tab ini.
             </div>
           ) : (

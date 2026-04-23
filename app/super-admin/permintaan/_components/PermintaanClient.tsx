@@ -161,7 +161,7 @@ export default function PermintaanClient() {
       {(loading || actionLoading) ? <HybridLoader /> : (
         <PermintaanTable
           data={data}
-          showTable={false}
+          showTable={true}
           onEdit={setEditItem}
           onDelete={handleDelete}
           onCardClick={setDetailItem}
