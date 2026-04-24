@@ -2,11 +2,27 @@
 
 "use client"
 
-import { useState } from "react"
+import { useEffect, useState } from "react"
+import { useSession } from "next-auth/react"
 import { Send, X } from "lucide-react"
 import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog"
 import { VisuallyHidden } from "@radix-ui/react-visually-hidden"
+import { fetchApi } from "@/lib/fetcher"
+import type { ApiResponse } from "@/types/api"
 import type { DistribusiKomentar } from "../../types"
+
+interface SessionUser {
+  id?: string
+  user_id?: string
+  full_name?: string
+  name?: string | null
+  username?: string
+}
+
+interface UserProfile {
+  full_name?: string
+  username?: string
+}
 
 interface Props {
   komentars: DistribusiKomentar[]
@@ -46,8 +62,34 @@ function getKomentarText(item: DistribusiKomentar) {
   return item.komentar ?? item.komentars ?? ""
 }
 
+function normalizeName(name?: string | null) {
+  return name?.trim().toLowerCase() ?? ""
+}
+
 export default function KomentarModal({ komentars, onClose, onSend, loading = false }: Props) {
+  const { data: session } = useSession()
   const [input, setInput] = useState("")
+  const [profileName, setProfileName] = useState<string | null>(null)
+  const sessionUser = session?.user as SessionUser | undefined
+  const userId = sessionUser?.user_id ?? sessionUser?.id
+  const currentUserName = normalizeName(profileName ?? sessionUser?.full_name ?? sessionUser?.name ?? sessionUser?.username)
+
+  useEffect(() => {
+    if (!userId) return
+
+    const fetchProfile = async () => {
+      const res = await fetchApi<ApiResponse<UserProfile>>({
+        url: `/users/${userId}`,
+        method: "GET",
+      })
+
+      if (res.status === 200 && res.data?.data) {
+        setProfileName(res.data.data.full_name ?? res.data.data.username ?? null)
+      }
+    }
+
+    fetchProfile()
+  }, [userId])
 
   const handleSend = async () => {
     if (!input.trim()) return
@@ -77,20 +119,25 @@ export default function KomentarModal({ komentars, onClose, onSend, loading = fa
           ) : (
             komentars.map((c) => {
               const name = c.full_name || "Pengguna"
+              const isMine = normalizeName(name) === currentUserName
               return (
-                <div key={c.id} className="flex gap-3">
+                <div key={c.id} className={`flex gap-3 ${isMine ? "flex-row-reverse" : ""}`}>
                   <div
                     className="w-9 h-9 rounded-full flex items-center justify-center shrink-0 text-xs font-bold text-white"
-                    style={{ background: avatarColor(name) }}
+                    style={{ background: isMine ? "#4880FF" : avatarColor(name) }}
                   >
                     {initials(name)}
                   </div>
-                  <div className="flex-1 min-w-0">
-                    <div className="mb-1 flex flex-wrap items-center gap-2">
-                      <span className="text-sm font-bold text-[#202224]">{name}</span>
+                  <div className={`flex max-w-[78%] flex-col ${isMine ? "items-end" : "items-start"}`}>
+                    <div className={`mb-1 flex flex-wrap items-center gap-2 ${isMine ? "justify-end" : ""}`}>
+                      <span className="text-sm font-bold text-[#202224]">{isMine ? "Saya" : name}</span>
                       <span className="text-[11px] text-gray-400">{formatWaktu(c.created_at)}</span>
                     </div>
-                    <div className="whitespace-pre-wrap rounded-xl bg-white border border-gray-100 px-3 py-2.5 text-sm text-[#202224] leading-relaxed shadow-sm">
+                    <div className={`whitespace-pre-wrap rounded-2xl px-3 py-2.5 text-sm leading-relaxed shadow-sm ${
+                      isMine
+                        ? "rounded-tr-sm bg-[#4880FF] text-white"
+                        : "rounded-tl-sm border border-gray-100 bg-white text-[#202224]"
+                    }`}>
                       {getKomentarText(c)}
                     </div>
                   </div>
