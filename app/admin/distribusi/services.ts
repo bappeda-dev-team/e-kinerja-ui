@@ -3,6 +3,7 @@
 export {
   getDistribusi,
   createDistribusi,
+  createDistribusiKomentar,
   updateDistribusi,
   deleteDistribusi,
   getUsers,

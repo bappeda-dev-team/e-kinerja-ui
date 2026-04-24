@@ -42,7 +42,7 @@ interface Props {
   distribusi: DistribusiItem[]
   onSelesai: (id: string) => void
   onDelete: (id: string) => void
-  onShowKomentar: (text: string) => void
+  onShowKomentar: (item: DistribusiItem) => void
   onEdit: (item: DistribusiItem) => void
   onRowClick: (item: DistribusiItem) => void
 }
@@ -148,11 +148,12 @@ export function DistribusiTable({ distribusi, onSelesai, onDelete, onShowKomenta
                   )}
                 </TableCell>
                 <TableCell className="px-4 py-3 text-xs text-[#797A7C]">
-                  {row.komentar ? (
-                    <button onClick={() => onShowKomentar(row.komentar!)} className="font-medium text-blue-600 hover:underline">
-                      Lihat komentar
-                    </button>
-                  ) : "-"}
+                  <button
+                    onClick={(event) => { event.stopPropagation(); onShowKomentar(row) }}
+                    className="font-medium text-blue-600 hover:underline"
+                  >
+                    {row.komentars.length > 0 ? `Lihat komentar (${row.komentars.length})` : "Tambah komentar"}
+                  </button>
                 </TableCell>
                 <TableCell className="px-4 py-3">
                   {row.deadline ? (() => {

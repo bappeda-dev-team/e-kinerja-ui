@@ -3,54 +3,55 @@
 "use client"
 
 import { useState } from "react"
-import { X, Paperclip, AtSign, Send } from "lucide-react"
+import { Send, X } from "lucide-react"
 import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog"
 import { VisuallyHidden } from "@radix-ui/react-visually-hidden"
-
-const MOCK_COMMENTS = [
-  {
-    id: 1,
-    nama: "Pak Yoga",
-    role: "Admin",
-    roleCls: "bg-purple-100 text-purple-600",
-    initials: "PY",
-    avatarCls: "bg-gray-500",
-    waktu: "25 Mar 2026 · 11:00",
-    pesan: "Pekerjaan didistribusikan ke @Zulfikar . Deadline 5 April, mohon update progress setiap Senin.",
-  },
-  {
-    id: 2,
-    nama: "Daniel",
-    role: "Programmer",
-    roleCls: "bg-blue-100 text-blue-600",
-    initials: "DA",
-    avatarCls: "bg-blue-500",
-    waktu: "27 Mar 2026 · 16:30",
-    pesan: "Update: query laporan sudah selesai. Saat ini sedang testing performa di data 100rb baris.",
-  },
-]
+import type { DistribusiKomentar } from "../../types"
 
 interface Props {
-  komentar: string
+  komentars: DistribusiKomentar[]
   onClose: () => void
+  onSend?: (komentar: string) => Promise<void> | void
+  loading?: boolean
 }
 
-export default function KomentarModal({ komentar, onClose }: Props) {
-  const [input, setInput] = useState("")
-  const [comments, setComments] = useState(MOCK_COMMENTS)
+function initials(name: string) {
+  return name
+    .split(" ")
+    .filter(Boolean)
+    .slice(0, 2)
+    .map((word) => word[0])
+    .join("")
+    .toUpperCase() || "?"
+}
 
-  const handleSend = () => {
+function avatarColor(name: string) {
+  let hash = 0
+  for (let i = 0; i < name.length; i++) hash = name.charCodeAt(i) + ((hash << 5) - hash)
+  return `hsl(${Math.abs(hash) % 360}, 55%, 48%)`
+}
+
+function formatWaktu(date: string) {
+  if (!date) return "-"
+  return new Date(date).toLocaleString("id-ID", {
+    day: "numeric",
+    month: "short",
+    year: "numeric",
+    hour: "2-digit",
+    minute: "2-digit",
+  })
+}
+
+function getKomentarText(item: DistribusiKomentar) {
+  return item.komentar ?? item.komentars ?? ""
+}
+
+export default function KomentarModal({ komentars, onClose, onSend, loading = false }: Props) {
+  const [input, setInput] = useState("")
+
+  const handleSend = async () => {
     if (!input.trim()) return
-    setComments((prev) => [...prev, {
-      id: Date.now(),
-      nama: "Pak Yoga",
-      role: "Admin",
-      roleCls: "bg-purple-100 text-purple-600",
-      initials: "PY",
-      avatarCls: "bg-gray-500",
-      waktu: new Date().toLocaleString("id-ID", { day: "numeric", month: "short", year: "numeric", hour: "2-digit", minute: "2-digit" }),
-      pesan: input.trim(),
-    }])
+    await onSend?.(input.trim())
     setInput("")
   }
 
@@ -69,27 +70,34 @@ export default function KomentarModal({ komentar, onClose }: Props) {
 
         {/* Chat messages */}
         <div className="px-4 py-3 space-y-4 max-h-[360px] overflow-y-auto bg-gray-50/60">
-          {comments.map((c) => (
-            <div key={c.id} className="flex gap-3">
-              <div className={`w-9 h-9 rounded-full ${c.avatarCls} flex items-center justify-center shrink-0 text-xs font-bold text-white`}>
-                {c.initials}
-              </div>
-              <div className="flex-1 min-w-0">
-                <div className="flex items-center gap-2 mb-1">
-                  <span className="text-sm font-bold text-[#202224]">{c.nama}</span>
-                  <span className={`rounded-full px-2 py-0.5 text-[10px] font-semibold ${c.roleCls}`}>{c.role}</span>
-                  <span className="text-[11px] text-gray-400">{c.waktu}</span>
-                </div>
-                <div className="rounded-xl bg-white border border-gray-100 px-3 py-2.5 text-sm text-[#202224] leading-relaxed shadow-sm">
-                  {c.pesan.split(/(@\w+)/g).map((part, i) =>
-                    part.startsWith("@") ? (
-                      <span key={i} className="text-[#4880FF] font-semibold">{part}</span>
-                    ) : part
-                  )}
-                </div>
-              </div>
+          {komentars.length === 0 ? (
+            <div className="rounded-xl border border-dashed border-gray-200 bg-white px-4 py-8 text-center text-sm text-gray-400">
+              Belum ada komentar.
             </div>
-          ))}
+          ) : (
+            komentars.map((c) => {
+              const name = c.full_name || "Pengguna"
+              return (
+                <div key={c.id} className="flex gap-3">
+                  <div
+                    className="w-9 h-9 rounded-full flex items-center justify-center shrink-0 text-xs font-bold text-white"
+                    style={{ background: avatarColor(name) }}
+                  >
+                    {initials(name)}
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <div className="mb-1 flex flex-wrap items-center gap-2">
+                      <span className="text-sm font-bold text-[#202224]">{name}</span>
+                      <span className="text-[11px] text-gray-400">{formatWaktu(c.created_at)}</span>
+                    </div>
+                    <div className="whitespace-pre-wrap rounded-xl bg-white border border-gray-100 px-3 py-2.5 text-sm text-[#202224] leading-relaxed shadow-sm">
+                      {getKomentarText(c)}
+                    </div>
+                  </div>
+                </div>
+              )
+            })
+          )}
         </div>
 
         {/* Input */}
@@ -101,6 +109,7 @@ export default function KomentarModal({ komentar, onClose }: Props) {
               placeholder="Tulis komentar..."
               rows={2}
               className="w-full px-3 pt-2.5 text-sm text-[#202224] placeholder:text-gray-400 resize-none outline-none bg-white"
+              disabled={loading}
               onKeyDown={(e) => {
                 if (e.key === "Enter" && !e.shiftKey) {
                   e.preventDefault()
@@ -109,20 +118,14 @@ export default function KomentarModal({ komentar, onClose }: Props) {
               }}
             />
             <div className="flex items-center justify-between px-3 pb-2.5">
-              <div className="flex items-center gap-2">
-                <button type="button" className="text-gray-400 hover:text-gray-600 transition">
-                  <Paperclip className="w-4 h-4" />
-                </button>
-                <button type="button" className="text-gray-400 hover:text-gray-600 transition">
-                  <AtSign className="w-4 h-4" />
-                </button>
-              </div>
+              <span className="text-[11px] text-gray-400">Tekan Shift + Enter untuk baris baru</span>
               <button
                 type="button"
                 onClick={handleSend}
-                className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-[#4880FF] text-white text-xs font-bold hover:bg-blue-600 transition"
+                disabled={loading || !input.trim()}
+                className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-[#4880FF] text-white text-xs font-bold hover:bg-blue-600 transition disabled:cursor-not-allowed disabled:opacity-50"
               >
-                Kirim <Send className="w-3 h-3" />
+                {loading ? "Mengirim..." : "Kirim"} <Send className="w-3 h-3" />
               </button>
             </div>
           </div>

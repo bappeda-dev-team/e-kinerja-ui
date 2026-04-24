@@ -15,7 +15,7 @@ interface Props {
   item: DistribusiItem
   onSelesai: (id: string) => void
   onDelete: (id: string) => void
-  onShowKomentar: (text: string) => void
+  onShowKomentar: (item: DistribusiItem) => void
   onEdit: (item: DistribusiItem) => void
 }
 
@@ -125,12 +125,10 @@ export function DistribusiCard({ item, onSelesai, onDelete, onShowKomentar, onEd
             <Users className="size-3.5" />
             <span>{item.programmer.length}</span>
           </span>
-          {item.komentar && (
-            <button onClick={() => onShowKomentar(item.komentar!)} className="flex items-center gap-1 hover:text-blue-500 transition">
-              <MessageSquare className="size-3.5" />
-              <span>1</span>
-            </button>
-          )}
+          <button onClick={() => onShowKomentar(item)} className="flex items-center gap-1 hover:text-blue-500 transition">
+            <MessageSquare className="size-3.5" />
+            <span>{item.komentars.length}</span>
+          </button>
         </div>
       </div>
     </div>

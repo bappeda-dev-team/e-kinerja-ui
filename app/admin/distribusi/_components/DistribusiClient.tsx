@@ -14,12 +14,13 @@ import { NetworkError } from "@/components/network-error"
 
 import {
   getDistribusi,
+  createDistribusiKomentar,
   updateDistribusi,
   deleteDistribusi,
   getUsers,
 } from "../services"
 
-import type { DistribusiResponse, UserResponse } from "@/app/super-admin/distribusi/types"
+import type { DistribusiKomentar, DistribusiResponse, UserResponse } from "@/app/super-admin/distribusi/types"
 
 const HybridLoader = () => {
   const [progress, setProgress] = React.useState(0)
@@ -67,6 +68,7 @@ export interface DistribusiItem {
   status: "didistribusikan" | "pending" | "revision" | "approved"
   jumlah_komentar?: number
   komentar?: string
+  komentars: DistribusiKomentar[]
   hasil?: string
   kualitas?: string
   ketepatan?: string
@@ -81,6 +83,33 @@ function mapDistribusiStatus(item: DistribusiResponse): DistribusiItem["status"]
   return "didistribusikan"
 }
 
+function getKomentarText(item: DistribusiKomentar) {
+  return item.komentar ?? item.komentars ?? ""
+}
+
+function normalizeKomentar(item: DistribusiKomentar): DistribusiKomentar {
+  return {
+    ...item,
+    komentar: getKomentarText(item),
+  }
+}
+
+function mapKomentars(item: DistribusiResponse): DistribusiKomentar[] {
+  if (item.komentars?.length) return item.komentars.map(normalizeKomentar)
+  if (!item.komentar) return []
+
+  return [{
+    id: `komentar-${item.id}`,
+    full_name: item.admin?.full_name ?? "Admin",
+    komentar: item.komentar,
+    created_at: item.created_at ?? "",
+  }]
+}
+
+function getErrorMessage(error: unknown, fallback: string) {
+  return error instanceof Error && error.message ? error.message : fallback
+}
+
 export default function AdminDistribusiClient() {
   const [distribusi, setDistribusi] = useState<DistribusiItem[]>([])
   const [users, setUsers] = useState<UserResponse[]>([])
@@ -88,7 +117,7 @@ export default function AdminDistribusiClient() {
   const [networkError, setNetworkError] = useState(false)
   const [fetchKey, setFetchKey] = useState(0)
   const [submitLoading, setSubmitLoading] = useState(false)
-  const [selectedKomentar, setSelectedKomentar] = useState<string | null>(null)
+  const [selectedKomentar, setSelectedKomentar] = useState<DistribusiItem | null>(null)
   const [editTarget, setEditTarget] = useState<DistribusiItem | null>(null)
   const [detailItem, setDetailItem] = useState<DistribusiItem | null>(null)
 
@@ -116,6 +145,8 @@ export default function AdminDistribusiClient() {
           ? item.permintaan.pemda.name
           : item.permintaan?.pemda ?? "-"
 
+        const komentars = mapKomentars(item)
+
         return {
           id: item.id,
           permintaan_id: item.permintaan?.id ?? "",
@@ -132,8 +163,9 @@ export default function AdminDistribusiClient() {
           admin: item.admin?.full_name ?? "-",
           programmer: programmerList,
           status: mapDistribusiStatus(item),
-          jumlah_komentar: item.komentar ? 1 : 0,
+          jumlah_komentar: komentars.length,
           komentar: item.komentar ?? "",
+          komentars,
           lampiran: item.permintaan?.lampiran ?? [],
         }
       })
@@ -175,8 +207,8 @@ export default function AdminDistribusiClient() {
       } else {
         throw new Error(res.data?.message || "Gagal memperbarui distribusi")
       }
-    } catch (err: any) {
-      toast.error(err.message || "Gagal memperbarui distribusi")
+    } catch (error) {
+      toast.error(getErrorMessage(error, "Gagal memperbarui distribusi"))
     } finally {
       setSubmitLoading(false)
     }
@@ -185,6 +217,43 @@ export default function AdminDistribusiClient() {
   const handleSelesai = (id: string) => {
     setDistribusi((prev) => prev.map((item) => item.id === id ? { ...item, status: "approved" } : item))
     toast.success("Pekerjaan ditandai selesai")
+  }
+
+  const handleCreateKomentar = async (text: string) => {
+    if (!selectedKomentar) return
+
+    try {
+      setSubmitLoading(true)
+      const res = await createDistribusiKomentar(selectedKomentar.id, { komentars: text })
+
+      if (res.status !== 200 && res.status !== 201) {
+        throw new Error(res.data?.message || "Gagal mengirim komentar")
+      }
+
+      const created = res.data?.data
+      if (!created) {
+        setFetchKey((key) => key + 1)
+        return
+      }
+
+      const normalized = normalizeKomentar(created)
+      const applyKomentar = (item: DistribusiItem): DistribusiItem => {
+        const nextKomentars = [...item.komentars, normalized]
+        return {
+          ...item,
+          komentars: nextKomentars,
+          jumlah_komentar: nextKomentars.length,
+        }
+      }
+
+      setDistribusi((prev) => prev.map((item) => item.id === selectedKomentar.id ? applyKomentar(item) : item))
+      setSelectedKomentar((prev) => prev ? applyKomentar(prev) : prev)
+      toast.success("Komentar berhasil dikirim")
+    } catch (error) {
+      toast.error(getErrorMessage(error, "Gagal mengirim komentar"))
+    } finally {
+      setSubmitLoading(false)
+    }
   }
 
   if (networkError) {
@@ -213,8 +282,10 @@ export default function AdminDistribusiClient() {
 
       {selectedKomentar && (
         <KomentarModal
-          komentar={selectedKomentar}
+          komentars={selectedKomentar.komentars}
           onClose={() => setSelectedKomentar(null)}
+          onSend={handleCreateKomentar}
+          loading={submitLoading}
         />
       )}
 
@@ -233,7 +304,7 @@ export default function AdminDistribusiClient() {
         onClose={() => setDetailItem(null)}
         onEdit={(item) => { setDetailItem(null); setEditTarget(item) }}
         onDelete={(id) => { setDetailItem(null); handleDelete(id) }}
-        onShowKomentar={(text) => { setDetailItem(null); setSelectedKomentar(text) }}
+        onShowKomentar={(item) => { setDetailItem(null); setSelectedKomentar(item) }}
         onSelesai={(id) => { setDetailItem(null); handleSelesai(id) }}
       />
     </div>

@@ -45,6 +45,19 @@ export interface UpdateDistribusiRequest {
     deadline?: string;
 }
 
+export interface DistribusiKomentar {
+    id: string;
+    full_name: string;
+    komentar?: string;
+    komentars?: string;
+    created_at: string;
+    updated_at?: string;
+}
+
+export interface CreateDistribusiKomentarRequest {
+    komentars: string;
+}
+
 export interface DistribusiPermintaan {
     id: string;
     pemda: NamedEntity | string;   // toleran: bisa object atau string
@@ -75,6 +88,7 @@ export interface DistribusiResponse {
     id: string;
     permintaan?: DistribusiPermintaan;
     admin?: DistribusiAdmin;
+    komentars?: DistribusiKomentar[];
     pelaksana?: DistribusiPelaksana[];
     verifikasi?: {
         id: string;

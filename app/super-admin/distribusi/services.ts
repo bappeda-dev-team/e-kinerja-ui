@@ -3,7 +3,7 @@
 import { fetchApi } from "@/lib/fetcher";
 import type { ApiResponse } from "@/types/api";
 import type { MasterPemda } from "@/app/super-admin/data-master/master-pemda/types";
-import { DistribusiRequest, DistribusiResponse, PelaksanaRequest, PelaksanaResponse, PermintaanResponse, UpdateDistribusiRequest, UserResponse } from "./types";
+import { CreateDistribusiKomentarRequest, DistribusiKomentar, DistribusiRequest, DistribusiResponse, PelaksanaRequest, PelaksanaResponse, PermintaanResponse, UpdateDistribusiRequest, UserResponse } from "./types";
 
 export const getPermintaan = async () => {
   return fetchApi<ApiResponse<PermintaanResponse[]>>({
@@ -46,6 +46,14 @@ export const deleteDistribusi = async (id: string) => {
   return fetchApi<ApiResponse<null>>({
     url: `/distribusi/${id}`,
     method: "DELETE",
+  });
+};
+
+export const createDistribusiKomentar = async (id: string, data: CreateDistribusiKomentarRequest) => {
+  return fetchApi<ApiResponse<DistribusiKomentar>>({
+    url: `/distribusi/komentar/${id}`,
+    method: "POST",
+    body: data,
   });
 };
 

@@ -28,18 +28,19 @@ interface Props {
   onClose: () => void
   onEdit: (item: DistribusiItem) => void
   onDelete: (id: string) => void
-  onShowKomentar: (text: string) => void
+  onShowKomentar: (item: DistribusiItem) => void
   onSelesai: (id: string) => void
 }
 
 export default function DistribusiDetailModal({ item, onClose, onEdit, onDelete, onShowKomentar, onSelesai }: Props) {
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false)
+  const [now] = useState(() => Date.now())
 
   if (!item) return null
 
   const statusMeta = getStatusMeta(item.status)
   const isDeadlineNear = item.deadline
-    ? new Date(item.deadline).getTime() - Date.now() < 3 * 24 * 60 * 60 * 1000
+    ? new Date(item.deadline).getTime() - now < 3 * 24 * 60 * 60 * 1000
     : false
 
   return (
@@ -181,12 +182,11 @@ export default function DistribusiDetailModal({ item, onClose, onEdit, onDelete,
         {/* Footer */}
         <div className="px-5 py-3 border-t border-gray-100 flex gap-2">
           <button
-            onClick={() => { if (item.komentar) { onShowKomentar(item.komentar); onClose() } }}
-            disabled={!item.komentar}
-            className="flex-1 flex items-center justify-center gap-2 py-2.5 rounded-xl border border-gray-200 text-sm font-semibold text-[#202224] hover:bg-gray-50 transition disabled:opacity-40 disabled:cursor-not-allowed"
+            onClick={() => { onShowKomentar(item); onClose() }}
+            className="flex-1 flex items-center justify-center gap-2 py-2.5 rounded-xl border border-gray-200 text-sm font-semibold text-[#202224] hover:bg-gray-50 transition"
           >
             <MessageCircle className="w-4 h-4" />
-            Lihat Komentar
+            {item.komentars.length > 0 ? "Lihat Komentar" : "Tambah Komentar"}
           </button>
           <button
             onClick={() => { onSelesai(item.id); onClose() }}

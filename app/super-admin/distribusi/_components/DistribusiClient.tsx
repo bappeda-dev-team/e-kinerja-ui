@@ -15,12 +15,13 @@ import DistribusiDetailModal from "./modals/DistribusiDetailModal"
 import {
   getDistribusi,
   createDistribusi,
+  createDistribusiKomentar,
   deleteDistribusi,
   getUsers,
   updateDistribusi,
 } from "../services"
 
-import type { DistribusiRequest, DistribusiResponse, UserResponse } from "../types"
+import type { DistribusiKomentar, DistribusiRequest, DistribusiResponse, UserResponse } from "../types"
 
 const HybridLoader = () => {
   const [progress, setProgress] = React.useState(0)
@@ -68,6 +69,7 @@ export interface DistribusiItem {
   status: "didistribusikan" | "pending" | "revision" | "approved"
   jumlah_komentar?: number
   komentar?: string
+  komentars: DistribusiKomentar[]
   hasil?: string
   kualitas?: string
   ketepatan?: string
@@ -88,13 +90,36 @@ function getErrorMessage(error: unknown, fallback: string) {
   return error instanceof Error && error.message ? error.message : fallback
 }
 
+function getKomentarText(item: DistribusiKomentar) {
+  return item.komentar ?? item.komentars ?? ""
+}
+
+function normalizeKomentar(item: DistribusiKomentar): DistribusiKomentar {
+  return {
+    ...item,
+    komentar: getKomentarText(item),
+  }
+}
+
+function mapKomentars(item: DistribusiResponse): DistribusiKomentar[] {
+  if (item.komentars?.length) return item.komentars.map(normalizeKomentar)
+  if (!item.komentar) return []
+
+  return [{
+    id: `komentar-${item.id}`,
+    full_name: item.admin?.full_name ?? "Admin",
+    komentar: item.komentar,
+    created_at: item.created_at ?? "",
+  }]
+}
+
 export default function DistribusiClient() {
   const [distribusi, setDistribusi] = useState<DistribusiItem[]>([])
   const [users, setUsers] = useState<UserResponse[]>([])
   const [loading, setLoading] = useState(true)
   const [showAdd, setShowAdd] = useState(false)
   const [submitLoading, setSubmitLoading] = useState(false)
-  const [selectedKomentar, setSelectedKomentar] = useState<string | null>(null)
+  const [selectedKomentar, setSelectedKomentar] = useState<DistribusiItem | null>(null)
   const [editTarget, setEditTarget] = useState<DistribusiItem | null>(null)
   const [detailItem, setDetailItem] = useState<DistribusiItem | null>(null)
 
@@ -116,6 +141,8 @@ export default function DistribusiClient() {
           ? item.permintaan.pemda.name
           : item.permintaan?.pemda ?? "-"
 
+        const komentars = mapKomentars(item)
+
         return {
           id: item.id,
           permintaan_id: item.permintaan?.id ?? "",
@@ -132,8 +159,9 @@ export default function DistribusiClient() {
           admin: item.admin?.full_name ?? "-",
           programmer: programmerList,
           status: mapDistribusiStatus(item),
-          jumlah_komentar: item.komentar ? 1 : 0,
+          jumlah_komentar: komentars.length,
           komentar: item.komentar ?? "",
+          komentars,
           lampiran: item.permintaan?.lampiran ?? [],
         }
       })
@@ -208,6 +236,43 @@ export default function DistribusiClient() {
     toast.success("Pekerjaan ditandai selesai")
   }
 
+  const handleCreateKomentar = async (text: string) => {
+    if (!selectedKomentar) return
+
+    try {
+      setSubmitLoading(true)
+      const res = await createDistribusiKomentar(selectedKomentar.id, { komentars: text })
+
+      if (res.status !== 200 && res.status !== 201) {
+        throw new Error(res.data?.message || "Gagal mengirim komentar")
+      }
+
+      const created = res.data?.data
+      if (!created) {
+        fetchAll()
+        return
+      }
+
+      const normalized = normalizeKomentar(created)
+      const applyKomentar = (item: DistribusiItem): DistribusiItem => {
+        const nextKomentars = [...item.komentars, normalized]
+        return {
+          ...item,
+          komentars: nextKomentars,
+          jumlah_komentar: nextKomentars.length,
+        }
+      }
+
+      setDistribusi((prev) => prev.map((item) => item.id === selectedKomentar.id ? applyKomentar(item) : item))
+      setSelectedKomentar((prev) => prev ? applyKomentar(prev) : prev)
+      toast.success("Komentar berhasil dikirim")
+    } catch (error) {
+      toast.error(getErrorMessage(error, "Gagal mengirim komentar"))
+    } finally {
+      setSubmitLoading(false)
+    }
+  }
+
   return (
     <div className="space-y-6 px-3 sm:px-4">
       <div className="mb-4 flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
@@ -229,8 +294,10 @@ export default function DistribusiClient() {
 
       {selectedKomentar && (
         <KomentarModal
-          komentar={selectedKomentar}
+          komentars={selectedKomentar.komentars}
           onClose={() => setSelectedKomentar(null)}
+          onSend={handleCreateKomentar}
+          loading={submitLoading}
         />
       )}
 
@@ -257,7 +324,7 @@ export default function DistribusiClient() {
         onClose={() => setDetailItem(null)}
         onEdit={(item) => { setDetailItem(null); setEditTarget(item) }}
         onDelete={(id) => { setDetailItem(null); handleDelete(id) }}
-        onShowKomentar={(text) => { setDetailItem(null); setSelectedKomentar(text) }}
+        onShowKomentar={(item) => { setDetailItem(null); setSelectedKomentar(item) }}
         onSelesai={(id) => { setDetailItem(null); handleSelesai(id) }}
       />
     </div>

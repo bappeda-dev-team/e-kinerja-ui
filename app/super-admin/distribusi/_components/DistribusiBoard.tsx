@@ -12,7 +12,7 @@ interface Props {
   distribusi: DistribusiItem[]
   onSelesai: (id: string) => void
   onDelete: (id: string) => void
-  onShowKomentar: (text: string) => void
+  onShowKomentar: (item: DistribusiItem) => void
   onEdit: (item: DistribusiItem) => void
   onRowClick: (item: DistribusiItem) => void
 }
