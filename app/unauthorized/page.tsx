@@ -4,11 +4,12 @@
 
 import { ShieldX } from "lucide-react"
 import { signOut } from "next-auth/react"
-import { invalidateClientSessionCache } from "@/lib/fetcher"
+import { deleteCookie } from "cookies-next"
 
 export default function UnauthorizedPage() {
   const handleBackToLogin = async () => {
-    invalidateClientSessionCache()
+    deleteCookie("auth", { path: "/" })
+    deleteCookie("refresh_token", { path: "/" })
     await signOut({ callbackUrl: "/login" })
   }
 

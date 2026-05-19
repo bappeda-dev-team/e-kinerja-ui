@@ -19,7 +19,7 @@ export default function StatCards({ totalPermintaan, totalDistribusi, totalLapor
       icon: ClipboardList,
       iconBg: "bg-blue-50",
       iconColor: "text-blue-500",
-      href: "/permintaan",
+      href: "/super-admin/permintaan",
     },
     {
       label: "Total Distribusi",
@@ -27,7 +27,7 @@ export default function StatCards({ totalPermintaan, totalDistribusi, totalLapor
       icon: Share2,
       iconBg: "bg-orange-50",
       iconColor: "text-orange-500",
-      href: "/distribusi",
+      href: "/super-admin/distribusi",
     },
     {
       label: "Total Laporan",
@@ -35,7 +35,7 @@ export default function StatCards({ totalPermintaan, totalDistribusi, totalLapor
       icon: FileText,
       iconBg: "bg-green-50",
       iconColor: "text-green-500",
-      href: "/laporan",
+      href: "/super-admin/laporan",
     },
     {
       label: "Selesai",
@@ -43,7 +43,7 @@ export default function StatCards({ totalPermintaan, totalDistribusi, totalLapor
       icon: TrendingUp,
       iconBg: "bg-purple-50",
       iconColor: "text-purple-500",
-      href: "/laporan",
+      href: "/super-admin/laporan",
     },
   ]
 

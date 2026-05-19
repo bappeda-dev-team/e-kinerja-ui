@@ -11,7 +11,7 @@ export const authOptions: NextAuthOptions = {
   secret: process.env.NEXTAUTH_SECRET,
 
   providers: [
-    CredentialsProvider({
+    CredentialsProvider({ 
       name: "Credentials",
       credentials: {
         username: { label: "Username", type: "text" },
@@ -43,10 +43,10 @@ export const authOptions: NextAuthOptions = {
 
           const result = await response.json();
 
-          // Response dari backend: { data: { token: "jwt_token" } }
-          if (result.data?.token) {
-            // Decode JWT untuk mendapatkan user info
-            const token = result.data.token;
+          // Response dari backend: { data: { access_token: "jwt_token", refresh_token: "..." } }
+          if (result.data?.access_token) {
+            const token = result.data.access_token;
+            const refreshToken = result.data.refresh_token;
             const base64Url = token.split('.')[1];
             const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
             const jsonPayload = decodeURIComponent(
@@ -57,12 +57,11 @@ export const authOptions: NextAuthOptions = {
             );
             const userPayload = JSON.parse(jsonPayload);
 
-            console.log("JWT PAYLOAD:", JSON.stringify(userPayload));
-
             return {
               id: userPayload.user_id?.toString() || username,
               email: userPayload.email,
               accessToken: token,
+              refreshToken,
               user: userPayload
             };
           }
@@ -79,6 +78,7 @@ export const authOptions: NextAuthOptions = {
     async jwt({ token, user }: any) {
       if (user) {
         token.accessToken = user.accessToken;
+        token.refreshToken = user.refreshToken;
         token.user = user.user;
       }
 
@@ -87,6 +87,7 @@ export const authOptions: NextAuthOptions = {
 
     async session({ session, token }: any) {
       session.accessToken = token.accessToken as string;
+      session.refreshToken = token.refreshToken as string;
       session.user = token.user;
 
       return session;

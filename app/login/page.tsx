@@ -8,7 +8,6 @@ import { TbEye, TbEyeClosed } from "react-icons/tb"
 import { signIn, getSession } from "next-auth/react"
 import { toast } from "sonner"
 import Image from "next/image" // Import komponen Image
-import { invalidateClientSessionCache, primeClientSessionCache } from "@/lib/fetcher"
 import { getRoleName, getRolePrefix } from "@/lib/roles"
 
 interface FormValues {
@@ -34,11 +33,9 @@ const onSubmit = async () => {
     })
 
     if (result?.error) {
-      invalidateClientSessionCache()
       toast.error("Username atau password salah!")
     } else {
       const session = await getSession()
-      primeClientSessionCache(session)
       const roleName = getRoleName(session)
       const rolePrefix = getRolePrefix(session)
 

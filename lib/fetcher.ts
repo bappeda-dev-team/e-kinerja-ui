@@ -2,59 +2,16 @@
 
 import { NextRequest } from "next/server";
 import { getCookie } from "cookies-next";
-import { getSession, signOut } from "next-auth/react";
+import { signOut } from "next-auth/react";
 import { getServerSession } from "next-auth";
 import { redirect } from "next/navigation";
 import { authOptions } from "@/app/api/auth/[...nextauth]/route";
 
-const SESSION_TTL = 60 * 1000;
-
-let cachedClientSession: any = null;
-let cachedClientSessionExpiresAt = 0;
-let hasCachedClientSession = false;
-let inFlightClientSessionPromise: Promise<any> | null = null;
-
-function setClientSessionCache(session: any) {
-  cachedClientSession = session;
-  cachedClientSessionExpiresAt = Date.now() + SESSION_TTL;
-  hasCachedClientSession = true;
-}
-
-export function primeClientSessionCache(session: any) {
-  if (typeof window === "undefined") return;
-  setClientSessionCache(session);
-}
-
-export function invalidateClientSessionCache() {
-  cachedClientSession = null;
-  cachedClientSessionExpiresAt = 0;
-  hasCachedClientSession = false;
-  inFlightClientSessionPromise = null;
-}
-
-async function getCachedClientSession() {
-  const now = Date.now();
-
-  if (hasCachedClientSession && now < cachedClientSessionExpiresAt) {
-    return cachedClientSession;
-  }
-
-  if (!inFlightClientSessionPromise) {
-    inFlightClientSessionPromise = getSession()
-      .then((session) => {
-        setClientSessionCache(session);
-        return session;
-      })
-      .catch((error) => {
-        invalidateClientSessionCache();
-        throw error;
-      })
-      .finally(() => {
-        inFlightClientSessionPromise = null;
-      });
-  }
-
-  return inFlightClientSessionPromise;
+async function refreshAccessToken(): Promise<string | null> {
+  const res = await fetch("/api/auth/refresh", { method: "POST" })
+  if (!res.ok) return null
+  const data = await res.json()
+  return data.accessToken ?? null
 }
 
 interface ReqApi {
@@ -105,9 +62,6 @@ export async function fetchApi<T = any>(
       } else if (typeof window === "undefined") {
         const session: any = await getServerSession(authOptions);
         authToken = session?.accessToken ?? null;
-      } else {
-        const session: any = await getCachedClientSession();
-        authToken = session?.accessToken ?? null;
       }
 
       if (authToken) {
@@ -116,13 +70,13 @@ export async function fetchApi<T = any>(
     }
   }
 
-  try {
-    const stringifiedBody = body
-      ? isFormData
-        ? body
-        : JSON.stringify(body)
-      : null
+  const stringifiedBody = body
+    ? isFormData
+      ? body
+      : JSON.stringify(body)
+    : null
 
+  try {
     const response = await fetch(`${baseURL}${url}`, {
       method,
       headers,
@@ -130,8 +84,6 @@ export async function fetchApi<T = any>(
     });
 
     if (response.status === 403) {
-      invalidateClientSessionCache();
-      // Hanya redirect ke /unauthorized jika memang ada token tapi ditolak (bukan karena belum login)
       const hadToken = headers.get("Authorization") !== null;
       if (hadToken) {
         if (typeof window === "undefined") redirect("/unauthorized");
@@ -144,12 +96,37 @@ export async function fetchApi<T = any>(
       try {
         resData = await response.clone().json();
       } catch {}
-      if (resData?.message?.toLowerCase() === "token tidak valid") {
-        invalidateClientSessionCache();
-        if (typeof window === "undefined") {
-          redirect("/login");
-        } else {
-          await signOut({ callbackUrl: "/login" });
+
+      const msg = resData?.message?.toLowerCase() ?? "";
+      const isExpired = msg.includes("expired") || msg === "token tidak valid";
+
+      if (isExpired) {
+        const cookieToken = getCookie("auth") as string | undefined;
+
+        if (!cookieToken) {
+          // Belum login sama sekali
+          if (typeof window === "undefined") redirect("/login");
+          else window.location.href = "/login";
+          return { status: 401, message: "Unauthorized", data: null as any };
+        }
+
+        // Sudah login tapi token expired → coba refresh
+        if (typeof window !== "undefined") {
+          const newToken = await refreshAccessToken();
+          if (newToken) {
+            headers.set("Authorization", `Bearer ${newToken}`);
+            const retryResponse = await fetch(`${baseURL}${url}`, { method, headers, body: stringifiedBody });
+            let retryData = null;
+            try { retryData = await retryResponse.json(); } catch {}
+            return {
+              status: retryResponse.status,
+              message: retryResponse.ok ? "Success" : (retryData?.message || retryResponse.statusText),
+              data: retryData,
+            };
+          } else {
+            await signOut({ callbackUrl: "/login" });
+            return { status: 401, message: "Session expired", data: null as any };
+          }
         }
       }
     }

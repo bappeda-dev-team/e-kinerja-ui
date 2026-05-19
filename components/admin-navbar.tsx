@@ -10,7 +10,7 @@ import { signOut } from "next-auth/react"
 import { ChevronDown, ClipboardList, LayoutDashboard, LogOut, Send, User } from "lucide-react"
 
 import { getRolePrefix, getRoleName, ROLE_LABEL } from "@/lib/roles"
-import { fetchApi, invalidateClientSessionCache } from "@/lib/fetcher"
+import { fetchApi } from "@/lib/fetcher"
 import type { ApiResponse } from "@/types/api"
 import {
   DropdownMenu,
@@ -162,8 +162,8 @@ export function AdminNavbar({ session }: AdminNavbarProps) {
               <DropdownMenuItem
                 className="cursor-pointer rounded-lg text-red-600 hover:bg-red-50 hover:text-red-700 focus:bg-red-50 focus:text-red-700"
                 onClick={() => {
-                  invalidateClientSessionCache()
                   deleteCookie("auth", { path: "/" })
+                  deleteCookie("refresh_token", { path: "/" })
                   signOut({ callbackUrl: "/login" })
                 }}
               >

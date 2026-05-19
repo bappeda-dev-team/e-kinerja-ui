@@ -100,7 +100,29 @@ export default async function proxy(req: NextRequest) {
   }
 
   log("PASS", { pathname })
-  return NextResponse.next()
+  const res = NextResponse.next()
+
+  if ((token as any)?.accessToken) {
+    res.cookies.set("auth", (token as any).accessToken as string, {
+      httpOnly: false,
+      secure: process.env.NODE_ENV === "production",
+      sameSite: "lax",
+      path: "/",
+      maxAge: 60 * 60 * 24,
+    })
+  }
+
+  if ((token as any)?.refreshToken) {
+    res.cookies.set("refresh_token", (token as any).refreshToken as string, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+      sameSite: "lax",
+      path: "/",
+      maxAge: 60 * 60 * 24 * 30,
+    })
+  }
+
+  return res
 }
 
 export const config = {

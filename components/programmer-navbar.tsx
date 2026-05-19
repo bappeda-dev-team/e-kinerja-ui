@@ -6,7 +6,7 @@ import { useRouter, usePathname } from "next/navigation"
 import Link from "next/link"
 import Image from "next/image"
 import { getRolePrefix, getRoleName, ROLE_LABEL } from "@/lib/roles"
-import { fetchApi, invalidateClientSessionCache } from "@/lib/fetcher"
+import { fetchApi } from "@/lib/fetcher"
 import { usePenugasanBadge } from "@/hooks/use-penugasan-badge"
 import type { ApiResponse } from "@/types/api"
 import { deleteCookie } from "cookies-next"
@@ -161,8 +161,8 @@ export function ProgrammerNavbar({ session }: ProgrammerNavbarProps) {
               <DropdownMenuItem
                 className="rounded-lg cursor-pointer text-red-600 hover:text-red-700 hover:bg-red-50 focus:text-red-700 focus:bg-red-50"
                 onClick={() => {
-                  invalidateClientSessionCache()
                   deleteCookie("auth", { path: "/" })
+                  deleteCookie("refresh_token", { path: "/" })
                   signOut({ callbackUrl: "/login" })
                 }}
               >
