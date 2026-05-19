@@ -10,7 +10,7 @@ import StatCards from "./StatCards"
 import RecentRequests from "./RecentRequests"
 import RecentActivity, { PanduanCard } from "./RecentActivity"
 
-import { getSuperadminDashboard } from "../services"
+import { getSuperadminDashboard } from "@/services/dashboard.service"
 
 import type { DashboardPermintaanItem, DashboardDistribusi } from "../types"
 import { getRoleName } from "@/lib/roles"

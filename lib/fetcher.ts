@@ -36,11 +36,7 @@ export async function fetchApi<T = any>(
     web,
   } = params;
 
-  // Client-side: pakai proxy rewrites (/api/backend/...) untuk menghindari CORS
-  // Server-side: pakai URL langsung ke backend
-  const baseURL = typeof window === "undefined"
-    ? (process.env.NEXT_PUBLIC_API_URL || process.env.SITE_URL || "http://localhost:8080")
-    : "/api/backend";
+  const baseURL = process.env.NEXT_PUBLIC_API_URL || process.env.SITE_URL || "http://localhost:8080";
   const headers = new Headers();
   const isFormData = body instanceof FormData;
 

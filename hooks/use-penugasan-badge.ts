@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useState } from "react"
 
-import { getPenugasan, markAllPenugasanAsRead } from "@/app/programmer/penugasan/services"
+import { getPenugasan, markAllPenugasanAsRead } from "@/services/penugasan.service"
 
 export const PENUGASAN_ALL_READ_EVENT = "penugasan:all-read"
 

@@ -25,7 +25,7 @@ import {
   SelectValue,
 } from "@/components/ui/select"
 
-import { getRoles } from "@/app/super-admin/data-master/master-roles/services"
+import { getRoles } from "@/services/master-roles.service"
 import type { Roles } from "@/app/super-admin/data-master/master-roles/types"
 import type { UserResponse, UserRequest } from "../../types"
 

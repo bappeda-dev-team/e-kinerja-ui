@@ -15,7 +15,7 @@ import {
   getMasterAplikasi, createMasterAplikasi,
   updateMasterAplikasi, updateMasterAplikasiLogo, // ✅ tambah import
   deleteMasterAplikasi,
-} from "../services"
+} from "@/services/master-aplikasi.service"
 
 const HybridLoader = () => {
   const [progress, setProgress] = React.useState(0)

@@ -23,8 +23,8 @@ import {
 } from "lucide-react"
 import { toast } from "sonner"
 import { PenugasanItem } from "../../types"
-import { createPenugasanLaporan } from "../../services"
-import { ajukanVerifikasi, updateLaporan } from "@/app/programmer/laporan/services"
+import { createPenugasanLaporan } from "@/services/penugasan.service"
+import { ajukanVerifikasi, updateLaporan } from "@/services/laporan.service"
 import {
   MockLaporan,
   MockPermintaan,

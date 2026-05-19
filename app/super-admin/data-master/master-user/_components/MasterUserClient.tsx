@@ -10,7 +10,7 @@ import MasterUserTable from "./MasterUserTable"
 import AddMasterUser from "./modals/AddMasterUser"
 import EditMasterUser from "./modals/EditMasterUser"
 
-import { getUsers, deleteUser, createUser, updateUser } from "../services"
+import { getUsers, deleteUser, createUser, updateUser } from "@/services/master-user.service"
 import type { RegisterUserRequest, UserResponse, UserRequest } from "../types"
 
 function getErrorMessage(payload: any, fallback: string) {

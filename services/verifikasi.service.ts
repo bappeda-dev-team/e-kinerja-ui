@@ -1,9 +1,7 @@
-// app/super-admin/verifikasi/services.ts
-
 import { fetchApi } from "@/lib/fetcher";
 import type { ApiResponse } from "@/types/api";
 import type { MasterPemda } from "@/app/super-admin/data-master/master-pemda/types";
-import { VerifikasiRequest, VerifikasiResponse } from "./types";
+import type { VerifikasiRequest, VerifikasiResponse } from "@/app/super-admin/verifikasi/types";
 
 export const getVerifikasi = async () => {
   return fetchApi<ApiResponse<VerifikasiResponse[]>>({

@@ -3,7 +3,7 @@
 import { useEffect, useMemo, useState } from "react"
 import { toast } from "sonner"
 
-import { getLaporan } from "@/app/super-admin/laporan/services"
+import { getLaporan } from "@/services/laporan.service"
 import type { ProgrammerTaskItem, DashboardSummary } from "../types"
 import { mapReportStatus, getProgrammerName } from "../utils"
 import { DashboardStats } from "./DashboardStats"

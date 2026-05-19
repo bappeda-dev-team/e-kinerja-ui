@@ -7,7 +7,7 @@ import { useEffect, useState } from "react"
 import { toast } from "sonner"
 import VerifikasiBoard from "./VerifikasiBoard"
 import VerifikasiModal from "./modals/VerifikasiModal"
-import { getVerifikasi, updateVerifikasi } from "../services"
+import { getVerifikasi, updateVerifikasi } from "@/services/verifikasi.service"
 import type { VerifikasiRequest, VerifikasiResponse } from "../types"
 
 const HybridLoader = () => {

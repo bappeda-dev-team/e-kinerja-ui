@@ -1,8 +1,6 @@
-// app/super-admin/data-master/master-aplikasi/services.ts
-
 import { fetchApi } from "@/lib/fetcher";
 import type { ApiResponse } from "@/types/api";
-import { CreateMasterAplikasiRequest, MasterAplikasi } from "./types";
+import type { CreateMasterAplikasiRequest, MasterAplikasi } from "@/app/super-admin/data-master/master-aplikasi/types";
 
 export const getMasterAplikasi = async () => {
   return fetchApi<ApiResponse<MasterAplikasi[]>>({

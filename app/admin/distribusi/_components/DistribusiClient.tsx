@@ -18,7 +18,7 @@ import {
   updateDistribusi,
   deleteDistribusi,
   getUsers,
-} from "../services"
+} from "@/services/distribusi.service"
 
 import type { DistribusiKomentar, DistribusiResponse, UserResponse } from "@/app/super-admin/distribusi/types"
 

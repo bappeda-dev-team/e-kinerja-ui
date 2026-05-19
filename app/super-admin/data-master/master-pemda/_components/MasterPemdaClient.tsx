@@ -14,7 +14,7 @@ import EditMasterPemda from "./modals/EditMasterPemda"
 import {
   getMasterPemda, createMasterPemda,
   updateMasterPemda, updateMasterPemdaLogo, deleteMasterPemda
-} from "../services"
+} from "@/services/master-pemda.service"
 
 const HybridLoader = () => {
   const [progress, setProgress] = React.useState(0)

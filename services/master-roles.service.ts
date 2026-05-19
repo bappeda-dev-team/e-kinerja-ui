@@ -1,8 +1,6 @@
-// app/super-admin/data-master/master-roles/services.ts
-
 import { fetchApi } from "@/lib/fetcher";
 import type { ApiResponse } from "@/types/api";
-import { Roles, RoleRequest } from "./types";
+import type { Roles, RoleRequest } from "@/app/super-admin/data-master/master-roles/types";
 
 export const getRoles = async () => {
   return fetchApi<ApiResponse<Roles[]>>({

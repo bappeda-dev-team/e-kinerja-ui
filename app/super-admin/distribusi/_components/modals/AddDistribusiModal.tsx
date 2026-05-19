@@ -11,7 +11,7 @@ import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import { Badge } from "@/components/ui/badge"
 
-import { getPermintaan, getUsers } from "../../services"
+import { getPermintaan, getUsers } from "@/services/distribusi.service"
 import type { PermintaanResponse, DistribusiRequest, UserResponse } from "../../types"
 
 const PROGRAMMER_ROLE_ID = "b0cabba0-e1b9-4696-ab4b-7c9a229959e2"

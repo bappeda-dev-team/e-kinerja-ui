@@ -8,8 +8,8 @@ import { CalendarIcon, UploadCloud, X, FileText, Image as ImageIcon } from "luci
 import { cn } from "@/lib/utils"
 import { toast } from "sonner"
 
-import { getMasterPemda } from "../../../data-master/master-pemda/services"
-import { getMasterAplikasi } from "../../../data-master/master-aplikasi/services"
+import { getMasterPemda } from "@/services/master-pemda.service"
+import { getMasterAplikasi } from "@/services/master-aplikasi.service"
 import type { MasterPemda } from "../../../data-master/master-pemda/types"
 import type { MasterAplikasi } from "../../../data-master/master-aplikasi/types"
 import type { PermintaanResponse, PermintaanRequest } from "../../types"

@@ -1,8 +1,6 @@
-// app/super-admin/data-master/master-pemda/services.ts
-
 import { fetchApi } from "@/lib/fetcher";
 import type { ApiResponse } from "@/types/api";
-import { MasterPemdaRequest, MasterPemda } from "./types";
+import type { MasterPemdaRequest, MasterPemda } from "@/app/super-admin/data-master/master-pemda/types";
 
 export const getMasterPemda = async () => {
   return fetchApi<ApiResponse<MasterPemda[]>>({

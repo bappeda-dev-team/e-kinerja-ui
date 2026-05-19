@@ -12,8 +12,8 @@ import AddLaporanKinerja from "./modals/AddLaporanKinerja"
 import EditLaporanKinerja from "./modals/EditLaporanKinerja"
 import LaporanSlideOver from "./LaporanSlideOver"
 
-import { getLaporan, createLaporan, updateLaporan, deleteLaporan, ajukanVerifikasi } from "../services"
-import { getPermintaan } from "@/app/super-admin/distribusi/services"
+import { getLaporan, createLaporan, updateLaporan, deleteLaporan, ajukanVerifikasi } from "@/services/laporan.service"
+import { getPermintaan } from "@/services/distribusi.service"
 import { LaporanKinerjaItem, LaporanResponse } from "../types"
 import { PermintaanResponse } from "@/app/super-admin/distribusi/types"
 

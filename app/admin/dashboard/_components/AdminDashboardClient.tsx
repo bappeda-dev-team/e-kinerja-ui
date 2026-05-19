@@ -5,8 +5,8 @@ import { toast } from "sonner"
 
 import {
   getPermintaan,
-  getDistribusi,
-} from "@/app/admin/permintaan/services"
+} from "@/services/permintaan.service"
+import { getDistribusi } from "@/services/distribusi.service"
 import type { PermintaanResponse, DistribusiResponse } from "@/app/super-admin/distribusi/types"
 import type { AdminPermintaanItem, AdminDashboardSummary } from "../types"
 import { AdminDashboardStats } from "./AdminDashboardStats"

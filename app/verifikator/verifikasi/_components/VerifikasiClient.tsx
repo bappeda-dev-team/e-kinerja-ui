@@ -7,8 +7,8 @@ import { toast } from "sonner"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 
-import { getVerifikasi, updateVerifikasi } from "../services"
-import { updateLaporan } from "@/app/super-admin/laporan/services"
+import { getVerifikasi, updateVerifikasi } from "@/services/verifikasi.service"
+import { updateLaporan } from "@/services/laporan.service"
 import type { VerifikasiRequest } from "../types"
 import {
   formatDateLabel,

@@ -1,8 +1,6 @@
-// app/verifikator/profile/services.ts
-
 import { fetchApi } from "@/lib/fetcher"
 import type { ApiResponse } from "@/types/api"
-import { ProfileResponse } from "./types"
+import type { ProfileResponse } from "@/app/super-admin/profile/types"
 
 export const getProfileById = async (id: string) => {
   return fetchApi<ApiResponse<ProfileResponse>>({

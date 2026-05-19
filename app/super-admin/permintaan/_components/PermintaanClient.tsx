@@ -22,7 +22,7 @@ import {
   toggleArchivePermintaan,
   uploadPermintaanAttachment,
   getMasterPemda // ✅ Fungsi service baru untuk ambil logo
-} from "../services"
+} from "@/services/permintaan.service"
 
 // --- Loader Hybrid ---
 const HybridLoader = () => {

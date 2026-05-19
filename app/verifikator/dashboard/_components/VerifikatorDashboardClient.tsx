@@ -3,7 +3,7 @@
 import { useEffect, useMemo, useState } from "react"
 import { toast } from "sonner"
 
-import { getVerifikasi } from "@/app/verifikator/verifikasi/services"
+import { getVerifikasi } from "@/services/verifikasi.service"
 import { getDeadlineTime, mapVerifikasiItem, type VerifikasiListItem } from "@/app/verifikator/verifikasi/utils"
 
 import SummaryCards from "./SummaryCards"

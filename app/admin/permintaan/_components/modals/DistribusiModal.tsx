@@ -10,7 +10,7 @@ import { Button } from "@/components/ui/button"
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import { Badge } from "@/components/ui/badge"
-import { getUsers } from "@/app/super-admin/distribusi/services"
+import { getUsers } from "@/services/distribusi.service"
 import type { UserResponse } from "@/app/super-admin/distribusi/types"
 
 function isProgrammer(user: UserResponse) {

@@ -10,7 +10,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Textarea } from "@/components/ui/textarea"
 import { cn } from "@/lib/utils"
 
-import { getVerifikasi, updateVerifikasi } from "../services"
+import { getVerifikasi, updateVerifikasi } from "@/services/verifikasi.service"
 import type { VerifikasiRequest, VerifikasiResponse } from "../types"
 import { formatDateLabel, getStatusMeta, mapVerifikasiStatus, type VerifikasiStatus } from "../utils"
 

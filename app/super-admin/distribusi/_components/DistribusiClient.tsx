@@ -19,7 +19,7 @@ import {
   deleteDistribusi,
   getUsers,
   updateDistribusi,
-} from "../services"
+} from "@/services/distribusi.service"
 
 import type { DistribusiKomentar, DistribusiRequest, DistribusiResponse, UserResponse } from "../types"
 

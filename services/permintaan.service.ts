@@ -1,10 +1,7 @@
-// app/super-admin/permintaan/services.ts
-
-// services.ts
 import { fetchApi } from "@/lib/fetcher";
 import type { ApiResponse } from "@/types/api";
 import type { MasterPemda } from "@/app/super-admin/data-master/master-pemda/types";
-import { PermintaanRequest, PermintaanResponse } from "./types";
+import type { PermintaanRequest, PermintaanResponse } from "@/app/super-admin/permintaan/types";
 
 // Mendapatkan data Master Pemda untuk ambil Logo
 export const getMasterPemda = async () => {

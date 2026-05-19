@@ -16,13 +16,15 @@ import type { PermintaanResponse, PermintaanRequest } from "@/app/super-admin/pe
 import type { DistribusiResponse } from "@/app/super-admin/distribusi/types"
 import {
   getPermintaan,
-  getDistribusi,
-  createDistribusi,
-  updateDistribusi,
   updatePermintaan,
   deletePermintaan,
   uploadPermintaanAttachment,
-} from "../services"
+} from "@/services/permintaan.service"
+import {
+  getDistribusi,
+  createDistribusi,
+  updateDistribusi,
+} from "@/services/distribusi.service"
 
 const HybridLoader = () => {
   const [progress, setProgress] = React.useState(0)

@@ -1,6 +1,6 @@
 import { fetchApi } from "@/lib/fetcher"
 import type { ApiResponse } from "@/types/api"
-import { PenugasanResponse } from "./types"
+import type { PenugasanResponse } from "@/app/programmer/penugasan/types"
 import type { LaporanResponse } from "@/app/programmer/laporan/types"
 
 export const getPenugasan = async () => {

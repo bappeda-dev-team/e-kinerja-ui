@@ -8,7 +8,7 @@ import { useRouter } from "next/navigation"
 import { toast } from "sonner"
 import { Camera, Loader2, Pencil, User } from "lucide-react"
 
-import { getProfileById, updateProfilePicture } from "../services"
+import { getProfileById, updateProfilePicture } from "@/services/profile.service"
 import type { ProfileResponse } from "../types"
 
 // --- Komponen Hybrid Loader ---

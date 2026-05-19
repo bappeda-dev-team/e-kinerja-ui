@@ -6,7 +6,7 @@ import { useEffect, useState } from "react"
 import { Plus, Pencil, Trash2, X, Loader2 } from "lucide-react"
 import { toast } from "sonner"
 
-import { getRoles, createRole, updateRole, deleteRole } from "../services"
+import { getRoles, createRole, updateRole, deleteRole } from "@/services/master-roles.service"
 import type { Roles } from "../types"
 
 // ─── colour helpers ──────────────────────────────────────────────────────────
