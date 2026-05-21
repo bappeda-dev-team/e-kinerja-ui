@@ -29,8 +29,7 @@ import {
 import { Settings, LogOut, User, Bell, ChevronDown } from "lucide-react"
 import { fetchApi } from "@/lib/fetcher"
 import type { ApiResponse } from "@/types/api"
-import { signOut } from "next-auth/react"
-import { deleteCookie } from "cookies-next"
+import { logout } from "@/lib/logout"
 import { getRolePrefix } from "@/lib/roles"
 
 interface HeaderProps {
@@ -140,11 +139,7 @@ export function Header({ title, session }: HeaderProps) {
 
             <DropdownMenuItem
               className="text-red-600"
-              onClick={() => {
-                deleteCookie("auth", { path: "/" })
-                deleteCookie("refresh_token", { path: "/" })
-                signOut({ callbackUrl: "/login" })
-              }}
+              onClick={() => logout()}
             >
               <LogOut className="mr-2 h-4 w-4" />
               Logout

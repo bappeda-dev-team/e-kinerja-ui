@@ -4,9 +4,8 @@ import { useEffect, useState } from "react"
 import Image from "next/image"
 import Link from "next/link"
 import { Session } from "next-auth"
-import { signOut } from "next-auth/react"
 import { usePathname, useRouter } from "next/navigation"
-import { deleteCookie } from "cookies-next"
+import { logout } from "@/lib/logout"
 import { BadgeCheck, LayoutDashboard, LogOut, User, ChevronDown } from "lucide-react"
 
 import { getRolePrefix } from "@/lib/roles"
@@ -154,11 +153,7 @@ export function VerifikatorNavbar({ session }: VerifikatorNavbarProps) {
 
               <DropdownMenuItem
                 className="cursor-pointer rounded-lg text-red-600 hover:bg-red-50 hover:text-red-700 focus:bg-red-50 focus:text-red-700"
-                onClick={() => {
-                  deleteCookie("auth", { path: "/" })
-                  deleteCookie("refresh_token", { path: "/" })
-                  signOut({ callbackUrl: "/login" })
-                }}
+                onClick={() => logout()}
               >
                 <LogOut className="mr-2 h-4 w-4" />
                 Keluar

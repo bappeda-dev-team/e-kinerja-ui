@@ -5,8 +5,7 @@ import { Session } from "next-auth"
 import { usePathname, useRouter } from "next/navigation"
 import Link from "next/link"
 import Image from "next/image"
-import { deleteCookie } from "cookies-next"
-import { signOut } from "next-auth/react"
+import { logout } from "@/lib/logout"
 import { ChevronDown, ClipboardList, LayoutDashboard, LogOut, Send, User } from "lucide-react"
 
 import { getRolePrefix, getRoleName, ROLE_LABEL } from "@/lib/roles"
@@ -161,11 +160,7 @@ export function AdminNavbar({ session }: AdminNavbarProps) {
 
               <DropdownMenuItem
                 className="cursor-pointer rounded-lg text-red-600 hover:bg-red-50 hover:text-red-700 focus:bg-red-50 focus:text-red-700"
-                onClick={() => {
-                  deleteCookie("auth", { path: "/" })
-                  deleteCookie("refresh_token", { path: "/" })
-                  signOut({ callbackUrl: "/login" })
-                }}
+                onClick={() => logout()}
               >
                 <LogOut className="mr-2 h-4 w-4" />
                 Keluar

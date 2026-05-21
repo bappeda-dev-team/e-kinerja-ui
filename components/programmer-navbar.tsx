@@ -9,8 +9,7 @@ import { getRolePrefix, getRoleName, ROLE_LABEL } from "@/lib/roles"
 import { fetchApi } from "@/lib/fetcher"
 import { usePenugasanBadge } from "@/hooks/use-penugasan-badge"
 import type { ApiResponse } from "@/types/api"
-import { deleteCookie } from "cookies-next"
-import { signOut } from "next-auth/react"
+import { logout } from "@/lib/logout"
 
 import {
   DropdownMenu,
@@ -160,11 +159,7 @@ export function ProgrammerNavbar({ session }: ProgrammerNavbarProps) {
 
               <DropdownMenuItem
                 className="rounded-lg cursor-pointer text-red-600 hover:text-red-700 hover:bg-red-50 focus:text-red-700 focus:bg-red-50"
-                onClick={() => {
-                  deleteCookie("auth", { path: "/" })
-                  deleteCookie("refresh_token", { path: "/" })
-                  signOut({ callbackUrl: "/login" })
-                }}
+                onClick={() => logout()}
               >
                 <LogOut className="mr-2 h-4 w-4" />
                 Keluar

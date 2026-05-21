@@ -3,15 +3,10 @@
 "use client"
 
 import { ShieldX } from "lucide-react"
-import { signOut } from "next-auth/react"
-import { deleteCookie } from "cookies-next"
+import { logout } from "@/lib/logout"
 
 export default function UnauthorizedPage() {
-  const handleBackToLogin = async () => {
-    deleteCookie("auth", { path: "/" })
-    deleteCookie("refresh_token", { path: "/" })
-    await signOut({ callbackUrl: "/login" })
-  }
+  const handleBackToLogin = () => logout()
 
   return (
     <div className="flex flex-col items-center justify-center h-screen bg-white gap-4">

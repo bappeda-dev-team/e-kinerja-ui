@@ -2,7 +2,7 @@
 
 import { NextRequest } from "next/server";
 import { getCookie } from "cookies-next";
-import { signOut } from "next-auth/react";
+import { logout } from "@/lib/logout";
 import { getServerSession } from "next-auth";
 import { redirect } from "next/navigation";
 import { authOptions } from "@/app/api/auth/[...nextauth]/route";
@@ -120,7 +120,7 @@ export async function fetchApi<T = any>(
               data: retryData,
             };
           } else {
-            await signOut({ callbackUrl: "/login" });
+            await logout();
             return { status: 401, message: "Session expired", data: null as any };
           }
         }

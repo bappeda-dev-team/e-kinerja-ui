@@ -416,7 +416,7 @@ export default function SettingsClient() {
             >
               {tab.label}
               {activeTab === tab.key && (
-                <span className="absolute bottom-0 left-0 right-0 h-0.5 bg-[#4880FF] rounded-t" />
+                <span className="absolute bottom-0 left-0 right-0 h-0.5 bg-[#4880FF] rounded-t-lg" />
               )}
             </button>
           ))}
