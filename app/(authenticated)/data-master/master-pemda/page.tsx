@@ -2,7 +2,7 @@ import { getServerSession } from "next-auth"
 import { authOptions } from "@/app/api/auth/[...nextauth]/route"
 import { redirect } from "next/navigation"
 import { getRoleName } from "@/lib/roles"
-import MasterPemda from "./_components/super-admin/_components/MasterPemdaClient"
+import MasterPemda from "./_roles/super-admin/MasterPemdaClient"
 
 export default async function MasterPemdaPage() {
   const session = await getServerSession(authOptions)

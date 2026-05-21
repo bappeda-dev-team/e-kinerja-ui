@@ -75,3 +75,50 @@ export interface DashboardResponse {
   total_laporan: number
   permintaan: DashboardPermintaanItem[]
 }
+
+export interface AdminPermintaanItem {
+  id: string
+  nama_pemda: string
+  logo_pemda?: string
+  aplikasi: string
+  menu: string
+  deadline: string
+  sudahDistribusi: boolean
+  distribusiId?: string
+  programmers: string[]
+  updatedAt: string
+}
+
+export interface AdminDashboardSummary {
+  total: number
+  sudahDistribusi: number
+  belumDistribusi: number
+}
+
+export type ReportStatus = "menunggu" | "revisi" | "terverifikasi"
+
+export interface ProgrammerTaskItem {
+  id: string
+  pemda: string
+  kategori: string
+  alasan: string
+  menu: string
+  kondisiAwal: string
+  kondisiDiharapkan: string
+  progress: string
+  programmer: string
+  status: string
+  statusLabel: ReportStatus
+  deadline: string
+  createdAt: string
+  updatedAt: string
+}
+
+export interface ProgrammerDashboardSummary {
+  total: number
+  menunggu: number
+  revisi: number
+  terverifikasi: number
+}
+
+export type { ProgrammerDashboardSummary as DashboardSummary }

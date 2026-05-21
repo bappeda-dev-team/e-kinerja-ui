@@ -2,7 +2,7 @@ import { getServerSession } from "next-auth"
 import { authOptions } from "@/app/api/auth/[...nextauth]/route"
 import { redirect } from "next/navigation"
 import { getRoleName } from "@/lib/roles"
-import SuperAdminSettings from "./_components/super-admin/_components/SettingsClient"
+import SuperAdminSettings from "./_roles/super-admin/SettingsClient"
 
 export default async function SettingsPage() {
   const session = await getServerSession(authOptions)

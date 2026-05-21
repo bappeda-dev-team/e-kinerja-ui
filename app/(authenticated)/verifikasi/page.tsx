@@ -2,8 +2,8 @@ import { getServerSession } from "next-auth"
 import { authOptions } from "@/app/api/auth/[...nextauth]/route"
 import { redirect } from "next/navigation"
 import { getRoleName } from "@/lib/roles"
-import SuperAdminVerifikasi from "./_components/super-admin/_components/VerifikasiClient"
-import VerifikatorVerifikasi from "./_components/verifikator/_components/VerifikasiPipelineClient"
+import SuperAdminVerifikasi from "./_roles/super-admin/VerifikasiClient"
+import VerifikatorVerifikasi from "./_roles/verifikator/VerifikasiPipelineClient"
 
 export default async function VerifikasiPage() {
   const session = await getServerSession(authOptions)

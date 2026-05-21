@@ -2,7 +2,7 @@ import { getServerSession } from "next-auth"
 import { authOptions } from "@/app/api/auth/[...nextauth]/route"
 import { redirect } from "next/navigation"
 import { getRoleName } from "@/lib/roles"
-import MasterAplikasi from "./_components/super-admin/_components/MasterAplikasiClient"
+import MasterAplikasi from "./_roles/super-admin/MasterAplikasiClient"
 
 export default async function MasterAplikasiPage() {
   const session = await getServerSession(authOptions)
