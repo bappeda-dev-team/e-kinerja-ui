@@ -21,7 +21,7 @@ interface Props {
 
 export function DistribusiPermintaanCard({ item }: { item: DistribusiItem }) {
   return (
-    <div className="rounded-[22px] border border-[#F0F1F5] bg-white p-6 shadow-[6px_6px_54px_rgba(0,0,0,0.05)]">
+    <div className="rounded-4xl border border-[#F0F1F5] bg-white p-6 shadow-[6px_6px_54px_rgba(0,0,0,0.05)]">
       <div className="flex items-start gap-4">
         <PemdaAvatar nama={item.nama_pemda} logo={item.logo_pemda} />
         <div className="min-w-0 flex-1">
