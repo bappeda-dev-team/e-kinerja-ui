@@ -30,7 +30,6 @@ import { Settings, LogOut, User, Bell, ChevronDown } from "lucide-react"
 import { fetchApi } from "@/lib/fetcher"
 import type { ApiResponse } from "@/types/api"
 import { logout } from "@/lib/logout"
-import { getRolePrefix } from "@/lib/roles"
 
 interface HeaderProps {
   title: string
@@ -57,7 +56,6 @@ const NOTIFIKASI = [
 
 export function Header({ title, session }: HeaderProps) {
   const router = useRouter()
-  const rolePrefix = getRolePrefix(session)
 
   const [mounted, setMounted] = useState(false)
   const [profile, setProfile] = useState<UserProfile | null>(null)
@@ -125,12 +123,12 @@ export function Header({ title, session }: HeaderProps) {
           </DropdownMenuTrigger>
 
           <DropdownMenuContent align="end" className="w-48">
-            <DropdownMenuItem onClick={() => router.push(`${rolePrefix}/profile`)}>
+            <DropdownMenuItem onClick={() => router.push("/profile")}>
               <User className="mr-2 h-4 w-4" />
               Profile
             </DropdownMenuItem>
 
-            <DropdownMenuItem onClick={() => router.push(`${rolePrefix}/settings`)}>
+            <DropdownMenuItem onClick={() => router.push("/settings")}>
               <Settings className="mr-2 h-4 w-4" />
               Settings
             </DropdownMenuItem>

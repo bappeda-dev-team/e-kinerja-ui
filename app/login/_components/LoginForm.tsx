@@ -4,7 +4,7 @@ import { useState } from "react"
 import { useForm } from "react-hook-form"
 import { signIn, getSession } from "next-auth/react"
 import { toast } from "sonner"
-import { getRoleName, getRolePrefix } from "@/lib/roles"
+import { getRoleName } from "@/lib/roles"
 import PasswordInput from "./PasswordInput"
 
 interface FormValues {
@@ -33,10 +33,9 @@ const LoginForm = () => {
       } else {
         const session = await getSession()
         const roleName = getRoleName(session)
-        const rolePrefix = getRolePrefix(session)
 
         toast.success("Login berhasil!")
-        window.location.href = roleName ? `${rolePrefix}/dashboard` : "/login"
+        window.location.href = roleName ? "/dashboard" : "/login"
       }
     } catch {
       toast.error("Terjadi kesalahan, coba lagi.")

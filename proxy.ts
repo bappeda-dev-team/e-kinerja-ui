@@ -6,20 +6,16 @@ import { getToken } from "next-auth/jwt"
 const AUTH_ROUTES = ["/login", "/"]
 
 const ROLE_HOME: Record<string, string> = {
-  super_admin: "/super-admin/dashboard",
-  admin:       "/admin/dashboard",
-  programmer:  "/programmer/dashboard",
-  verifikator: "/verifikator/dashboard",
+  super_admin: "/dashboard",
+  admin:       "/dashboard",
+  programmer:  "/dashboard",
+  verifikator: "/dashboard",
 }
 
-const ROLE_PREFIX: Record<string, string> = {
-  super_admin: "/super-admin",
-  admin:       "/admin",
-  programmer:  "/programmer",
-  verifikator: "/verifikator",
-}
-
-const PROTECTED_PREFIXES = ["/super-admin", "/admin", "/programmer", "/verifikator"]
+const PROTECTED_PREFIXES = [
+  "/dashboard", "/distribusi", "/permintaan", "/laporan",
+  "/penugasan", "/verifikasi", "/profile", "/data-master", "/settings",
+]
 
 const DEBUG = process.env.MIDDLEWARE_DEBUG === "true"
 
@@ -82,21 +78,13 @@ export default async function proxy(req: NextRequest) {
     return NextResponse.redirect(new URL(ROLE_HOME[role], req.url))
   }
 
-  // Sudah login tapi akses prefix role lain → redirect ke home role sendiri
-  if (isAuthenticated && isProtected) {
-    if (!role) {
-      log("PROTECTED: role tidak dikenal → paksa logout", { role: role ?? null })
-      const res = NextResponse.redirect(new URL("/login", req.url))
-      res.cookies.delete("next-auth.session-token")
-      res.cookies.delete("__Secure-next-auth.session-token")
-      return res
-    }
-
-    const myPrefix = ROLE_PREFIX[role]
-    if (!pathname.startsWith(myPrefix)) {
-      log(`REDIRECT → ${ROLE_HOME[role]} (akses prefix role lain)`, { pathname, myPrefix })
-      return NextResponse.redirect(new URL(ROLE_HOME[role], req.url))
-    }
+  // Sudah login tapi role tidak dikenal → paksa logout
+  if (isAuthenticated && isProtected && !role) {
+    log("PROTECTED: role tidak dikenal → paksa logout", { role: null })
+    const res = NextResponse.redirect(new URL("/login", req.url))
+    res.cookies.delete("next-auth.session-token")
+    res.cookies.delete("__Secure-next-auth.session-token")
+    return res
   }
 
   if ((token as any)?.error === "RefreshTokenError") {

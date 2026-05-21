@@ -31,18 +31,11 @@ export const ROLE_LABEL: Record<RoleName, string> = {
   verifikator: "Verifikator",
 }
 
-export const ROLE_PREFIX: Record<RoleName, string> = {
-  super_admin: "/super-admin",
-  admin:       "/admin",
-  programmer:  "/programmer",
-  verifikator: "/verifikator",
-}
-
 /** Menu yang boleh diakses per role (dipakai di sidebar) */
 export const ROLE_MENUS: Record<RoleName, string[]> = {
-  super_admin: ["dashboard", "data-master", "permintaan", "distribusi", "laporan", "verifikasi"],
+  super_admin: ["dashboard", "data-master", "permintaan", "distribusi", "laporan", "verifikasi", "settings"],
   admin:       ["dashboard", "permintaan", "distribusi"],
-  programmer:  ["dashboard", "laporan"],
+  programmer:  ["dashboard", "penugasan", "laporan"],
   verifikator: ["dashboard", "verifikasi"],
 }
 
@@ -92,7 +85,3 @@ export function canAccess(session: any, menu: string): boolean {
   return ROLE_MENUS[role]?.includes(menu) ?? false
 }
 
-export function getRolePrefix(session: any): string {
-  const role = getRoleName(session)
-  return role ? ROLE_PREFIX[role] : ""
-}

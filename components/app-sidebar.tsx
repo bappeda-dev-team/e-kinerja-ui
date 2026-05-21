@@ -7,7 +7,7 @@ import { usePathname } from "next/navigation"
 import { useState, useEffect } from "react"
 import { Session } from "next-auth"
 import { Collapsible } from "radix-ui"
-import { getRoleName, getRolePrefix, ROLE_MENUS, ROLE_LABEL } from "@/lib/roles"
+import { getRoleName, ROLE_MENUS, ROLE_LABEL } from "@/lib/roles"
 
 import {
   Sidebar,
@@ -38,6 +38,8 @@ import {
   Send,
   ClipboardCheck,
   ChevronDown,
+  BriefcaseBusiness,
+  Settings,
 } from "lucide-react"
 
 export function AppSidebar({ session }: { session: Session | null }) {
@@ -45,17 +47,16 @@ export function AppSidebar({ session }: { session: Session | null }) {
   const [openDataMaster, setOpenDataMaster] = useState(false)
 
   const roleName = getRoleName(session)
-  const rolePrefix = getRolePrefix(session)
   const allowedMenus = roleName ? (ROLE_MENUS[roleName] ?? []) : []
 
   const can = (menu: string) => allowedMenus.includes(menu)
-  const buildPath = (path: string) => `${rolePrefix}${path}`
-  const isActive = (path: string) => pathname === buildPath(path)
-  const isActivePrefix = (path: string) => pathname.startsWith(buildPath(path))
+  const buildPath = (path: string) => path
+  const isActive = (path: string) => pathname === path
+  const isActivePrefix = (path: string) => pathname.startsWith(path)
 
   useEffect(() => {
     setOpenDataMaster(isActivePrefix("/data-master"))
-  }, [pathname, rolePrefix])
+  }, [pathname])
 
   return (
     <Sidebar collapsible="icon">
@@ -223,6 +224,18 @@ export function AppSidebar({ session }: { session: Session | null }) {
                 </SidebarMenuItem>
               )}
 
+              {/* Penugasan */}
+              {can("penugasan") && (
+                <SidebarMenuItem>
+                  <SidebarMenuButton asChild isActive={isActive("/penugasan")} tooltip="Penugasan">
+                    <Link href="/penugasan" className="flex items-center gap-2">
+                      <BriefcaseBusiness className="h-5 w-5" />
+                      <span>Penugasan</span>
+                    </Link>
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
+              )}
+
               {/* Verifikasi */}
               {can("verifikasi") && (
                 <SidebarMenuItem>
@@ -230,6 +243,18 @@ export function AppSidebar({ session }: { session: Session | null }) {
                     <Link href={buildPath("/verifikasi")} className="flex items-center gap-2">
                       <BadgeCheck className="h-5 w-5" />
                       <span>Verifikasi Laporan</span>
+                    </Link>
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
+              )}
+
+              {/* Settings */}
+              {can("settings") && (
+                <SidebarMenuItem>
+                  <SidebarMenuButton asChild isActive={isActive("/settings")} tooltip="Pengaturan">
+                    <Link href="/settings" className="flex items-center gap-2">
+                      <Settings className="h-5 w-5" />
+                      <span>Pengaturan</span>
                     </Link>
                   </SidebarMenuButton>
                 </SidebarMenuItem>
