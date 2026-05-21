@@ -1,4 +1,4 @@
-import type { VerifikasiResponse } from "./types"
+import type { VerifikasiResponse } from "@/types/verifikasi"
 
 export type VerifikasiStatus = "menunggu" | "revisi" | "terverifikasi"
 
