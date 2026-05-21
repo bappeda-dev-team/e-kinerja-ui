@@ -1,6 +1,6 @@
 import { fetchApi } from "@/lib/fetcher"
 import type { ApiResponse } from "@/types/api"
-import type { RegisterUserRequest, UserRequest, UserResponse } from "@/app/super-admin/data-master/master-user/types"
+import type { RegisterUserRequest, UserRequest, UserResponse } from "@/types/master-user"
 
 export const getUsers = async () => {
   return fetchApi<ApiResponse<UserResponse[]>>({

@@ -1,7 +1,7 @@
 import { fetchApi } from "@/lib/fetcher";
 import type { ApiResponse } from "@/types/api";
-import type { MasterPemda } from "@/app/super-admin/data-master/master-pemda/types";
-import type { CreateDistribusiKomentarRequest, DistribusiKomentar, DistribusiRequest, DistribusiResponse, PelaksanaRequest, PelaksanaResponse, PermintaanResponse, UpdateDistribusiRequest, UserResponse } from "@/app/super-admin/distribusi/types";
+import type { MasterPemda } from "@/types/master-pemda";
+import type { CreateDistribusiKomentarRequest, DistribusiKomentar, DistribusiRequest, DistribusiResponse, PelaksanaRequest, PelaksanaResponse, PermintaanResponse, UpdateDistribusiRequest, UserResponse } from "@/types/distribusi";
 
 export const getPermintaan = async () => {
   return fetchApi<ApiResponse<PermintaanResponse[]>>({

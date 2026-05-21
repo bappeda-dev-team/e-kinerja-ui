@@ -1,7 +1,7 @@
 import { fetchApi } from "@/lib/fetcher"
 import type { ApiResponse } from "@/types/api"
-import type { PenugasanResponse } from "@/app/programmer/penugasan/types"
-import type { LaporanResponse } from "@/app/programmer/laporan/types"
+import type { PenugasanResponse } from "@/types/penugasan"
+import type { LaporanResponse } from "@/types/laporan"
 
 export const getPenugasan = async () => {
   return fetchApi<ApiResponse<PenugasanResponse[]>>({

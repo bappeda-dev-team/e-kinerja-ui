@@ -1,6 +1,6 @@
 import { fetchApi } from "@/lib/fetcher"
 import type { ApiResponse } from "@/types/api"
-import type { ProfileResponse } from "@/app/super-admin/profile/types"
+import type { ProfileResponse } from "@/types/profile"
 
 export const getProfileById = async (id: string) => {
   return fetchApi<ApiResponse<ProfileResponse>>({

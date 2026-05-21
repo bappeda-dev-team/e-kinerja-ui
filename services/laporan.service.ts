@@ -1,8 +1,8 @@
 import { fetchApi } from "@/lib/fetcher"
 import type { ApiResponse } from "@/types/api"
-import type { MasterPemda } from "@/app/super-admin/data-master/master-pemda/types"
-import type { LaporanRequest, LaporanResponse } from "@/app/super-admin/laporan/types"
-import type { SubmitVerifikasiResponse } from "@/app/super-admin/verifikasi/types"
+import type { MasterPemda } from "@/types/master-pemda"
+import type { LaporanRequest, LaporanResponse } from "@/types/laporan"
+import type { SubmitVerifikasiResponse } from "@/types/verifikasi"
 
 export const getLaporan = async () => {
   return fetchApi<ApiResponse<LaporanResponse[]>>({
