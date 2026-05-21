@@ -54,6 +54,7 @@ export const authOptions: NextAuthOptions = {
               email: userPayload.email,
               accessToken: token,
               refreshToken,
+              accessTokenExpiry: userPayload.exp * 1000, // exp dari JWT backend (detik → ms)
               user: userPayload
             };
           }
@@ -74,7 +75,7 @@ export const authOptions: NextAuthOptions = {
           ...token,
           accessToken: user.accessToken,
           refreshToken: user.refreshToken,
-          accessTokenExpiry: Date.now() + 55 * 60 * 1000,
+          accessTokenExpiry: user.accessTokenExpiry, // exp dari JWT backend
           user: user.user,
         }
       }
@@ -94,11 +95,13 @@ export const authOptions: NextAuthOptions = {
         })
         if (!res.ok) throw new Error("Refresh failed")
         const data = await res.json()
+        const newAccessToken = data.data.access_token
+        const payload = JSON.parse(atob(newAccessToken.split('.')[1].replace(/-/g, '+').replace(/_/g, '/')))
         return {
           ...token,
-          accessToken: data.data.access_token,
+          accessToken: newAccessToken,
           refreshToken: data.data.refresh_token ?? token.refreshToken,
-          accessTokenExpiry: Date.now() + 55 * 60 * 1000,
+          accessTokenExpiry: payload.exp * 1000, // baca exp dari JWT baru
           error: undefined,
         }
       } catch {
