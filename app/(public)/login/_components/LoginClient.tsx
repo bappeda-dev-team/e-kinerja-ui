@@ -20,9 +20,14 @@ const LoginClient = () => (
       <div className="absolute top-[-80px] right-[-80px] w-[300px] h-[300px] rounded-full bg-white/10" />
       <div className="absolute bottom-[-60px] right-[20%] w-[200px] h-[200px] rounded-full bg-white/10" />
 
+      {/* Title */}
+      <div className="text-center mb-6 z-10">
+        <h1 className="text-4xl font-bold text-white">E-Kinerja</h1>
+        <p className="text-blue-200 text-sm mt-1">Sistem Manajemen Kinerja</p>
+      </div>
+
       {/* Form card */}
       <div className="w-full max-w-sm bg-white rounded-2xl shadow-xl px-8 py-10 z-10">
-        <LoginHeader />
         <LoginForm />
       </div>
 
