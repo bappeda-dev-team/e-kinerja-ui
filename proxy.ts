@@ -99,30 +99,16 @@ export default async function proxy(req: NextRequest) {
     }
   }
 
+  if ((token as any)?.error === "RefreshTokenError") {
+    log("RefreshTokenError → force logout", {})
+    const res = NextResponse.redirect(new URL("/login", req.url))
+    res.cookies.delete("next-auth.session-token")
+    res.cookies.delete("__Secure-next-auth.session-token")
+    return res
+  }
+
   log("PASS", { pathname })
-  const res = NextResponse.next()
-
-  if ((token as any)?.accessToken) {
-    res.cookies.set("auth", (token as any).accessToken as string, {
-      httpOnly: false,
-      secure: process.env.NODE_ENV === "production",
-      sameSite: "lax",
-      path: "/",
-      maxAge: 60 * 60 * 24,
-    })
-  }
-
-  if ((token as any)?.refreshToken) {
-    res.cookies.set("refresh_token", (token as any).refreshToken as string, {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === "production",
-      sameSite: "lax",
-      path: "/",
-      maxAge: 60 * 60 * 24 * 30,
-    })
-  }
-
-  return res
+  return NextResponse.next()
 }
 
 export const config = {

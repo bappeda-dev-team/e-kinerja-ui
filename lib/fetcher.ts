@@ -1,18 +1,10 @@
 // lib/fetcher.ts
 
 import { NextRequest } from "next/server";
-import { getCookie } from "cookies-next";
-import { logout } from "@/lib/logout";
+import { getSession } from "next-auth/react";
 import { getServerSession } from "next-auth";
 import { redirect } from "next/navigation";
 import { authOptions } from "@/app/api/auth/[...nextauth]/route";
-
-async function refreshAccessToken(): Promise<string | null> {
-  const res = await fetch("/api/auth/refresh", { method: "POST" })
-  if (!res.ok) return null
-  const data = await res.json()
-  return data.accessToken ?? null
-}
 
 interface ReqApi {
   type?: "auth" | "withoutAuth";
@@ -45,19 +37,24 @@ export async function fetchApi<T = any>(
   }
 
   if (type === "auth") {
-    const cookieToken = getCookie("auth") as string | undefined;
-    const overrideToken = token || cookieToken;
-
     if (web === "basic") {
       headers.append("Authorization", `Basic ${process.env.BASIC_AUTH_TOKEN}`);
     } else {
-      let authToken: string | null = null;
+      let authToken: string | null = token ?? null;
 
-      if (overrideToken) {
-        authToken = overrideToken;
-      } else if (typeof window === "undefined") {
-        const session: any = await getServerSession(authOptions);
-        authToken = session?.accessToken ?? null;
+      if (!authToken) {
+        if (typeof window === "undefined") {
+          const session: any = await getServerSession(authOptions);
+          if (session?.error === "RefreshTokenError") redirect("/login");
+          authToken = session?.accessToken ?? null;
+        } else {
+          const session: any = await getSession();
+          if (session?.error === "RefreshTokenError") {
+            window.location.href = "/login";
+            return { status: 401, message: "Session expired", data: null as any };
+          }
+          authToken = session?.accessToken ?? null;
+        }
       }
 
       if (authToken) {
@@ -84,46 +81,6 @@ export async function fetchApi<T = any>(
       if (hadToken) {
         if (typeof window === "undefined") redirect("/unauthorized");
         else window.location.href = "/unauthorized";
-      }
-    }
-
-    if (response.status === 401) {
-      let resData: any = null;
-      try {
-        resData = await response.clone().json();
-      } catch {}
-
-      const msg = resData?.message?.toLowerCase() ?? "";
-      const isExpired = msg.includes("expired") || msg === "token tidak valid";
-
-      if (isExpired) {
-        const cookieToken = getCookie("auth") as string | undefined;
-
-        if (!cookieToken) {
-          // Belum login sama sekali
-          if (typeof window === "undefined") redirect("/login");
-          else window.location.href = "/login";
-          return { status: 401, message: "Unauthorized", data: null as any };
-        }
-
-        // Sudah login tapi token expired → coba refresh
-        if (typeof window !== "undefined") {
-          const newToken = await refreshAccessToken();
-          if (newToken) {
-            headers.set("Authorization", `Bearer ${newToken}`);
-            const retryResponse = await fetch(`${baseURL}${url}`, { method, headers, body: stringifiedBody });
-            let retryData = null;
-            try { retryData = await retryResponse.json(); } catch {}
-            return {
-              status: retryResponse.status,
-              message: retryResponse.ok ? "Success" : (retryData?.message || retryResponse.statusText),
-              data: retryData,
-            };
-          } else {
-            await logout();
-            return { status: 401, message: "Session expired", data: null as any };
-          }
-        }
       }
     }
 

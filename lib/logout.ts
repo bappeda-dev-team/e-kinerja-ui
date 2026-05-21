@@ -1,9 +1,9 @@
-import { signOut } from "next-auth/react"
-import { deleteCookie, getCookie } from "cookies-next"
+import { signOut, getSession } from "next-auth/react"
 
 export async function logout() {
   try {
-    const token = getCookie("auth")
+    const session: any = await getSession()
+    const token = session?.accessToken
     const apiUrl = process.env.NEXT_PUBLIC_API_URL ?? ""
     await fetch(`${apiUrl}/auth/logout`, {
       method: "POST",
@@ -16,7 +16,5 @@ export async function logout() {
     // fire-and-forget — tetap lanjut logout meskipun backend error
   }
 
-  deleteCookie("auth", { path: "/" })
-  deleteCookie("refresh_token", { path: "/" })
   await signOut({ callbackUrl: "/login" })
 }
