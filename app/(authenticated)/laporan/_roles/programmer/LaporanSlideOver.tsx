@@ -10,11 +10,14 @@ interface SlideOverProps {
   item: LaporanKinerjaItem | null
 }
 
+/** status dari API: "0" | "25" | "50" | "75" | "100" */
 function mapStatusToProgress(status?: string): number {
-  if (status === "hijau") return 100
-  if (status === "kuning") return 55
-  if (status === "merah") return 20
-  return 80
+  const n = parseInt(status ?? "", 10)
+  if (n === 100) return 100
+  if (n === 75) return 75
+  if (n === 50) return 50
+  if (n === 25) return 25
+  return 0
 }
 
 function formatDate(iso?: string) {
@@ -57,18 +60,21 @@ export default function LaporanSlideOver({ isOpen, onClose, item: itemProp }: Sl
   let badgeColor = "bg-amber-100 text-amber-700"
   let progressBarColor = "bg-amber-500"
 
-  if (item.status === "hijau") {
+  const verifObj = Array.isArray(item.verifikasi) ? item.verifikasi[0] : item.verifikasi
+  const verifStatus = verifObj?.status_verified
+
+  if (verifStatus === "approved" || parseInt(item.status ?? "", 10) === 100) {
     statusText = "Terverifikasi"
     badgeColor = "bg-emerald-100 text-emerald-700"
     progressBarColor = "bg-emerald-500"
-  } else if (item.status === "merah" || item.status === "kuning") {
+  } else if (verifStatus === "revision") {
     statusText = "Perlu Revisi"
     badgeColor = "bg-red-100 text-red-700"
     progressBarColor = "bg-red-500"
   }
 
-  const isRevisi = item.status === "merah" || item.status === "kuning"
-  const isVerifikasi = item.status === "hijau"
+  const isRevisi = verifStatus === "revision"
+  const isVerifikasi = verifStatus === "approved" || parseInt(item.status ?? "", 10) === 100
 
   const pemdaName = entityLabel(item.permintaan?.pemda)
   const appName = entityLabel(item.permintaan?.aplikasi)
@@ -77,13 +83,13 @@ export default function LaporanSlideOver({ isOpen, onClose, item: itemProp }: Sl
     <>
       {/* Backdrop */}
       <div
-        className={`fixed top-0 left-0 w-[100vw] h-[100vh] z-[100] bg-black/30 backdrop-blur-sm transition-opacity duration-300 ${isOpen ? "opacity-100 pointer-events-auto" : "opacity-0 pointer-events-none"}`}
+        className={`fixed top-0 left-0 w-screen h-screen z-100 bg-black/30 backdrop-blur-sm transition-opacity duration-300 ${isOpen ? "opacity-100 pointer-events-auto" : "opacity-0 pointer-events-none"}`}
         onClick={onClose}
       />
 
       {/* Slide Panel */}
       <div
-        className={`fixed top-0 right-0 h-[100vh] z-[110] w-[400px] max-w-[90vw] bg-white border-l border-gray-200 transition-transform duration-300 ease-in-out transform flex flex-col ${isOpen ? "translate-x-0" : "translate-x-full"}`}
+        className={`fixed top-0 right-0 h-screen z-110 w-[400px] max-w-[90vw] bg-white border-l border-gray-200 transition-transform duration-300 ease-in-out transform flex flex-col ${isOpen ? "translate-x-0" : "translate-x-full"}`}
       >
         {/* Header */}
         <div className="flex items-start justify-between border-b px-6 py-5 bg-gray-50/50">

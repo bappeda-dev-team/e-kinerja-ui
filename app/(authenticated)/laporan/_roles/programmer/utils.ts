@@ -1,20 +1,21 @@
 
+/** status dari API: "0" | "25" | "50" | "75" | "100" */
 export function mapStatusToProgress(status?: string | null): number {
-  const normalized = status?.toLowerCase().trim()
-
-  if (normalized === "hijau") return 100
-  if (normalized === "kuning") return 75
-  if (normalized === "orange" || normalized === "oranye") return 50
-  if (normalized === "merah") return 25
+  const n = parseInt(status ?? "", 10)
+  if (n === 100) return 100
+  if (n === 75) return 75
+  if (n === 50) return 50
+  if (n === 25) return 25
   return 0
 }
 
+/** Konversi progress number ke nilai status yang dikirim ke API */
 export function mapProgressToStatus(progress?: number | null): string {
-  if (progress === 100) return "hijau"
-  if (progress === 75) return "kuning"
-  if (progress === 50) return "orange"
-  if (progress === 25) return "merah"
-  return "putih"
+  if (progress === 100) return "100"
+  if (progress === 75) return "75"
+  if (progress === 50) return "50"
+  if (progress === 25) return "25"
+  return "0"
 }
 
 export function getProgressBadgeClass(progress: number): string {

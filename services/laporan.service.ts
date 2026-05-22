@@ -51,7 +51,7 @@ export const getPemda = async () => {
 // ==== PROGRAMMER ====
 export const ajukanVerifikasi = async (laporanId: string) => {
   return fetchApi<ApiResponse<SubmitVerifikasiResponse>>({
-    url: `/laporan/verif/${laporanId}`,
+    url: `/laporan/${laporanId}/submit`,
     method: "POST",
   })
 }

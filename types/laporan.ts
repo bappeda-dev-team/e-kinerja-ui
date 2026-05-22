@@ -42,16 +42,36 @@ export interface LaporanVerifikasi {
   id: string
   komentar?: string | null
   status_verified?: string
+  is_submitted_to_verified?: boolean
+  created_at?: string
+  updated_at?: string
+}
+
+export interface LaporanKomentar {
+  id: string
+  komentar: string
+  user?: {
+    id: string
+    username?: string
+    full_name?: string
+  }
+  created_at?: string
+  updated_at?: string
 }
 
 export interface LaporanResponse {
   id: string
+  penugasan_id?: string
   permintaan: LaporanPermintaan
   programmer: LaporanProgrammer
   laporan_progress: string
+  /** Nilai: "0" | "25" | "50" | "75" | "100" */
   status?: string
   verifikasi?: LaporanVerifikasi[] | LaporanVerifikasi | null
   is_submitted_to_verified?: boolean
+  lampiran?: string[]
+  /** Komentar pada laporan ini — field dari backend bernama "komentars" (typo dari backend) */
+  komentars?: LaporanKomentar[]
   created_at?: string
   updated_at?: string
 }

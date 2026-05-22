@@ -69,12 +69,123 @@ export interface DashboardPermintaanItem {
   updated_at?: string
 }
 
-export interface DashboardResponse {
+// ─── Dashboard response per role (dari GET /dashboard) ────────
+
+export interface SuperAdminDashboardResponse {
   total_permintaan: number
   total_distribusi: number
   total_laporan: number
   permintaan: DashboardPermintaanItem[]
 }
+
+// Alias lama agar tidak breaking DashboardClient super-admin
+export type DashboardResponse = SuperAdminDashboardResponse
+
+export interface AdminDashboardPermintaan {
+  id: string
+  pemda?: DashboardPemda | string
+  aplikasi?: DashboardAplikasi | string
+  menu?: string
+  kondisi_awal?: string
+  kondisi_diharapkan?: string
+  tanggal_pesanan?: string
+  tanggal_deadline?: string
+  status?: string
+  created_at?: string
+  updated_at?: string
+}
+
+export interface AdminDashboardDistribusi {
+  id: string
+  permintaan?: AdminDashboardPermintaan
+  komentar?: string
+  pelaksana?: DashboardPelaksana[]
+  created_at?: string
+  updated_at?: string
+}
+
+export interface AdminDashboardResponse {
+  permintaan: AdminDashboardPermintaan[]
+  distribusi: AdminDashboardDistribusi[]
+}
+
+export interface ProgrammerDashboardPenugasan {
+  id: string
+  distribusi_pelaksana_id?: string
+  judul: string
+  deskripsi?: string
+  deadline?: string
+  prioritas?: "low" | "medium" | "high"
+  estimasi_hari?: number
+  urutan?: number
+  status?: "belum_mulai" | "sedang_berjalan" | "selesai" | "revisi"
+  created_at?: string
+  updated_at?: string
+}
+
+export interface ProgrammerDashboardLaporan {
+  id: string
+  laporan_progress?: string
+  status?: string
+  is_submitted_to_verified?: boolean
+  permintaan?: {
+    id: string
+    pemda?: DashboardPemda | string
+    aplikasi?: DashboardAplikasi | string
+    menu?: string
+    kondisi_awal?: string
+    kondisi_diharapkan?: string
+    tanggal_deadline?: string
+  }
+  created_at?: string
+  updated_at?: string
+}
+
+export interface ProgrammerDashboardResponse {
+  total_penugasan: number
+  total_laporan: number
+  penugasan: ProgrammerDashboardPenugasan[]
+  laporan: ProgrammerDashboardLaporan[]
+}
+
+export interface VerifikatorDashboardLaporan {
+  id: string
+  laporan_progress?: string
+  status?: string
+  status_verified?: string
+  is_submitted_to_verified?: boolean
+  permintaan?: {
+    id: string
+    pemda?: DashboardPemda | string
+    aplikasi?: DashboardAplikasi | string
+    menu?: string
+    tanggal_deadline?: string
+  }
+  programmer?: DashboardProgrammer
+  created_at?: string
+  updated_at?: string
+}
+
+export interface VerifikatorDashboardResponse {
+  laporan: VerifikatorDashboardLaporan[]
+}
+
+// ─── Activity feed (dari GET /dashboard/activity) ─────────────
+
+export interface DashboardActivityItem {
+  id?: string
+  event_type: string
+  description?: string
+  created_at: string
+  // payload bervariasi per event_type
+  [key: string]: unknown
+}
+
+export interface DashboardActivityResponse {
+  activities: DashboardActivityItem[]
+}
+
+// ─── UI types ─────────────────────────────────────────────────
 
 export interface AdminPermintaanItem {
   id: string
@@ -119,6 +230,14 @@ export interface ProgrammerDashboardSummary {
   menunggu: number
   revisi: number
   terverifikasi: number
+}
+
+export interface ProgrammerPenugasanSummary {
+  total: number
+  belum_mulai: number
+  sedang_berjalan: number
+  selesai: number
+  revisi: number
 }
 
 export type { ProgrammerDashboardSummary as DashboardSummary }

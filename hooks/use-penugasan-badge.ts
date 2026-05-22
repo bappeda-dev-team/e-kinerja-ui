@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useState } from "react"
 
-import { getPenugasan, markAllPenugasanAsRead } from "@/services/penugasan.service"
+import { getPelaksana, markAllPelaksanaAsRead } from "@/services/penugasan.service"
 
 export const PENUGASAN_ALL_READ_EVENT = "penugasan:all-read"
 
@@ -21,7 +21,7 @@ export function usePenugasanBadge({ userId }: UsePenugasanBadgeProps) {
     }
 
     try {
-      const res = await getPenugasan()
+      const res = await getPelaksana()
 
       if (res.status !== 200) {
         return null
@@ -44,7 +44,7 @@ export function usePenugasanBadge({ userId }: UsePenugasanBadgeProps) {
     setUnreadCount(0)
 
     try {
-      await markAllPenugasanAsRead()
+      await markAllPelaksanaAsRead()
     } catch {
       // Badge bukan fitur kritis, jadi error diabaikan.
     }

@@ -3,9 +3,9 @@
 import { useEffect, useMemo, useState } from "react"
 import { toast } from "sonner"
 
-import { getLaporan } from "@/services/laporan.service"
-import type { ProgrammerTaskItem, DashboardSummary } from "@/types/dashboard"
-import { mapReportStatus, getProgrammerName } from "./utils"
+import { getProgrammerDashboard } from "@/services/dashboard.service"
+import type { ProgrammerTaskItem, DashboardSummary, ProgrammerDashboardResponse } from "@/types/dashboard"
+import { mapReportStatus } from "./utils"
 import { DashboardStats } from "./DashboardStats"
 import { AttentionPanel } from "./AttentionPanel"
 import { ActivityPanel } from "./ActivityPanel"
@@ -23,7 +23,7 @@ export default function ProgrammerDashboardClient() {
       try {
         setLoading(true)
         setNetworkError(false)
-        const response = await getLaporan()
+        const response = await getProgrammerDashboard()
 
         if (response.status === 0) {
           setNetworkError(true)
@@ -31,25 +31,33 @@ export default function ProgrammerDashboardClient() {
         }
 
         if (response.status !== 200) {
-          throw new Error(response.data?.message || "Gagal memuat data laporan")
+          throw new Error(response.data?.message || "Gagal memuat data dashboard")
         }
 
-        const mappedItems = (response.data?.data ?? []).map((item) => ({
-          id: item.id,
-          pemda: typeof item.permintaan?.pemda === "object" ? (item.permintaan.pemda as any)?.name ?? "-" : (item.permintaan?.pemda as any) ?? "-",
-          kategori: typeof item.permintaan?.aplikasi === "object" ? (item.permintaan.aplikasi as any)?.name ?? "-" : (item.permintaan?.aplikasi as any) ?? "-",
-          menu: item.permintaan?.menu ?? "-",
-          alasan: item.permintaan?.kondisi_diharapkan ?? item.permintaan?.menu ?? "Perbaikan/Fitur Baru",
-          kondisiAwal: item.permintaan?.kondisi_awal ?? "-",
-          kondisiDiharapkan: item.permintaan?.kondisi_diharapkan ?? "-",
-          progress: item.laporan_progress ?? "-",
-          programmer: getProgrammerName(item),
-          status: item.status ?? "putih",
-          statusLabel: mapReportStatus(item.status),
-          deadline: item.permintaan?.tanggal_deadline ?? "",
-          createdAt: item.created_at ?? "",
-          updatedAt: item.updated_at ?? "",
-        }))
+        const d = response.data?.data as ProgrammerDashboardResponse | undefined
+        const laporan = d?.laporan ?? []
+
+        const mappedItems = laporan.map((item) => {
+          const permintaan = item.permintaan
+          const pemda = typeof permintaan?.pemda === "object" ? (permintaan?.pemda as any)?.name ?? "-" : (permintaan?.pemda as any) ?? "-"
+          const aplikasi = typeof permintaan?.aplikasi === "object" ? (permintaan?.aplikasi as any)?.name ?? "-" : (permintaan?.aplikasi as any) ?? "-"
+          return {
+            id: item.id,
+            pemda,
+            kategori: aplikasi,
+            alasan: permintaan?.kondisi_diharapkan ?? permintaan?.menu ?? "Perbaikan/Fitur Baru",
+            menu: permintaan?.menu ?? "-",
+            kondisiAwal: permintaan?.kondisi_awal ?? "-",
+            kondisiDiharapkan: permintaan?.kondisi_diharapkan ?? "-",
+            progress: item.laporan_progress ?? "-",
+            programmer: "-",
+            status: item.status ?? "0",
+            statusLabel: mapReportStatus(item.status),
+            deadline: permintaan?.tanggal_deadline ?? "",
+            createdAt: item.created_at ?? "",
+            updatedAt: item.updated_at ?? "",
+          } satisfies ProgrammerTaskItem
+        })
 
         mappedItems.sort((a, b) => new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime())
         setItems(mappedItems)

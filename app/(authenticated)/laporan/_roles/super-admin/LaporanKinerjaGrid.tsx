@@ -22,11 +22,13 @@ function entityLabel(value?: string | { name: string }) {
   return typeof value === "string" ? value : value.name
 }
 
+/** status dari API: "0" | "25" | "50" | "75" | "100" */
 const STATUS_MAP: Record<string, { label: string; className: string }> = {
-  hijau: { label: "Terverifikasi", className: "bg-[#00B69B]/15 text-[#00B69B]" },
-  putih: { label: "Menunggu", className: "bg-orange-50 text-orange-700" },
-  merah: { label: "Ditolak", className: "bg-red-50 text-red-700" },
-  kuning: { label: "Revisi", className: "bg-[#FFA756]/15 text-[#FFA756]" },
+  "100": { label: "Terverifikasi", className: "bg-[#00B69B]/15 text-[#00B69B]" },
+  "0":   { label: "Menunggu", className: "bg-orange-50 text-orange-700" },
+  "25":  { label: "25%", className: "bg-red-50 text-red-700" },
+  "50":  { label: "50%", className: "bg-[#FFA756]/15 text-[#FFA756]" },
+  "75":  { label: "75%", className: "bg-yellow-50 text-yellow-700" },
 }
 
 export default function LaporanKinerjaGrid({ data, loading, showTable, onEdit, onDelete, onSubmitVerifikasi, submittingId }: Props) {
@@ -64,13 +66,13 @@ export default function LaporanKinerjaGrid({ data, loading, showTable, onEdit, o
                   <td className="px-4 py-4 max-w-[200px] truncate">{item.laporan_progress}</td>
                   <td className={`px-4 py-4 font-semibold ${deadlineClass}`}>{formatDate(item.permintaan?.tanggal_deadline)}</td>
                   <td className="px-4 py-4">
-                    <span className={`px-2.5 py-1 rounded-full text-[10px] font-bold ${STATUS_MAP[item.status?.toLowerCase() || ""]?.className || "bg-gray-100"}`}>
-                      {STATUS_MAP[item.status?.toLowerCase() || ""]?.label || item.status}
+                    <span className={`px-2.5 py-1 rounded-full text-[10px] font-bold ${STATUS_MAP[item.status ?? ""]?.className || "bg-gray-100"}`}>
+                      {STATUS_MAP[item.status ?? ""]?.label || item.status}
                     </span>
                   </td>
                   <td className="px-4 py-4">
                     <div className="flex justify-center gap-2">
-                      <Button size="sm" variant="outline" className="h-7 text-xs" disabled={submittingId === item.id || item.status === "hijau"} onClick={() => onSubmitVerifikasi(item)}>
+                      <Button size="sm" variant="outline" className="h-7 text-xs" disabled={submittingId === item.id || item.status === "100"} onClick={() => onSubmitVerifikasi(item)}>
                         {submittingId === item.id ? "..." : <SendHorizonal className="h-3 w-3" />}
                       </Button>
                       <DropdownMenu>

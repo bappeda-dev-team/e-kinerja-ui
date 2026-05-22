@@ -26,7 +26,9 @@ export default function LaporanKinerjaCard({ item, onEdit, onDelete, onSubmitVer
   const programmerName = item.programmer?.full_name ?? "Programmer"
   const initials = programmerName.slice(0, 2).toUpperCase()
   const lampiran = item.permintaan?.lampiran ?? []
-  const isVerifikasiDisabled = Boolean(isSubmitting || item.status === "hijau" || isAlreadySubmitted)
+  const verifObj = Array.isArray(item.verifikasi) ? item.verifikasi[0] : item.verifikasi
+  const isApproved = verifObj?.status_verified === "approved" || parseInt(item.status ?? "", 10) === 100
+  const isVerifikasiDisabled = Boolean(isSubmitting || isApproved || isAlreadySubmitted)
   const progressValue = mapStatusToProgress(item.status)
   const progressBadgeClass = getProgressBadgeClass(progressValue)
 
@@ -39,7 +41,7 @@ export default function LaporanKinerjaCard({ item, onEdit, onDelete, onSubmitVer
           </div>
           <div className="min-w-0">
             <p className="line-clamp-2 text-base font-bold leading-tight text-[#202224] sm:text-sm">{entityLabel(item.permintaan?.pemda)}</p>
-            <p className="line-clamp-2 break-words text-sm font-semibold text-blue-500 sm:text-xs">{entityLabel(item.permintaan?.aplikasi) || "E-Kinerja"}</p>
+            <p className="line-clamp-2 wrap-break-word text-sm font-semibold text-blue-500 sm:text-xs">{entityLabel(item.permintaan?.aplikasi) || "E-Kinerja"}</p>
           </div>
         </div>
         <DropdownMenu>
@@ -78,7 +80,7 @@ export default function LaporanKinerjaCard({ item, onEdit, onDelete, onSubmitVer
 
       <Button size="sm" className="mt-2 w-full py-5 text-sm" disabled={isVerifikasiDisabled} onClick={() => onSubmitVerifikasi(item)}>
         <SendHorizonal className="h-4 w-4 mr-2" />
-        {isSubmitting ? "Mengajukan..." : isAlreadySubmitted ? "Sudah Diajukan" : item.status === "hijau" ? "Terverifikasi" : "Ajukan Verifikasi"}
+        {isSubmitting ? "Mengajukan..." : isAlreadySubmitted ? "Sudah Diajukan" : isApproved ? "Terverifikasi" : "Ajukan Verifikasi"}
       </Button>
     </div>
   )

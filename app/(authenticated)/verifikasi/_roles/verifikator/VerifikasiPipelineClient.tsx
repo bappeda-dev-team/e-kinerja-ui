@@ -61,17 +61,14 @@ function getUserLabel(user?: { id?: string; username?: string; full_name?: strin
   return "-"
 }
 
+/** status laporan dari API: "0" | "25" | "50" | "75" | "100" */
 function getProgressFromStatus(item: VerifikasiResponse, status: VerifikasiStatus) {
-  const laporanStatus = item.laporan?.status?.trim().toLowerCase()
-  if (laporanStatus === "hijau") return 100
-  if (laporanStatus === "kuning") return 75
-  if (laporanStatus === "merah") return 25
-
-  const extractedProgress = item.laporan?.laporan_progress?.match(/(\d{1,3})\s*%/)
-  const progressValue = extractedProgress?.[1] ? Number(extractedProgress[1]) : Number.NaN
-  if (Number.isFinite(progressValue) && progressValue >= 0 && progressValue <= 100) {
-    return progressValue
-  }
+  const n = parseInt(item.laporan?.status?.trim() ?? "", 10)
+  if (n === 100) return 100
+  if (n === 75) return 75
+  if (n === 50) return 50
+  if (n === 25) return 25
+  if (n === 0) return 0
 
   if (status === "terverifikasi") return 100
   if (status === "revisi") return 45

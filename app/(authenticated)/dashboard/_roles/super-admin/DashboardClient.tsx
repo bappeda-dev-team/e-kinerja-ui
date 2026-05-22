@@ -9,7 +9,7 @@ import StatCards from "./StatCards"
 import RecentRequests from "./RecentRequests"
 import RecentActivity, { PanduanCard } from "./RecentActivity"
 
-import { getSuperadminDashboard } from "@/services/dashboard.service"
+import { getSuperAdminDashboard } from "@/services/dashboard.service"
 
 import type { DashboardPermintaanItem, DashboardDistribusi } from "@/types/dashboard"
 import { getRoleName } from "@/lib/roles"
@@ -40,7 +40,7 @@ export default function DashboardClient({ session }: { session: any }) {
     const fetchAll = async () => {
       try {
         setNetworkError(false)
-        const res = await getSuperadminDashboard()
+        const res = await getSuperAdminDashboard()
 
         if (res.status === 0) {
           setNetworkError(true)

@@ -67,9 +67,9 @@ export default function LaporanKinerjaCard({ item, onEdit, onDelete, onSubmitVer
         </div>
       </div>
 
-      <Button size="sm" className="w-full mt-2" disabled={isSubmitting || item.status === "hijau"} onClick={() => onSubmitVerifikasi(item)}>
+      <Button size="sm" className="w-full mt-2" disabled={isSubmitting || item.status === "100"} onClick={() => onSubmitVerifikasi(item)}>
         <SendHorizonal className="h-4 w-4 mr-2" />
-        {isSubmitting ? "Mengajukan..." : item.status === "hijau" ? "Terverifikasi" : "Ajukan Verifikasi"}
+        {isSubmitting ? "Mengajukan..." : item.status === "100" ? "Terverifikasi" : "Ajukan Verifikasi"}
       </Button>
     </div>
   )

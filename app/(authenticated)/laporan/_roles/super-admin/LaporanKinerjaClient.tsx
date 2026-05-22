@@ -57,11 +57,13 @@ const MONTHS = [
   "Juli", "Agustus", "September", "Oktober", "November", "Desember",
 ]
 
+/** status dari API: "0" | "25" | "50" | "75" | "100" */
 const STATUS_CFG: Record<string, { label: string; dot: string; badge: string }> = {
-  hijau: { label: "Terverifikasi", dot: "bg-[#00B69B]", badge: "bg-[#00B69B]/10 text-[#00B69B]" },
-  putih: { label: "Menunggu", dot: "bg-orange-500", badge: "bg-orange-50 text-orange-700" },
-  merah: { label: "Ditolak", dot: "bg-red-600", badge: "bg-red-50 text-red-700" },
-  kuning: { label: "Revisi", dot: "bg-[#FFA756]", badge: "bg-[#FFA756]/10 text-[#FFA756]" },
+  "100": { label: "Terverifikasi", dot: "bg-[#00B69B]", badge: "bg-[#00B69B]/10 text-[#00B69B]" },
+  "0":   { label: "Menunggu", dot: "bg-orange-500", badge: "bg-orange-50 text-orange-700" },
+  "25":  { label: "Menunggu (25%)", dot: "bg-red-400", badge: "bg-red-50 text-red-700" },
+  "50":  { label: "Revisi / Proses", dot: "bg-[#FFA756]", badge: "bg-[#FFA756]/10 text-[#FFA756]" },
+  "75":  { label: "Hampir Selesai", dot: "bg-yellow-400", badge: "bg-yellow-50 text-yellow-700" },
 }
 
 function entityLabel(value?: string | { name: string }) {
@@ -150,7 +152,7 @@ function RekapPerUser({ data }: { data: LaporanKinerjaItem[] }) {
             const name = programmer?.full_name ?? programmer?.username ?? "Unknown"
             const initials = name.slice(0, 2).toUpperCase()
             const isOpen = expanded[key] ?? true
-            const selesai = items.filter((i) => i.status === "hijau").length
+            const selesai = items.filter((i) => i.status === "100").length
 
             return (
               <div key={key} className="rounded-2xl bg-white border border-gray-200 shadow-[6px_6px_54px_rgba(0,0,0,0.05)] overflow-hidden">
@@ -205,7 +207,7 @@ function RekapPerUser({ data }: { data: LaporanKinerjaItem[] }) {
                         </thead>
                         <tbody>
                           {items.map((item, i) => {
-                            const s = STATUS_CFG[item.status?.toLowerCase() ?? ""] ?? STATUS_CFG.putih
+                            const s = STATUS_CFG[item.status ?? ""] ?? STATUS_CFG["0"]
                             const limitDate = item.permintaan?.tanggal_deadline ? new Date(item.permintaan.tanggal_deadline) : null;
                             const deadline = limitDate ? limitDate.toLocaleDateString("id-ID", { day: "numeric", month: "short", year: "numeric" }) : "-";
                             const isOverdue = limitDate && limitDate < new Date();

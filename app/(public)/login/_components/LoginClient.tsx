@@ -1,6 +1,5 @@
 'use client'
 
-import Image from "next/image"
 import LoginLeftPanel from "./LoginLeftPanel"
 import LoginHeader from "./LoginHeader"
 import LoginForm from "./LoginForm"

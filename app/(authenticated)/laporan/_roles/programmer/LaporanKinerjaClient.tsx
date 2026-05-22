@@ -31,10 +31,12 @@ function entityLabel(value?: string | { name: string }) {
 }
 
 function mapStatusToProgress(status?: string): number {
-  if (status === "hijau") return 100
-  if (status === "kuning") return 55
-  if (status === "merah") return 20
-  return 80
+  const n = parseInt(status ?? "", 10)
+  if (n === 100) return 100
+  if (n === 75) return 75
+  if (n === 50) return 50
+  if (n === 25) return 25
+  return 0
 }
 
 type ReportStatus = "semua" | "menunggu" | "revisi" | "terverifikasi"
@@ -46,10 +48,13 @@ const REPORT_TABS: { id: ReportStatus; label: string }[] = [
   { id: "terverifikasi", label: "Terverifikasi" },
 ]
 
-function mapReportStatus(status?: string): Exclude<ReportStatus, "semua"> {
-  const norm = status?.toLowerCase()
-  if (norm === "hijau" || norm === "terverifikasi") return "terverifikasi"
-  if (norm === "kuning" || norm === "merah" || norm === "revisi") return "revisi"
+/** status dari API: "0" | "25" | "50" | "75" | "100" */
+function mapReportStatus(status?: string, verifikasi?: LaporanKinerjaItem["verifikasi"]): Exclude<ReportStatus, "semua"> {
+  const verifObj = Array.isArray(verifikasi) ? verifikasi[0] : verifikasi
+  if (verifObj?.status_verified === "revision") return "revisi"
+  if (verifObj?.status_verified === "approved") return "terverifikasi"
+  const n = parseInt(status ?? "", 10)
+  if (n === 100) return "terverifikasi"
   return "menunggu"
 }
 
@@ -211,7 +216,7 @@ export default function LaporanKinerjaClient() {
     return data.reduce(
       (acc, item) => {
         acc.semua += 1
-        acc[mapReportStatus(item.status)] += 1
+        acc[mapReportStatus(item.status, item.verifikasi)] += 1
         return acc
       },
       { semua: 0, menunggu: 0, revisi: 0, terverifikasi: 0 }
@@ -220,7 +225,7 @@ export default function LaporanKinerjaClient() {
 
   const filteredItems = useMemo(() => {
     return data.filter(item => {
-      const matchStatus = statusFilter === "semua" || mapReportStatus(item.status) === statusFilter
+      const matchStatus = statusFilter === "semua" || mapReportStatus(item.status, item.verifikasi) === statusFilter
       const lbl = entityLabel(item.permintaan?.pemda).toLowerCase()
       const matchSearch = lbl.includes(searchQuery.toLowerCase())
       return matchStatus && matchSearch

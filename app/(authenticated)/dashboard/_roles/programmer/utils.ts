@@ -1,10 +1,11 @@
 import type { LaporanResponse } from "@/types/laporan"
 import type { ReportStatus } from "@/types/dashboard"
 
+/** status dari API: "0" | "25" | "50" | "75" | "100" */
 export function mapReportStatus(status?: string): ReportStatus {
-  const normalized = status?.toLowerCase()
-  if (normalized === "hijau" || normalized === "terverifikasi") return "terverifikasi"
-  if (normalized === "kuning" || normalized === "merah" || normalized === "revisi") return "revisi"
+  const n = parseInt(status ?? "", 10)
+  if (n === 100) return "terverifikasi"
+  if (n >= 25) return "menunggu"
   return "menunggu"
 }
 

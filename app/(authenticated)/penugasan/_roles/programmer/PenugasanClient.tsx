@@ -10,12 +10,9 @@ import { Button } from "@/components/ui/button"
 import { NetworkError } from "@/components/network-error"
 import { PENUGASAN_ALL_READ_EVENT } from "@/hooks/use-penugasan-badge"
 import { getLaporan } from "@/services/laporan.service"
-import { mapStatusToProgress } from "@/app/(authenticated)/laporan/_roles/programmer/utils"
-
-import { getPenugasan, markAllPenugasanAsRead } from "@/services/penugasan.service"
-import { PenugasanItem, PenugasanResponse } from "@/types/penugasan"
+import { getPelaksana, markAllPelaksanaAsRead } from "@/services/penugasan.service"
+import type { PenugasanItem, PelaksanaResponse } from "@/types/penugasan"
 import PenugasanDetailModal from "./modals/PenugasanDetailModal"
-import { MockLaporan, MOCK_DEADLINE_FALLBACK } from "@/app/(authenticated)/laporan/_roles/programmer/data"
 import type { LaporanResponse } from "@/types/laporan"
 
 type AssignmentFilter = "semua" | "ada-catatan" | "tanpa-catatan"
@@ -61,6 +58,7 @@ export default function PenugasanClient() {
   const { data: session } = useSession()
 
   const [data, setData] = useState<PenugasanItem[]>([])
+  const [laporanList, setLaporanList] = useState<LaporanResponse[]>([])
   const [loading, setLoading] = useState(true)
   const [networkError, setNetworkError] = useState(false)
   const [fetchKey, setFetchKey] = useState(0)
@@ -69,7 +67,6 @@ export default function PenugasanClient() {
   const [currentPage, setCurrentPage] = useState(1)
   const [selectedItem, setSelectedItem] = useState<PenugasanItem | null>(null)
   const [isModalOpen, setIsModalOpen] = useState(false)
-  const [mockLaporan, setMockLaporan] = useState<MockLaporan[]>([])
   const openFrameRef = useRef<number | null>(null)
   const closeTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null)
 
@@ -78,23 +75,12 @@ export default function PenugasanClient() {
     return user?.user_id ?? user?.id ?? ""
   }, [session])
 
-  const mapVerifikasiStatus = (laporan: LaporanResponse): MockLaporan["status"] => {
-    const verifikasi = Array.isArray(laporan.verifikasi)
-      ? laporan.verifikasi[0]
-      : laporan.verifikasi
-
-    const verificationStatus = verifikasi?.status_verified?.toLowerCase()
-    if (verificationStatus === "approved") return "approved"
-    if (verificationStatus === "revision") return "revision"
-    return "pending"
-  }
-
   const fetchData = useCallback(async () => {
     try {
       setLoading(true)
       setNetworkError(false)
 
-      const [res, laporanRes] = await Promise.all([getPenugasan(), getLaporan()])
+      const [res, laporanRes] = await Promise.all([getPelaksana(), getLaporan()])
 
       if (res.status === 0) {
         setNetworkError(true)
@@ -107,13 +93,13 @@ export default function PenugasanClient() {
 
       const rawData = res.data?.data ?? []
       const filteredByUser = currentUserId
-        ? rawData.filter((item: PenugasanResponse) => {
+        ? rawData.filter((item: PelaksanaResponse) => {
             const programmerId = item.programmer?.id ?? ""
             return programmerId ? programmerId === currentUserId : true
           })
         : rawData
 
-      const mapped = filteredByUser.map((item: PenugasanResponse) => ({
+      const mapped = filteredByUser.map((item: PelaksanaResponse) => ({
         id: item.id,
         distribusi_id: item.distribusi?.id ?? "",
         permintaan_id: item.distribusi?.permintaan_id ?? item.distribusi?.permintaan?.id ?? "",
@@ -121,7 +107,7 @@ export default function PenugasanClient() {
         aplikasi: entityLabel(item.distribusi?.aplikasi),
         logo_pemda: entityLogo(item.distribusi?.pemda),
         komentar: item.distribusi?.komentar?.trim() ?? "",
-        tanggal_deadline: item.distribusi?.permintaan?.tanggal_deadline ?? MOCK_DEADLINE_FALLBACK,
+        tanggal_deadline: item.distribusi?.permintaan?.tanggal_deadline ?? "",
         programmer_nama: item.programmer?.full_name ?? item.programmer?.username ?? "Programmer",
         programmer_username: item.programmer?.username ? `@${item.programmer.username}` : "-",
         is_read: item.is_read,
@@ -138,53 +124,17 @@ export default function PenugasanClient() {
       setData(mapped)
 
       if (laporanRes.status === 200) {
-        const penugasanByPermintaanId = new Map(
-          mapped
-            .filter((assignment) => assignment.permintaan_id)
-            .map((assignment) => [assignment.permintaan_id, assignment])
-        )
-
-        const mappedLaporan: MockLaporan[] = (laporanRes.data?.data ?? [])
+        const allLaporan: LaporanResponse[] = (laporanRes.data?.data ?? [])
           .filter((laporan: LaporanResponse) => {
             const programmerId = laporan.programmer?.id ?? ""
             return currentUserId ? programmerId === currentUserId : true
           })
-          .map((laporan: LaporanResponse): MockLaporan | null => {
-            const permintaanId = laporan.permintaan?.id ?? ""
-            const matchedPenugasan = penugasanByPermintaanId.get(permintaanId)
-            if (!matchedPenugasan) return null
-
-            const verifikasi = Array.isArray(laporan.verifikasi)
-              ? laporan.verifikasi[0]
-              : laporan.verifikasi
-
-            const catatanRevisor =
-              verifikasi?.status_verified === "revision" && verifikasi?.komentar
-                ? verifikasi.komentar
-                : undefined
-
-            return {
-              id: laporan.id,
-              penugasan_id: matchedPenugasan.id,
-              permintaan_id: permintaanId,
-              laporan_progress: laporan.laporan_progress,
-              status_progress: mapStatusToProgress(laporan.status),
-              status: mapVerifikasiStatus(laporan),
-              is_sent: laporan.is_submitted_to_verified ?? false,
-              created_at: laporan.created_at ?? new Date().toISOString(),
-              updated_at: laporan.updated_at ?? laporan.created_at ?? new Date().toISOString(),
-              ...(catatanRevisor ? { catatan_revisor: catatanRevisor } : {}),
-            }
-          })
-          .filter((laporan): laporan is MockLaporan => laporan !== null)
-          .sort((a, b) => new Date(b.updated_at).getTime() - new Date(a.updated_at).getTime())
-
-        setMockLaporan(mappedLaporan)
+        setLaporanList(allLaporan)
       } else {
-        setMockLaporan([])
+        setLaporanList([])
       }
 
-      markAllPenugasanAsRead().catch(() => {})
+      markAllPelaksanaAsRead().catch(() => {})
       window.dispatchEvent(new CustomEvent(PENUGASAN_ALL_READ_EVENT))
     } catch (error) {
       const message = error instanceof Error ? error.message : "Terjadi kesalahan sistem"
@@ -239,32 +189,43 @@ export default function PenugasanClient() {
     }
   }, [])
 
+  // Map permintaan_id → penugasan_id untuk mencocokkan laporan ke penugasan
+  const permintaanToPenugasanId = useMemo(() => {
+    const map = new Map<string, string>()
+    for (const item of data) {
+      if (item.permintaan_id) map.set(item.permintaan_id, item.id)
+    }
+    return map
+  }, [data])
+
   const revisionInfoByPenugasan = useMemo(() => {
     const revisionMap = new Map<string, { count: number; latestUpdatedAt: string }>()
 
-    for (const laporan of mockLaporan) {
-      if (laporan.status !== "revision") continue
+    for (const laporan of laporanList) {
+      const verif = Array.isArray(laporan.verifikasi) ? laporan.verifikasi[0] : laporan.verifikasi
+      if (verif?.status_verified !== "revision") continue
 
-      const current = revisionMap.get(laporan.penugasan_id)
+      const permintaanId = laporan.permintaan?.id ?? ""
+      const penugasanId = permintaanToPenugasanId.get(permintaanId)
+      if (!penugasanId) continue
+
+      const updatedAt = laporan.updated_at ?? laporan.created_at ?? ""
+      const current = revisionMap.get(penugasanId)
       if (!current) {
-        revisionMap.set(laporan.penugasan_id, {
-          count: 1,
-          latestUpdatedAt: laporan.updated_at,
-        })
+        revisionMap.set(penugasanId, { count: 1, latestUpdatedAt: updatedAt })
         continue
       }
-
-      revisionMap.set(laporan.penugasan_id, {
+      revisionMap.set(penugasanId, {
         count: current.count + 1,
         latestUpdatedAt:
-          new Date(laporan.updated_at).getTime() > new Date(current.latestUpdatedAt).getTime()
-            ? laporan.updated_at
+          new Date(updatedAt).getTime() > new Date(current.latestUpdatedAt).getTime()
+            ? updatedAt
             : current.latestUpdatedAt,
       })
     }
 
     return revisionMap
-  }, [mockLaporan])
+  }, [laporanList, permintaanToPenugasanId])
 
   const openDetail = (item: PenugasanItem) => {
     if (closeTimeoutRef.current !== null) {
@@ -291,13 +252,9 @@ export default function PenugasanClient() {
     }, SLIDE_TRANSITION_MS)
   }
 
-  const handleAddLaporan = (laporan: MockLaporan) => {
-    setMockLaporan((prev) => [laporan, ...prev])
-  }
-
-  const handleUpdateLaporan = (updated: MockLaporan) => {
-    setMockLaporan((prev) => prev.map((l) => (l.id === updated.id ? updated : l)))
-  }
+  const handleRefresh = useCallback(() => {
+    setFetchKey((k) => k + 1)
+  }, [])
 
   const totalPages = Math.max(1, Math.ceil(filteredItems.length / ITEMS_PER_PAGE))
   const paginatedItems = filteredItems.slice((currentPage - 1) * ITEMS_PER_PAGE, currentPage * ITEMS_PER_PAGE)
@@ -522,9 +479,8 @@ export default function PenugasanClient() {
         open={isModalOpen}
         onClose={closeDetail}
         item={selectedItem}
-        mockLaporan={mockLaporan}
-        onAddLaporan={handleAddLaporan}
-        onUpdateLaporan={handleUpdateLaporan}
+        laporanList={laporanList}
+        onRefresh={handleRefresh}
       />
     </div>
   )

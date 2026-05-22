@@ -3,12 +3,8 @@
 import { useEffect, useMemo, useState } from "react"
 import { toast } from "sonner"
 
-import {
-  getPermintaan,
-} from "@/services/permintaan.service"
-import { getDistribusi } from "@/services/distribusi.service"
-import type { PermintaanResponse, DistribusiResponse } from "@/types/distribusi"
-import type { AdminPermintaanItem, AdminDashboardSummary } from "@/types/dashboard"
+import { getAdminDashboard } from "@/services/dashboard.service"
+import type { AdminPermintaanItem, AdminDashboardSummary, AdminDashboardResponse } from "@/types/dashboard"
 import { AdminDashboardStats } from "./AdminDashboardStats"
 import { PendingPanel } from "./PendingPanel"
 import { RecentDistribusiPanel } from "./RecentDistribusiPanel"
@@ -26,29 +22,32 @@ export default function AdminDashboardClient() {
       try {
         setLoading(true)
         setNetworkError(false)
-        const [permRes, distRes] = await Promise.all([getPermintaan(), getDistribusi()])
-        if (permRes.status === 0 || distRes.status === 0) {
+        const res = await getAdminDashboard()
+
+        if (res.status === 0) {
           setNetworkError(true)
           return
         }
 
+        const d = res.data?.data as AdminDashboardResponse | undefined
+
         const distribusiMap = new Map<string, { id: string; programmers: string[]; updatedAt: string }>()
-        ;(distRes.data?.data ?? []).forEach((d: DistribusiResponse) => {
-          if (d.permintaan?.id) {
-            distribusiMap.set(d.permintaan.id, {
-              id: d.id,
-              programmers: (d.pelaksana ?? []).map((p) => p.full_name ?? p.username ?? "Programmer"),
-              updatedAt: d.updated_at ?? d.created_at ?? "",
+        ;(d?.distribusi ?? []).forEach((dist) => {
+          if (dist.permintaan?.id) {
+            distribusiMap.set(dist.permintaan.id, {
+              id: dist.id,
+              programmers: (dist.pelaksana ?? []).map((p) => p.full_name ?? p.username ?? "Programmer"),
+              updatedAt: dist.updated_at ?? dist.created_at ?? "",
             })
           }
         })
 
-        const mapped: AdminPermintaanItem[] = (permRes.data?.data ?? []).map((p: PermintaanResponse) => {
+        const mapped: AdminPermintaanItem[] = (d?.permintaan ?? []).map((p) => {
           const distribusi = distribusiMap.get(p.id)
           return {
             id: p.id,
             nama_pemda: typeof p.pemda === "object" ? p.pemda?.name ?? "-" : (p.pemda as any) ?? "-",
-            logo_pemda: typeof p.pemda === "object" ? p.pemda?.logo : undefined,
+            logo_pemda: typeof p.pemda === "object" ? (p.pemda as any)?.logo : undefined,
             aplikasi: typeof p.aplikasi === "object" ? p.aplikasi?.name ?? "-" : (p.aplikasi as any) ?? "-",
             menu: p.menu ?? "-",
             deadline: p.tanggal_deadline ?? "",
