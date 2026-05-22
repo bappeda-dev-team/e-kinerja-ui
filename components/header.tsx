@@ -1,8 +1,6 @@
-// components/header.tsx
-
 "use client"
 
-import { useEffect, useState } from "react"
+import { useState, useEffect } from "react"
 import { Session } from "next-auth"
 import { useRouter } from "next/navigation"
 
@@ -15,76 +13,41 @@ import {
 } from "@/components/ui/dropdown-menu"
 
 import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@/components/ui/popover"
-
-import {
   Avatar,
   AvatarFallback,
   AvatarImage,
 } from "@/components/ui/avatar"
 
-import { Settings, LogOut, User, Bell, ChevronDown } from "lucide-react"
-import { fetchApi } from "@/lib/fetcher"
-import type { ApiResponse } from "@/types/api"
+import { Settings, LogOut, User, ChevronDown } from "lucide-react"
 import { logout } from "@/lib/logout"
+import { getMe } from "@/services/profile.service"
+import type { ProfileResponse } from "@/types/profile"
 
 interface HeaderProps {
   title: string
   session: Session | null
 }
 
-interface UserProfile {
-  full_name: string
-  username: string
-  profile_picture?: string
-  role: { name: string; description: string }
-}
-
-const NOTIFIKASI = [
-  { id: "1", pesan: "Permintaan baru dari Pemda Kota Bandung", waktu: "5 menit lalu" },
-  { id: "2", pesan: "Laporan kamu perlu revisi oleh Verifikator", waktu: "20 menit lalu" },
-  { id: "3", pesan: "Permintaan berhasil disetujui", waktu: "2 jam lalu" },
-  { id: "4", pesan: "Permintaan baru dari Pemda Kota Bandung", waktu: "5 menit lalu" },
-  { id: "5", pesan: "Laporan kamu perlu revisi oleh Verifikator", waktu: "20 menit lalu" },
-  { id: "6", pesan: "Permintaan berhasil disetujui", waktu: "2 jam lalu" },
-  { id: "7", pesan: "Permintaan baru dari Pemda Kota Bandung", waktu: "5 menit lalu" },
-  { id: "8", pesan: "Laporan kamu perlu revisi oleh Verifikator", waktu: "20 menit lalu" },
-]
-
 export function Header({ title, session }: HeaderProps) {
   const router = useRouter()
-
   const [mounted, setMounted] = useState(false)
-  const [profile, setProfile] = useState<UserProfile | null>(null)
+  const [profile, setProfile] = useState<ProfileResponse | null>(null)
 
   useEffect(() => { setMounted(true) }, [])
 
-  const userId = (session?.user as any)?.user_id ?? (session?.user as any)?.id
-
   useEffect(() => {
-    if (!userId) return
-
-    const fetchProfile = async () => {
-      const res = await fetchApi<ApiResponse<UserProfile>>({
-        url: `/users/${userId}`,
-        method: "GET",
-      })
-      if (res.status === 200 && res.data?.data) {
-        setProfile(res.data.data)
-      }
-    }
-
-    fetchProfile()
-  }, [userId])
+    if (!session) return
+    getMe().then((res) => {
+      if (res.status === 200 && res.data?.data) setProfile(res.data.data)
+    }).catch(() => {})
+  }, [session])
 
   const displayName = profile?.full_name ?? ""
   const roleLabel = profile?.role?.description ?? ""
+  const profilePicture = profile?.profile_picture ?? ""
   const initials = displayName
     .split(" ")
-    .map((n) => n[0])
+    .map((n: string) => n[0])
     .join("")
     .toUpperCase() || "U"
 
@@ -107,7 +70,7 @@ export function Header({ title, session }: HeaderProps) {
           <DropdownMenuTrigger asChild>
             <button className="flex items-center gap-2 rounded-full focus:outline-none focus:ring-2 focus:ring-primary">
               <Avatar className="h-9 w-9 shrink-0 cursor-pointer">
-                <AvatarImage src={profile?.profile_picture} className="object-cover" />
+                <AvatarImage src={profilePicture} className="object-cover" />
                 <AvatarFallback>{initials}</AvatarFallback>
               </Avatar>
               <div className="flex flex-col items-start leading-tight">

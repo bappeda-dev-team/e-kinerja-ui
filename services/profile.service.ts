@@ -2,6 +2,13 @@ import { fetchApi } from "@/lib/fetcher"
 import type { ApiResponse } from "@/types/api"
 import type { ProfileResponse } from "@/types/profile"
 
+export const getMe = async () => {
+  return fetchApi<ApiResponse<ProfileResponse>>({
+    url: "/me",
+    method: "GET",
+  })
+}
+
 export const getProfileById = async (id: string) => {
   return fetchApi<ApiResponse<ProfileResponse>>({
     url: `/users/${id}`,
