@@ -44,6 +44,7 @@ function mapDashboardLaporan(item: VerifikatorDashboardLaporan): VerifikasiListI
 
 export default function VerifikatorDashboardClient() {
   const [items, setItems] = useState<VerifikasiListItem[]>([])
+  const [totals, setTotals] = useState({ menunggu: 0, revisi: 0, terverifikasi: 0 })
   const [loading, setLoading] = useState(true)
   const [networkError, setNetworkError] = useState(false)
   const [fetchKey, setFetchKey] = useState(0)
@@ -70,6 +71,11 @@ export default function VerifikatorDashboardClient() {
           .sort((a, b) => new Date(b.diperbaruiPada).getTime() - new Date(a.diperbaruiPada).getTime())
 
         setItems(mappedItems)
+        setTotals({
+          menunggu: d?.total_menunggu ?? 0,
+          revisi: d?.total_revisi ?? 0,
+          terverifikasi: d?.total_terverifikasi ?? 0,
+        })
       } catch (error: any) {
         toast.error(error?.message || "Gagal memuat dashboard verifikator")
       } finally {
@@ -81,16 +87,11 @@ export default function VerifikatorDashboardClient() {
   }, [fetchKey])
 
   const summary = useMemo(
-    () =>
-      items.reduce(
-        (acc, item) => {
-          acc.total += 1
-          acc[item.status] += 1
-          return acc
-        },
-        { total: 0, menunggu: 0, revisi: 0, terverifikasi: 0 }
-      ),
-    [items]
+    () => ({
+      total: totals.menunggu + totals.revisi + totals.terverifikasi,
+      ...totals,
+    }),
+    [totals]
   )
 
   const attentionItems = useMemo(() => {

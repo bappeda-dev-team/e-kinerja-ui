@@ -2,12 +2,10 @@
 "use client"
 
 import { useEffect, useRef, useState } from "react"
-import { useSession } from "next-auth/react"
-import { useRouter } from "next/navigation"
 import { toast } from "sonner"
 import { Camera, Loader2, Pencil, User } from "lucide-react"
 
-import { getProfileById, updateProfilePicture } from "@/services/profile.service"
+import { getMe, updateMe, updateMyProfilePicture } from "@/services/profile.service"
 import type { ProfileResponse } from "@/types/profile"
 
 // --- Komponen Hybrid Loader ---
@@ -77,34 +75,24 @@ interface EditableFieldProps {
 }
 
 export default function ProfileClient() {
-  const { data: session, status } = useSession()
-  const router = useRouter()
   const fileInputRef = useRef<HTMLInputElement>(null)
 
   const [profile, setProfile] = useState<ProfileResponse | null>(null)
   const [loading, setLoading] = useState(true)
+  const [saving, setSaving] = useState(false)
   const [uploading, setUploading] = useState(false)
-  
+
   const [isEditing, setIsEditing] = useState(false)
   const [formData, setFormData] = useState({
     full_name: "",
     username: "",
   })
 
-  const userId = (session?.user as any)?.user_id ?? (session?.user as any)?.id
-
   useEffect(() => {
-    if (status === "loading") return
-
-    if (!userId) {
-      setLoading(false)
-      return
-    }
-
     const fetchProfile = async () => {
       try {
         setLoading(true)
-        const res = await getProfileById(userId)
+        const res = await getMe()
         if (res.status === 200) {
           const data = res.data?.data
           setProfile(data ?? null)
@@ -123,19 +111,18 @@ export default function ProfileClient() {
     }
 
     fetchProfile()
-  }, [userId, status])
+  }, [])
 
   const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
-    if (!file || !userId) return
+    if (!file) return
 
     try {
       setUploading(true)
-      const res = await updateProfilePicture(userId, file)
+      const res = await updateMyProfilePicture(file)
       if (res.status === 200) {
         toast.success(res.data?.message || "Foto profil berhasil disimpan")
-        const updated = await getProfileById(userId)
-        if (updated.status === 200) setProfile(updated.data?.data ?? null)
+        setProfile(res.data?.data ?? null)
       } else {
         toast.error(res.data?.message || "Gagal mengunggah foto profil")
       }
@@ -149,16 +136,27 @@ export default function ProfileClient() {
 
   const handleSave = async () => {
     try {
-      setLoading(true)
-      // Simulasi delay panggil API
-      await new Promise(resolve => setTimeout(resolve, 1500))
-      
-      toast.success("Profil berhasil diperbarui")
-      setIsEditing(false)
-    } catch (error) {
-      toast.error("Gagal menyimpan perubahan")
+      setSaving(true)
+      const res = await updateMe({
+        full_name: formData.full_name,
+        username: formData.username,
+      })
+      if (res.status === 200) {
+        const data = res.data?.data
+        setProfile(data ?? null)
+        setFormData({
+          full_name: data?.full_name || "",
+          username: data?.username || "",
+        })
+        toast.success(res.data?.message || "Profil berhasil diperbarui")
+        setIsEditing(false)
+      } else {
+        toast.error(res.data?.message || "Gagal menyimpan perubahan")
+      }
+    } catch (err: any) {
+      toast.error(err?.message || "Gagal menyimpan perubahan")
     } finally {
-      setLoading(false)
+      setSaving(false)
     }
   }
 
@@ -272,11 +270,11 @@ export default function ProfileClient() {
 
             <button
               onClick={handleSave}
-              disabled={loading}
+              disabled={saving}
               className="px-6 py-2.5 rounded-lg transition active:scale-95 font-semibold text-sm text-white disabled:opacity-70 flex items-center justify-center"
               style={{ backgroundColor: "#4880FF", fontFamily: "var(--font-sans)", minWidth: "108px" }}
             >
-              {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : "Simpan"}
+              {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : "Simpan"}
             </button>
           </div>
         )}

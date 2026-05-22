@@ -9,20 +9,22 @@ export const getMe = async () => {
   })
 }
 
-export const getProfileById = async (id: string) => {
+export const updateMe = async (body: { full_name?: string; username?: string }) => {
   return fetchApi<ApiResponse<ProfileResponse>>({
-    url: `/users/${id}`,
-    method: "GET",
+    url: "/me",
+    method: "PATCH",
+    body,
   })
 }
 
-export const updateProfilePicture = async (id: string, file: File) => {
+export const updateMyProfilePicture = async (file: File) => {
   const formData = new FormData()
   formData.append("file", file)
 
   return fetchApi<ApiResponse<ProfileResponse>>({
-    url: `/users/${id}/profile-picture`,
+    url: "/me/profile-picture",
     method: "PATCH",
     body: formData,
   })
 }
+

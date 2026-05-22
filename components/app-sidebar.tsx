@@ -3,6 +3,7 @@
 "use client"
 
 import Link from "next/link"
+import Image from "next/image"
 import { usePathname } from "next/navigation"
 import { useState, useEffect } from "react"
 import { Session } from "next-auth"
@@ -68,10 +69,13 @@ export function AppSidebar({ session }: { session: Session | null }) {
         {/* Expanded: logo + trigger di kanan atas */}
         <div className="hidden group-data-[state=expanded]:flex flex-col items-center w-full relative">
           <SidebarTrigger className="absolute top-0 right-2" />
-          <img
-            src="/logo-e-kinerja.png"
-            alt="E-Kinerja Logo"
-            className="w-16 h-16 object-contain"
+          <Image
+            src="/logo-rm.png"
+            alt="Logo E-Kinerja"
+            width={170}
+            height={170}
+            priority
+            className="object-contain"
           />
           <span className="mt-2 text-lg font-bold text-center">E-Kinerja</span>
           {roleName && (
@@ -119,71 +123,67 @@ export function AppSidebar({ session }: { session: Session | null }) {
                       </SidebarMenuButton>
                     </Collapsible.Trigger>
 
-<Collapsible.Content>
-  <SidebarMenuSub>
+                    <Collapsible.Content>
+                      <SidebarMenuSub>
 
-    <SidebarMenuSubItem>
-      <SidebarMenuSubButton asChild isActive={isActive("/data-master/master-user")}>
-        <Link href={buildPath("/data-master/master-user")} className="group/subitem flex items-center">
-          <User className={`mr-2 h-4 w-4 transition-colors ${
-            isActive("/data-master/master-user")
-              ? "text-blue-600!"
-              : "text-[#202224]! group-hover/subitem:text-blue-600!"
-          }`} />
-          <span className={isActive("/data-master/master-user") ? "text-blue-600" : "text-[#202224] group-hover/subitem:text-blue-600"}>
-            Master User
-          </span>
-        </Link>
-      </SidebarMenuSubButton>
-    </SidebarMenuSubItem>
+                        <SidebarMenuSubItem>
+                          <SidebarMenuSubButton asChild isActive={isActive("/data-master/master-user")}>
+                            <Link href={buildPath("/data-master/master-user")} className="group/subitem flex items-center">
+                              <User className={`mr-2 h-4 w-4 transition-colors ${isActive("/data-master/master-user")
+                                  ? "text-blue-600!"
+                                  : "text-[#202224]! group-hover/subitem:text-blue-600!"
+                                }`} />
+                              <span className={isActive("/data-master/master-user") ? "text-blue-600" : "text-[#202224] group-hover/subitem:text-blue-600"}>
+                                Master User
+                              </span>
+                            </Link>
+                          </SidebarMenuSubButton>
+                        </SidebarMenuSubItem>
 
-    <SidebarMenuSubItem>
-      <SidebarMenuSubButton asChild isActive={isActive("/data-master/master-roles")}>
-        <Link href={buildPath("/data-master/master-roles")} className="group/subitem flex items-center">
-          <Shield className={`mr-2 h-4 w-4 transition-colors ${
-            isActive("/data-master/master-roles")
-              ? "text-blue-600!"
-              : "text-[#202224]! group-hover/subitem:text-blue-600!"
-          }`} />
-          <span className={isActive("/data-master/master-roles") ? "text-blue-600" : "text-[#202224] group-hover/subitem:text-blue-600"}>
-            Master Roles
-          </span>
-        </Link>
-      </SidebarMenuSubButton>
-    </SidebarMenuSubItem>
+                        <SidebarMenuSubItem>
+                          <SidebarMenuSubButton asChild isActive={isActive("/data-master/master-roles")}>
+                            <Link href={buildPath("/data-master/master-roles")} className="group/subitem flex items-center">
+                              <Shield className={`mr-2 h-4 w-4 transition-colors ${isActive("/data-master/master-roles")
+                                  ? "text-blue-600!"
+                                  : "text-[#202224]! group-hover/subitem:text-blue-600!"
+                                }`} />
+                              <span className={isActive("/data-master/master-roles") ? "text-blue-600" : "text-[#202224] group-hover/subitem:text-blue-600"}>
+                                Master Roles
+                              </span>
+                            </Link>
+                          </SidebarMenuSubButton>
+                        </SidebarMenuSubItem>
 
-    <SidebarMenuSubItem>
-      <SidebarMenuSubButton asChild isActive={isActive("/data-master/master-pemda")}>
-        <Link href={buildPath("/data-master/master-pemda")} className="group/subitem flex items-center">
-          <Building2 className={`mr-2 h-4 w-4 transition-colors ${
-            isActive("/data-master/master-pemda")
-              ? "text-blue-600!"
-              : "text-[#202224]! group-hover/subitem:text-blue-600!"
-          }`} />
-          <span className={isActive("/data-master/master-pemda") ? "text-blue-600" : "text-[#202224] group-hover/subitem:text-blue-600"}>
-            Master Pemda
-          </span>
-        </Link>
-      </SidebarMenuSubButton>
-    </SidebarMenuSubItem>
+                        <SidebarMenuSubItem>
+                          <SidebarMenuSubButton asChild isActive={isActive("/data-master/master-pemda")}>
+                            <Link href={buildPath("/data-master/master-pemda")} className="group/subitem flex items-center">
+                              <Building2 className={`mr-2 h-4 w-4 transition-colors ${isActive("/data-master/master-pemda")
+                                  ? "text-blue-600!"
+                                  : "text-[#202224]! group-hover/subitem:text-blue-600!"
+                                }`} />
+                              <span className={isActive("/data-master/master-pemda") ? "text-blue-600" : "text-[#202224] group-hover/subitem:text-blue-600"}>
+                                Master Pemda
+                              </span>
+                            </Link>
+                          </SidebarMenuSubButton>
+                        </SidebarMenuSubItem>
 
-    <SidebarMenuSubItem>
-      <SidebarMenuSubButton asChild isActive={isActive("/data-master/master-aplikasi")}>
-        <Link href={buildPath("/data-master/master-aplikasi")} className="group/subitem flex items-center">
-          <AppWindow className={`mr-2 h-4 w-4 transition-colors ${
-            isActive("/data-master/master-aplikasi")
-              ? "text-blue-600!"
-              : "text-[#202224]! group-hover/subitem:text-blue-600!"
-          }`} />
-          <span className={isActive("/data-master/master-aplikasi") ? "text-blue-600" : "text-[#202224] group-hover/subitem:text-blue-600"}>
-            Master Aplikasi
-          </span>
-        </Link>
-      </SidebarMenuSubButton>
-    </SidebarMenuSubItem>
+                        <SidebarMenuSubItem>
+                          <SidebarMenuSubButton asChild isActive={isActive("/data-master/master-aplikasi")}>
+                            <Link href={buildPath("/data-master/master-aplikasi")} className="group/subitem flex items-center">
+                              <AppWindow className={`mr-2 h-4 w-4 transition-colors ${isActive("/data-master/master-aplikasi")
+                                  ? "text-blue-600!"
+                                  : "text-[#202224]! group-hover/subitem:text-blue-600!"
+                                }`} />
+                              <span className={isActive("/data-master/master-aplikasi") ? "text-blue-600" : "text-[#202224] group-hover/subitem:text-blue-600"}>
+                                Master Aplikasi
+                              </span>
+                            </Link>
+                          </SidebarMenuSubButton>
+                        </SidebarMenuSubItem>
 
-  </SidebarMenuSub>
-</Collapsible.Content>
+                      </SidebarMenuSub>
+                    </Collapsible.Content>
                   </SidebarMenuItem>
                 </Collapsible.Root>
               )}

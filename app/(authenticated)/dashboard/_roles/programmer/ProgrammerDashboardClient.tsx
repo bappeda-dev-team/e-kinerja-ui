@@ -52,7 +52,7 @@ export default function ProgrammerDashboardClient() {
             progress: item.laporan_progress ?? "-",
             programmer: "-",
             status: item.status ?? "0",
-            statusLabel: mapReportStatus(item.status),
+            statusLabel: mapReportStatus(item.status_verified),
             deadline: permintaan?.tanggal_deadline ?? "",
             createdAt: item.created_at ?? "",
             updatedAt: item.updated_at ?? "",
