@@ -4,8 +4,6 @@ import type { PelaksanaResponse } from "@/types/penugasan"
 import type { PenugasanDetail, PenugasanDetailRequest, UpdatePenugasanStatusRequest, ReassignPenugasanRequest } from "@/types/penugasan"
 import type { LaporanResponse } from "@/types/laporan"
 
-// ─── Pelaksana (distribusi_pelaksana) — notifikasi assignment ─────
-
 export const getPelaksana = async () => {
   return fetchApi<ApiResponse<PelaksanaResponse[]>>({
     url: "/pelaksana",
@@ -13,20 +11,12 @@ export const getPelaksana = async () => {
   })
 }
 
-/** @deprecated Gunakan getPelaksana() */
-export const getPenugasan = getPelaksana
-
 export const markAllPelaksanaAsRead = async () => {
   return fetchApi<ApiResponse<null>>({
     url: "/pelaksana/mark-all-read",
     method: "PATCH",
   })
 }
-
-/** @deprecated Gunakan markAllPelaksanaAsRead() */
-export const markAllPenugasanAsRead = markAllPelaksanaAsRead
-
-// ─── Penugasan — detail tugas per distribusi_pelaksana ────────────
 
 export const getPenugasanList = async (params?: { pelaksana_id?: string; distribusi_id?: string }) => {
   const query = new URLSearchParams()
@@ -84,8 +74,6 @@ export const deletePenugasanDetail = async (id: string) => {
     method: "DELETE",
   })
 }
-
-// ─── Laporan dari penugasan page ──────────────────────────────────
 
 export const createPenugasanLaporan = async (data: FormData) => {
   return fetchApi<ApiResponse<LaporanResponse>>({

@@ -7,6 +7,7 @@ export interface VerifikasiRequest {
 
 export interface VerifikasiResponse {
   id: string;
+  distribusi_id?: string;
   status_verified: string;
   komentar?: string | null;
   created_at: string;

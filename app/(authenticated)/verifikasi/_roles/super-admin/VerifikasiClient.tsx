@@ -43,6 +43,7 @@ export interface VerifikasiItem {
   id: string
   id_laporan: string
   id_permintaan: string
+  distribusi_id: string
   programmer_id: string
   // Permintaan
   pemda_name: string
@@ -90,6 +91,7 @@ export default function VerifikasiClient() {
           id: item.id,
           id_laporan: laporanId,
           id_permintaan: item.permintaan?.id || "",
+          distribusi_id: item.distribusi_id || "",
           programmer_id: item.laporan?.programmer?.id || "",
           // Permintaan
           pemda_name: item.permintaan?.pemda?.name || "-",
