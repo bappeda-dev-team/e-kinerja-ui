@@ -8,7 +8,7 @@ const PANDUAN_URL = "https://drive.google.com/drive/folders/1b7OQHVz00rMGBS3reA5
 
 function PanduanCard() {
   return (
-    <div className="rounded-2xl bg-white p-5 shadow-[6px_6px_54px_rgba(0,0,0,0.05)] flex flex-col gap-4">
+    <div className="rounded-2xl border border-gray-200 bg-white p-5 shadow-sm flex flex-col gap-4">
       <div className="flex items-center gap-3">
         <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-orange-50">
           <BookOpen className="h-5 w-5 text-orange-500" />
@@ -57,7 +57,7 @@ export default function RecentActivity({ data, loading }: Props) {
   const hasMore = data.length > PREVIEW_COUNT
 
   return (
-    <div className="rounded-2xl bg-white p-6 shadow-[6px_6px_54px_rgba(0,0,0,0.05)]">
+    <div className="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm">
       <div className="flex items-center justify-between mb-4">
         <h2 className="text-lg font-bold text-[#202224]">Aktivitas Terbaru</h2>
         {hasMore && (

@@ -26,8 +26,8 @@ export function AttentionPanel({ items, loading }: Props) {
   const paginated = items.slice((page - 1) * PER_PAGE, page * PER_PAGE)
 
   return (
-    <div className="lg:col-span-2 xl:col-span-3 rounded-2xl border border-gray-100 bg-white shadow-sm flex flex-col">
-      <div className="border-b border-gray-100 px-6 py-5">
+    <div className="lg:col-span-2 xl:col-span-3 rounded-2xl border border-gray-200 bg-white shadow-sm flex flex-col">
+      <div className="border-b border-gray-200 px-6 py-5">
         <div className="flex items-center gap-2 text-gray-900">
           <AlertCircle className="h-5 w-5 text-red-500" />
           <h2 className="text-lg font-bold">Perlu Perhatian Segera</h2>
@@ -43,7 +43,7 @@ export function AttentionPanel({ items, loading }: Props) {
         ) : (
           <div className="flex flex-col gap-2">
             {paginated.map((item, index) => {
-              const isRevisi = item.statusLabel === "revisi"
+              const isRevisi = item.statusLabel === "revision"
               return (
                 <div
                   key={`${item.id}-${index}`}

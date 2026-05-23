@@ -106,7 +106,7 @@ export default function RecentRequests({ data, loading }: Props) {
   useEffect(() => { setPage(1); }, [data]);
 
   return (
-    <div className="rounded-2xl bg-white p-6 shadow-[6px_6px_54px_rgba(0,0,0,0.05)]">
+    <div className="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm">
       <div className="flex items-center justify-between mb-4">
         <h2 className="text-lg font-bold text-[#202224]">Permintaan Terbaru</h2>
       </div>

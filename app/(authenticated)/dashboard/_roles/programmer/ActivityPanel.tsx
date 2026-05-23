@@ -20,8 +20,8 @@ function EmptyState({ label }: { label: string }) {
 }
 
 function getActivityLabel(statusLabel: ProgrammerTaskItem["statusLabel"]) {
-  if (statusLabel === "terverifikasi") return "Laporan berhasil diverifikasi."
-  if (statusLabel === "revisi") return "Laporan dikembalikan untuk revisi."
+  if (statusLabel === "approved") return "Laporan berhasil diverifikasi."
+  if (statusLabel === "revision") return "Laporan dikembalikan untuk revisi."
   return "Laporan diajukan dan sedang menunggu verifikasi."
 }
 
@@ -31,8 +31,8 @@ export function ActivityPanel({ items, loading }: Props) {
   const hasMore = items.length > PER_PAGE
 
   return (
-    <div className="lg:col-span-1 rounded-2xl border border-gray-100 bg-white shadow-sm flex flex-col">
-      <div className="border-b border-gray-100 px-6 py-5 flex items-center justify-between">
+    <div className="lg:col-span-1 rounded-2xl border border-gray-200 bg-white shadow-sm flex flex-col">
+      <div className="border-b border-gray-200 px-6 py-5 flex items-center justify-between">
         <div>
           <h2 className="text-lg font-bold text-gray-900">Aktivitas Terbaru</h2>
           <p className="mt-1 text-sm text-gray-500">Timeline update terkini.</p>
@@ -55,8 +55,8 @@ export function ActivityPanel({ items, loading }: Props) {
         ) : (
           <div className="relative border-l-2 border-gray-100 ml-3 space-y-6">
             {visible.map((item, index) => {
-              const isVerif = item.statusLabel === "terverifikasi"
-              const isRevisi = item.statusLabel === "revisi"
+              const isVerif = item.statusLabel === "approved"
+              const isRevisi = item.statusLabel === "revision"
               const colorClass = isVerif ? "bg-emerald-500" : isRevisi ? "bg-red-500" : "bg-amber-500"
 
               return (

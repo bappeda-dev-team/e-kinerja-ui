@@ -46,7 +46,7 @@ export function AdminDashboardStats({ summary }: Props) {
           <Link
             key={card.label}
             href={card.href}
-            className="rounded-2xl border border-gray-100 bg-white p-5 shadow-sm transition-all hover:shadow-md focus:outline-none focus:ring-2 focus:ring-blue-500/50"
+            className="rounded-2xl border border-gray-200 bg-white p-5 shadow-sm transition-all hover:shadow-md focus:outline-none focus:ring-2 focus:ring-blue-500/50"
           >
             <div className="flex items-start justify-between">
               <div>

@@ -77,7 +77,7 @@ export default function DashboardClient({ session }: { session: any }) {
         <div className="flex flex-1 flex-col gap-4 min-h-screen">
           <h1 className="text-3xl font-bold text-[#202224]">Dashboard</h1>
 
-          <div className="rounded-2xl bg-white p-6 shadow-[6px_6px_54px_rgba(0,0,0,0.05)] max-w-md">
+          <div className="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm max-w-md">
             <h2 className="text-base font-bold text-[#202224] mb-4">Informasi Akun</h2>
             <div className="flex flex-col gap-3 text-sm">
               <div className="flex items-center gap-3 text-[#202224]/80">

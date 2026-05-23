@@ -17,7 +17,7 @@ export default function ActivityFeed({ items, loading }: ActivityFeedProps) {
   const hasMore = items.length > PREVIEW_COUNT
 
   return (
-    <div className="rounded-[20px] bg-white p-6 shadow-[6px_6px_54px_rgba(0,0,0,0.05)]">
+    <div className="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm">
       <div className="mb-5 flex items-center justify-between">
         <div className="flex items-center gap-3">
           <div className="flex h-12 w-12 items-center justify-center rounded-full bg-[#EEF3FF]">

@@ -37,8 +37,8 @@ export function RecentDistribusiPanel({ items, loading }: Props) {
   const hasMore = items.length > PER_PAGE
 
   return (
-    <div className="lg:col-span-1 rounded-2xl border border-gray-100 bg-white shadow-sm flex flex-col">
-      <div className="border-b border-gray-100 px-6 py-5 flex items-center justify-between">
+    <div className="lg:col-span-1 rounded-2xl border border-gray-200 bg-white shadow-sm flex flex-col">
+      <div className="border-b border-gray-200 px-6 py-5 flex items-center justify-between">
         <div>
           <h2 className="text-lg font-bold text-gray-900">Distribusi Terbaru</h2>
           <p className="mt-1 text-sm text-gray-500">Pekerjaan yang baru saja didistribusikan.</p>

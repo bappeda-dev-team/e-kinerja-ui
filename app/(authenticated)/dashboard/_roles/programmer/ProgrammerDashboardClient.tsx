@@ -78,13 +78,13 @@ export default function ProgrammerDashboardClient() {
         acc[item.statusLabel] += 1
         return acc
       },
-      { total: 0, menunggu: 0, revisi: 0, terverifikasi: 0 }
+      { total: 0, pending: 0, revision: 0, approved: 0 }
     )
   }, [items])
 
   const needsAttention = useMemo(() => {
     return items
-      .filter((item) => item.statusLabel === "revisi" || item.statusLabel === "menunggu")
+      .filter((item) => item.statusLabel === "revision" || item.statusLabel === "pending")
       .sort((a, b) => {
         const tA = new Date(a.deadline).getTime()
         const tB = new Date(b.deadline).getTime()

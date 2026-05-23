@@ -14,7 +14,7 @@ interface AttentionListProps {
 
 export default function AttentionList({ items, loading }: AttentionListProps) {
   return (
-    <div className="rounded-[20px] bg-white p-6 shadow-[6px_6px_54px_rgba(0,0,0,0.05)]">
+    <div className="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm">
       <div className="mb-5">
         <div>
           <h2 className="text-2xl font-bold text-[#202224]">Perlu Perhatian Segera</h2>

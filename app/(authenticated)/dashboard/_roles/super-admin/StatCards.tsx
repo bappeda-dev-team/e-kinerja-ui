@@ -54,7 +54,7 @@ export default function StatCards({ totalPermintaan, totalDistribusi, totalLapor
           <Link
             key={card.label}
             href={card.href}
-            className="rounded-2xl bg-white p-5 shadow-[6px_6px_54px_rgba(0,0,0,0.05)] flex items-center justify-between hover:shadow-[6px_6px_54px_rgba(0,0,0,0.12)] transition-shadow cursor-pointer"
+            className="rounded-2xl border border-gray-200 bg-white p-5 shadow-sm flex items-center justify-between transition-all hover:shadow-md cursor-pointer"
           >
             <div className="flex flex-col gap-1">
               <span className="text-sm text-[#202224]/70 font-semibold">

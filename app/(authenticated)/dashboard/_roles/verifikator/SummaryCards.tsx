@@ -9,7 +9,7 @@ interface SummaryCardsProps {
 export default function SummaryCards({ menunggu, revisi, terverifikasi }: SummaryCardsProps) {
   return (
     <div className="grid gap-5 md:grid-cols-3">
-      <div className="rounded-[20px] bg-white p-6 shadow-[6px_6px_54px_rgba(0,0,0,0.05)]">
+      <div className="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm">
         <div className="mb-5 flex items-start justify-between">
           <div>
             <p className="text-base font-semibold text-[#202224]/70">Menunggu Verifikasi</p>
@@ -24,7 +24,7 @@ export default function SummaryCards({ menunggu, revisi, terverifikasi }: Summar
         </p>
       </div>
 
-      <div className="rounded-[20px] bg-white p-6 shadow-[6px_6px_54px_rgba(0,0,0,0.05)]">
+      <div className="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm">
         <div className="mb-5 flex items-start justify-between">
           <div>
             <p className="text-base font-semibold text-[#202224]/70">Perlu Revisi</p>
@@ -37,7 +37,7 @@ export default function SummaryCards({ menunggu, revisi, terverifikasi }: Summar
         <p className="text-sm font-semibold text-[#202224]/70">Perlu follow up ke programmer agar perbaikan cepat selesai.</p>
       </div>
 
-      <div className="rounded-[20px] bg-white p-6 shadow-[6px_6px_54px_rgba(0,0,0,0.05)]">
+      <div className="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm">
         <div className="mb-5 flex items-start justify-between">
           <div>
             <p className="text-base font-semibold text-[#202224]/70">Terverifikasi</p>

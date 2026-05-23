@@ -197,7 +197,7 @@ export interface AdminDashboardSummary {
   belumDistribusi: number
 }
 
-export type ReportStatus = "menunggu" | "revisi" | "terverifikasi"
+export type ReportStatus = "pending" | "revision" | "approved"
 
 export interface ProgrammerTaskItem {
   id: string
@@ -218,9 +218,9 @@ export interface ProgrammerTaskItem {
 
 export interface ProgrammerDashboardSummary {
   total: number
-  menunggu: number
-  revisi: number
-  terverifikasi: number
+  pending: number
+  revision: number
+  approved: number
 }
 
 export interface ProgrammerPenugasanSummary {

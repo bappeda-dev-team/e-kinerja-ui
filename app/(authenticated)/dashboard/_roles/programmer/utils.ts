@@ -1,16 +1,10 @@
 import type { LaporanResponse } from "@/types/laporan"
 import type { ReportStatus } from "@/types/dashboard"
 
-/**
- * Mapping ke label UI berdasarkan `status_verified` dari verifikasi terbaru.
- * - "approved" → terverifikasi
- * - "revision" → revisi
- * - "pending" / "" / undefined → menunggu
- */
 export function mapReportStatus(statusVerified?: string): ReportStatus {
-  if (statusVerified === "approved") return "terverifikasi"
-  if (statusVerified === "revision") return "revisi"
-  return "menunggu"
+  if (statusVerified === "approved") return "approved"
+  if (statusVerified === "revision") return "revision"
+  return "pending"
 }
 
 export function formatDate(value?: string) {
